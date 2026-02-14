@@ -4,6 +4,7 @@ import Hero from './components/Hero';
 import AboutUs from './components/AboutUs';
 import Services from './components/Services';
 import Contact from './components/Contact';
+import Footer from './components/Footer';
 
 export default function App() {
   return (
@@ -34,6 +35,10 @@ export default function App() {
         
         <div id="contacto">
           <Contact />
+        </div>
+
+        <div id="footer">
+          <Footer />
         </div>
         
       </main>
