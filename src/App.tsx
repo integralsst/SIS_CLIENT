@@ -1,48 +1,41 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+
+// Componentes Globales (Se ven en todas las páginas)
 import Navbar from './components/Navbar';
 import ThemeToggle from './components/ThemeToggle';
-import Hero from './components/Hero'; 
-import AboutUs from './components/AboutUs';
-import Services from './components/Services';
-import Contact from './components/Contact';
 import Footer from './components/Footer';
+
+// Páginas (Las vistas que cambian)
+import Home from './pages/Home';
 
 export default function App() {
   return (
-    /* Contenedor principal: Aquí se define el fondo y texto base para ambos modos */
-    <div className="min-h-screen bg-gray-50 dark:bg-[#121212] text-gray-900 dark:text-gray-100 transition-colors duration-500 font-sans">
-      
-      {/* Barra de Navegación superior fija */}
-      <Navbar />
-
-      {/* Botón flotante para cambiar el tema siempre visible */}
-      <ThemeToggle />
-
-      {/* Contenido principal con padding-top para compensar la altura de la Navbar fija */}
-      <main className="container mx-auto px-4 pt-24 pb-8">
+    <BrowserRouter>
+      {/* Contenedor principal con flexbox para empujar el Footer al fondo */}
+      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-[#121212] text-gray-900 dark:text-gray-100 transition-colors duration-500 font-sans">
         
-        {/* Secciones con sus respectivos IDs para la navegación */}
-        <div id="inicio">
-          <Hero />
-        </div>
+        {/* Barra de navegación siempre arriba */}
+        <Navbar />
         
-        <div id="nosotros">
-          <AboutUs /> 
-        </div>
+        {/* Botón flotante para modo oscuro */}
+        <ThemeToggle />
 
-        <div id="servicios">
-          <Services />
-        </div>
-        
-        <div id="contacto">
-          <Contact />
-        </div>
+        {/* Contenido dinámico (Aquí React Router inyecta la página correspondiente) */}
+        {/* pt-20 evita que el contenido quede oculto bajo la Navbar */}
+        <main className="flex-grow pt-20">
+          <Routes>
+            {/* Ruta principal: Cuando el usuario entra a tu dominio, carga Home */}
+            <Route path="/" element={<Home />} />
+            
+            {/* Aquí a futuro puedes agregar más rutas, por ejemplo: */}
+            {/* <Route path="/servicios-detalle" element={<ServicesDetail />} /> */}
+          </Routes>
+        </main>
 
-        <div id="footer">
-          <Footer />
-        </div>
-        
-      </main>
+        {/* Pie de página siempre abajo */}
+        <Footer />
 
-    </div>
+      </div>
+    </BrowserRouter>
   );
 }
