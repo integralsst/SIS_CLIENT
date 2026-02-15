@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 // 1. Aquí importamos tu logo desde la carpeta assets
-import logoSis from '../assets/logo-sis.png'; 
+import logoSis from '../assets/logosis.png'; 
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
