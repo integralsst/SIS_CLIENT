@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+// 1. Aquí importamos tu logo desde la carpeta assets
+import logoSis from '../assets/logo-sis.png'; 
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -18,10 +20,16 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-20">
           
-          {/* Logo */}
+          {/* 2. Sección del Logo Modificada */}
           <div className="flex-shrink-0">
-            <a href="#inicio" className="text-2xl font-extrabold text-gray-900 dark:text-white transition-colors duration-500">
-              <span className="text-blue-600 dark:text-cyan-400 dark:drop-shadow-[0_0_10px_rgba(6,182,212,0.8)]">SIS</span> SAS
+            <a href="#inicio" className="flex items-center gap-3 transition-transform duration-300 hover:scale-105">
+              {/* Esta es la imagen de tu logo. Ajusta "h-12" si lo quieres más grande o más pequeño */}
+              <img src={logoSis} alt="Logo SIS SAS" className="h-12 w-auto" />
+              
+              {/* Mantenemos el texto al lado, pero se ocultará en celulares muy pequeños (hidden sm:block) para que no choque con el menú */}
+              <span className="text-2xl font-extrabold text-gray-900 dark:text-white transition-colors duration-500 hidden sm:block">
+                <span className="text-blue-600 dark:text-cyan-400 dark:drop-shadow-[0_0_10px_rgba(6,182,212,0.8)]">SIS</span> SAS
+              </span>
             </a>
           </div>
 
