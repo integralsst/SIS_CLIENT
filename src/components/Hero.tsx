@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 // Asegúrate de que esta ruta coincida con tu logo real
-import logoSis from '../assets/logo-sis.png'; 
+import logoSis from '../assets/logosis.png'; 
 
 export default function Hero() {
   return (
