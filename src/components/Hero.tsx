@@ -11,7 +11,7 @@ export default function Hero() {
       >
         <h1 className="text-5xl md:text-7xl font-extrabold text-gray-900 dark:text-white mb-6 transition-colors duration-500 dark:drop-shadow-[0_0_15px_rgba(6,182,212,0.8)]">
           <span className="text-blue-600 dark:text-cyan-400">SIS SAS</span> <br /> 
-          Tu Aliado en SST
+          Tu Aliado en Seguridad y Salud en el Trabajo
         </h1>
         
         <p className="text-lg md:text-2xl text-gray-600 dark:text-gray-300 mb-10 max-w-2xl mx-auto transition-colors duration-500">
