@@ -35,7 +35,7 @@ export default function Hero() {
             <span className="text-3xl md:text-5xl">Tu Aliado en Seguridad y Salud en el Trabajo</span>
           </h1>
           
-          <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-10 transition-colors duration-500">
+          <p className="text-lg md:text-sm text-gray-600 dark:text-gray-300 mb-10 transition-colors duration-500">
             Consultoría y asesoría en el diseño, implementación y mantenimiento del Sistema de Gestión de la Seguridad y Salud en el Trabajo.
           </p>
           
