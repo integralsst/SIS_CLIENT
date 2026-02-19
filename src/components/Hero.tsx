@@ -31,8 +31,8 @@ export default function Hero() {
         {/* COLUMNA DERECHA: Texto y Botón */}
         <div className="w-full md:w-1/2 text-center md:text-left">
           <h1 className="text-5xl md:text-7xl font-extrabold text-gray-900 dark:text-white mb-6 transition-colors duration-500 dark:drop-shadow-[0_0_15px_rgba(6,182,212,0.8)] leading-[0.1]">
-            SIS SAS <br />
-           Tu Aliado en Seguridad y Salud en el Trabajo
+            <span className="text-blue-600 dark:text-cyan-400">SIS SAS</span> <br /> 
+            <span className="text-3xl md:text-5xl">Tu Aliado en Seguridad y Salud en el Trabajo</span>
           </h1>
           
           <p className="text-lg md:text-sm text-gray-600 dark:text-gray-300 mb-10 transition-colors duration-500">
