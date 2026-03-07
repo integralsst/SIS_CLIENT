@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, ChevronRight } from 'lucide-react';
+import { Menu, X, ChevronRight, LogOut, User } from 'lucide-react';
+import { useAuth } from '../context/AuthContext'; // Importamos el hook
 
-// IMPORTA TU LOGO AQUÍ (Ajusta la ruta exacta donde guardaste tu imagen)
 import Logo from '../assets/logosis.webp'; 
 
 const navLinks = [
@@ -12,6 +12,7 @@ const navLinks = [
 ];
 
 const Navbar = () => {
+  const { user, logout } = useAuth(); // Obtenemos el usuario y la función de salir
   const [isScrolled, setIsScrolled] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
@@ -81,14 +82,30 @@ const Navbar = () => {
             ))}
           </nav>
 
-          {/* --- AQUÍ EL CAMBIO 1: Botón Desktop a Link --- */}
+          {/* --- CAMBIO: Botón o Info de Usuario en Desktop --- */}
           <div className="hidden md:flex items-center gap-4">
-            <Link 
-              to="/login"
-              className="px-6 py-2.5 rounded-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-sm shadow-lg shadow-cyan-500/20 transition-all hover:scale-105 border border-white/10"
-            >
-              Iniciar Sesión
-            </Link>
+            {user ? (
+              <div className="flex items-center gap-4 bg-white/5 pl-4 pr-1.5 py-1.5 rounded-full border border-white/10">
+                <div className="flex flex-col items-end">
+                  <span className="text-[10px] uppercase tracking-widest text-slate-500 font-bold leading-none">Hola,</span>
+                  <span className="text-sm font-bold text-white leading-tight">{user.name.split(' ')[0]}</span>
+                </div>
+                <button 
+                  onClick={logout}
+                  className="p-2.5 rounded-full bg-white/5 hover:bg-red-500/10 text-slate-400 hover:text-red-400 transition-all border border-transparent hover:border-red-500/20"
+                  title="Cerrar Sesión"
+                >
+                  <LogOut size={18} />
+                </button>
+              </div>
+            ) : (
+              <Link 
+                to="/login"
+                className="px-6 py-2.5 rounded-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-sm shadow-lg shadow-cyan-500/20 transition-all hover:scale-105 border border-white/10"
+              >
+                Iniciar Sesión
+              </Link>
+            )}
           </div>
 
           {/* Menú Móvil (Botón Hamburguesa) */}
@@ -106,15 +123,24 @@ const Navbar = () => {
       {/* PANEL MÓVIL DESLIZABLE */}
       <div className={`fixed inset-0 z-[100] transition-opacity duration-300 md:hidden ${isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         
-        <div 
-          className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-          onClick={() => setIsMobileMenuOpen(false)} 
-        />
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
         
         <div className={`absolute top-0 right-0 w-[300px] h-full bg-[#0a0a0a]/95 backdrop-blur-2xl border-l border-white/10 flex flex-col transition-transform duration-300 ease-out ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
           
           <div className="p-6 border-b border-white/10 flex items-center justify-between">
-            <img src={Logo} alt="Logo" className="h-8 w-auto object-contain rounded-sm" />
+            {user ? (
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+                  <User size={20} />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-tighter">Bienvenido</span>
+                  <span className="text-sm font-bold text-white truncate max-w-[120px]">{user.name}</span>
+                </div>
+              </div>
+            ) : (
+              <img src={Logo} alt="Logo" className="h-8 w-auto object-contain rounded-sm" />
+            )}
             <button 
               onClick={() => setIsMobileMenuOpen(false)}
               className="p-2 rounded-full bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white transition-all"
@@ -137,15 +163,28 @@ const Navbar = () => {
             ))}
           </div>
 
-          {/* --- AQUÍ EL CAMBIO 2: Botón Móvil a Link --- */}
+          {/* --- CAMBIO: Botón Móvil Dinámico --- */}
           <div className="p-6 border-t border-white/10">
-             <Link 
+            {user ? (
+              <button 
+                onClick={() => {
+                  logout();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="flex items-center justify-center gap-3 w-full rounded-xl py-4 bg-red-500/10 text-red-400 font-bold border border-red-500/20 active:scale-95 transition-all"
+              >
+                <LogOut size={18} />
+                Cerrar Sesión
+              </button>
+            ) : (
+              <Link 
                 to="/login"
-                onClick={() => setIsMobileMenuOpen(false)} // Cierra el menú al hacer clic
-                className="flex items-center justify-center w-full rounded-xl py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold shadow-lg shadow-cyan-900/20 border border-white/10"
-             >
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center justify-center w-full rounded-xl py-4 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold shadow-lg shadow-cyan-900/20 border border-white/10"
+              >
                 Iniciar Sesión
-             </Link>
+              </Link>
+            )}
           </div>
         </div>
       </div>
