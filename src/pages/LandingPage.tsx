@@ -5,48 +5,42 @@ import Comparison from '../components/Comparison';
 export default function LandingPage() {
   return (
     <div className="relative">
-      {/* Fondo con grid sutil y ruido premium */}
       <div className="fixed inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none" />
       <div className="fixed inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
 
-      {/* NOTA: Ya no están aquí ni el Navbar ni el Footer. 
-        App.tsx se encarga de mostrarlos.
-      */}
-
-      {/* Usamos flex y gap más pequeños para acercar los componentes */}
-      <main className="flex flex-col gap-12 md:gap-16 pt-8 pb-16">
+      {/* gap-4 en móvil, gap-8 en desktop. Mucho más pegados que antes */}
+      <main className="flex flex-col gap-4 md:gap-8 pt-4 pb-12">
         
         <Hero />
         
-        {/* Envolvemos Comparison en motion para que aparezca al hacer scroll */}
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-50px" }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
+          viewport={{ once: true, margin: "-20px" }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
         >
           <Comparison />
         </motion.div>
         
-        {/* CTA de cierre animado */}
+        {/* CTA: Menos padding superior, tipografía más comprimida */}
         <motion.section 
-          initial={{ opacity: 0, scale: 0.95 }}
+          initial={{ opacity: 0, scale: 0.98 }}
           whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true, margin: "-50px" }}
+          viewport={{ once: true, margin: "-20px" }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          className="py-12 px-6 text-center relative overflow-hidden"
+          className="pt-12 pb-20 px-6 text-center relative overflow-hidden"
         >
-          {/* Brillo de fondo para el CTA */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-cyan-500/10 blur-[100px] -z-10" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-blue-500/10 blur-[120px] -z-10 pointer-events-none" />
           
-          <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 tracking-tight">
-            ¿Listo para blindar <br className="hidden md:block" /> la seguridad de tu empresa?
+          <h2 className="text-3xl md:text-5xl font-bold text-white mb-4 tracking-tight leading-[1.1]">
+            El estándar de seguridad. <br className="hidden md:block" />
+            <span className="text-slate-400">Automatizado hoy.</span>
           </h2>
-          <p className="text-slate-400 max-w-xl mx-auto mb-10 text-lg">
-            Únete a las empresas que ya automatizaron su gestión SST con estándares de 2026.
+          <p className="text-slate-500 max-w-md mx-auto mb-8 text-sm md:text-base font-medium">
+            Únete a las empresas que ya simplificaron su SST.
           </p>
-          <button className="px-10 py-4 rounded-full bg-white text-black font-extrabold hover:bg-cyan-500 hover:text-white transition-all transform hover:scale-105 active:scale-95 shadow-xl">
-            Hablar con un consultor ahora
+          <button className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-white text-black font-bold text-sm md:text-base hover:bg-slate-200 transition-all hover:scale-[1.02] active:scale-95">
+            Hablar con un experto
           </button>
         </motion.section>
 
