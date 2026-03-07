@@ -1,54 +1,42 @@
+import { Sparkles, CalendarCheck, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
-// Asegúrate de que esta ruta coincida con tu logo real
-import logoSis from '../assets/logosis.png'; 
 
-export default function Hero() {
+const Hero = () => {
   return (
-    <section className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-6 transition-colors duration-500">
+    <section className="relative pt-32 pb-20 px-6 text-center">
+      {/* Glow ambiental */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-cyan-500/10 blur-[120px] -z-10" />
       
-      {/* Contenedor principal: Flexbox para dividir en dos columnas */}
-      <motion.div
-        initial={{ opacity: 0, y: -50 }}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="max-w-7xl mx-auto w-full flex flex-col md:flex-row items-center justify-between gap-12"
+        className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-300 text-[10px] uppercase tracking-widest font-bold mb-8"
       >
-        
-        {/* COLUMNA IZQUIERDA: Logo */}
-        <motion.div 
-          className="w-full md:w-1/2 flex justify-center md:justify-end"
-          whileHover={{ scale: 1.05 }}
-          transition={{ type: "spring", stiffness: 300 }}
-        >
-          <img 
-            src={logoSis} 
-            alt="Logo SIS SAS" 
-            // Ajusta el tamaño aquí (max-w-md lo hace bastante grande, ideal para el Hero)
-            className="w-64 md:w-full max-w-md drop-shadow-2xl dark:drop-shadow-[0_0_25px_rgba(6,182,212,0.4)]" 
-          />
-        </motion.div>
-
-        {/* COLUMNA DERECHA: Texto y Botón */}
-        <div className="w-full md:w-1/2 text-center md:text-left">
-          <h1 className="text-5xl md:text-7xl font-extrabold text-gray-900 dark:text-white mb-6 transition-colors duration-500 dark:drop-shadow-[0_0_15px_rgba(6,182,212,0.8)] leading-[0.1]">
-            <span className="text-blue-600 dark:text-cyan-400">SIS SAS</span> <br /> 
-            <span className="text-2xl  md:text-4xl">Tu Aliado en Seguridad y Salud en el Trabajo</span>
-          </h1>
-          
-          <p className="text-lg md:text-sm text-gray-600 dark:text-gray-300 mb-10 transition-colors duration-500">
-            Consultoría y asesoría en el diseño, implementación y mantenimiento del Sistema de Gestión de la Seguridad y Salud en el Trabajo.
-          </p>
-          
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="bg-blue-600 hover:bg-blue-700 dark:bg-cyan-500 dark:hover:bg-cyan-400 text-white dark:text-gray-950 font-bold px-10 py-4 rounded-full text-lg uppercase tracking-wide transition-all duration-300 hover:shadow-[0_0_20px_rgba(37,99,235,0.4)] dark:hover:shadow-[0_0_20px_rgba(6,182,212,0.6)]"
-          >
-            Solicitar Asesoría
-          </motion.button>
-        </div>
-
+        <Sparkles size={12} /> Gestión SST Inteligente
       </motion.div>
+
+      <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tighter leading-tight max-w-4xl mx-auto">
+        Cumplimiento Legal <br />
+        <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
+          Sin Complicaciones Manuales
+        </span>
+      </h1>
+
+      <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+        Automatiza tus inspecciones, gestiona riesgos en tiempo real y asegura el cumplimiento de la normativa vigente mientras tu equipo se enfoca en lo que importa.
+      </p>
+
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <button className="px-8 py-4 rounded-full bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold text-lg shadow-lg shadow-cyan-500/20 hover:scale-105 transition-transform flex items-center gap-2">
+          <CalendarCheck size={20} /> Agendar Auditoría Gratis
+        </button>
+        <div className="flex items-center gap-2 text-slate-500 text-sm">
+           <ShieldCheck size={16} className="text-green-500" />
+           Certificado bajo estándares 2026
+        </div>
+      </div>
     </section>
   );
-}
+};
+
+export default Hero;
