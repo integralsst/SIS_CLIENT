@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, ChevronRight, Shield } from 'lucide-react';
-import Logo from '../assets/logosis.jpg'; 
+import { Menu, X, ChevronRight } from 'lucide-react';
+
+// IMPORTA TU LOGO AQUÍ (Ajusta la ruta exacta donde guardaste tu imagen)
+import Logo from '../assets/logosis.webp'; 
 
 const navLinks = [
   { name: 'Beneficios', href: '#features' },
@@ -15,7 +17,6 @@ const Navbar = () => {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // --- Lógica exacta de scroll optimizado ---
   useEffect(() => {
     let ticking = false;
     const handleScroll = () => {
@@ -24,9 +25,9 @@ const Navbar = () => {
         window.requestAnimationFrame(() => {
           setIsScrolled(currentScrollY > 20);
           if (currentScrollY > lastScrollY && currentScrollY > 100) {
-            setIsVisible(false); // Oculta al hacer scroll hacia abajo
+            setIsVisible(false); 
           } else {
-            setIsVisible(true);  // Muestra al hacer scroll hacia arriba
+            setIsVisible(true);  
           }
           setLastScrollY(currentScrollY);
           ticking = false;
@@ -53,20 +54,16 @@ const Navbar = () => {
       >
         <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
           
-          {/* Branding / Logo */}
-          <Link to="/" className="relative group z-50 flex items-center gap-3">
+          {/* --- AQUÍ ESTÁ EL CAMBIO: SOLO EL LOGO --- */}
+          <Link to="/" className="relative group z-50 flex items-center">
             <div className="relative">
               <div className="absolute inset-0 bg-cyan-500/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              
-                  <img src={Logo} alt="Logo" className="relative h-10 w-10 object-contain transition-transform duration-300 group-hover:scale-105" /> 
-             
-              <div className="relative h-10 w-10 bg-cyan-500/10 rounded-xl border border-cyan-500/20 flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
-                 <Shield className="text-cyan-500" size={20} />
-              </div>
+              <img 
+                src={Logo} 
+                alt="Logo" 
+                className="relative h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105 rounded-md" 
+              />
             </div>
-            <span className="font-bold text-xl md:text-2xl tracking-tight block text-white transition-colors">
-              SIS<span className="text-cyan-500">.</span>
-            </span>
           </Link>
 
           {/* Navegación Desktop */}
@@ -103,21 +100,19 @@ const Navbar = () => {
         </div>
       </header>
 
-      {/* --- PANEL MÓVIL DESLIZABLE (Nativo sin librerías pesadas) --- */}
+      {/* PANEL MÓVIL DESLIZABLE */}
       <div className={`fixed inset-0 z-[100] transition-opacity duration-300 md:hidden ${isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         
-        {/* Fondo oscuro con blur */}
         <div 
           className="absolute inset-0 bg-black/60 backdrop-blur-sm"
           onClick={() => setIsMobileMenuOpen(false)} 
         />
         
-        {/* Menú lateral */}
         <div className={`absolute top-0 right-0 w-[300px] h-full bg-[#0a0a0a]/95 backdrop-blur-2xl border-l border-white/10 flex flex-col transition-transform duration-300 ease-out ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
           
-          {/* Header Menú Móvil */}
+          {/* Header Menú Móvil - TAMBIÉN SOLO EL LOGO */}
           <div className="p-6 border-b border-white/10 flex items-center justify-between">
-            <span className="font-bold text-xl text-white">SIS.</span>
+            <img src={Logo} alt="Logo" className="h-8 w-auto object-contain rounded-sm" />
             <button 
               onClick={() => setIsMobileMenuOpen(false)}
               className="p-2 rounded-full bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white transition-all"
