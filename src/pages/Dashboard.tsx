@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import { LayoutDashboard, LogOut, Home, ShieldCheck, Briefcase } from 'lucide-react';
+import { LogOut, Home, ShieldCheck, Briefcase } from 'lucide-react';
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
