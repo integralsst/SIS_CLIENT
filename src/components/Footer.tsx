@@ -1,7 +1,7 @@
 import { Mail, Phone, MapPin, Linkedin, Instagram } from 'lucide-react';
 
 // Importamos el logo exactamente igual que en el Navbar
-import Logo from '../assets/logo.png'; 
+import Logo from '../assets/logosis.webp'; 
 
 const Footer = () => {
   return (
