@@ -12,7 +12,7 @@ export default function Footer() {
             <span className="text-blue-600 dark:text-cyan-400">SIS</span> SAS
           </h3>
           <p className="text-gray-600 dark:text-gray-400 transition-colors duration-500">
-            Tu aliado estratégico en Seguridad y Salud en el Trabajo. Protegemos a tu equipo y garantizamos el cumplimiento normativo.
+            Tu aliado estratégico en Seguridaaad y Salud en el Trabajo. Protegemos a tu equipo y garantizamos el cumplimiento normativo.
           </p>
         </div>
 
