@@ -54,7 +54,7 @@ const Navbar = () => {
       >
         <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
           
-          {/* --- AQUÍ ESTÁ EL CAMBIO: SOLO EL LOGO --- */}
+          {/* Logo */}
           <Link to="/" className="relative group z-50 flex items-center">
             <div className="relative">
               <div className="absolute inset-0 bg-cyan-500/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -81,11 +81,14 @@ const Navbar = () => {
             ))}
           </nav>
 
-          {/* Botón Desktop */}
+          {/* --- AQUÍ EL CAMBIO 1: Botón Desktop a Link --- */}
           <div className="hidden md:flex items-center gap-4">
-            <button className="px-6 py-2.5 rounded-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-sm shadow-lg shadow-cyan-500/20 transition-all hover:scale-105 border border-white/10">
+            <Link 
+              to="/login"
+              className="px-6 py-2.5 rounded-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-sm shadow-lg shadow-cyan-500/20 transition-all hover:scale-105 border border-white/10"
+            >
               Iniciar Sesión
-            </button>
+            </Link>
           </div>
 
           {/* Menú Móvil (Botón Hamburguesa) */}
@@ -110,7 +113,6 @@ const Navbar = () => {
         
         <div className={`absolute top-0 right-0 w-[300px] h-full bg-[#0a0a0a]/95 backdrop-blur-2xl border-l border-white/10 flex flex-col transition-transform duration-300 ease-out ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
           
-          {/* Header Menú Móvil - TAMBIÉN SOLO EL LOGO */}
           <div className="p-6 border-b border-white/10 flex items-center justify-between">
             <img src={Logo} alt="Logo" className="h-8 w-auto object-contain rounded-sm" />
             <button 
@@ -121,7 +123,6 @@ const Navbar = () => {
             </button>
           </div>
 
-          {/* Links Móvil */}
           <div className="flex flex-col p-6 gap-2 flex-grow">
             {navLinks.map((link) => (
               <a
@@ -136,11 +137,15 @@ const Navbar = () => {
             ))}
           </div>
 
-          {/* Footer Menú Móvil */}
+          {/* --- AQUÍ EL CAMBIO 2: Botón Móvil a Link --- */}
           <div className="p-6 border-t border-white/10">
-             <button className="w-full rounded-xl py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold shadow-lg shadow-cyan-900/20 border border-white/10">
+             <Link 
+                to="/login"
+                onClick={() => setIsMobileMenuOpen(false)} // Cierra el menú al hacer clic
+                className="flex items-center justify-center w-full rounded-xl py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold shadow-lg shadow-cyan-900/20 border border-white/10"
+             >
                 Iniciar Sesión
-             </button>
+             </Link>
           </div>
         </div>
       </div>
