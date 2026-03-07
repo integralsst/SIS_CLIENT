@@ -3,19 +3,18 @@
 @tailwind utilities;
 
 :root {
-  --background: #020405;
+  --background: #05080a;
   --foreground: #f8fafc;
   --primary: #06b6d4; /* Cyan 500 */
 }
 
 body {
-  background-color: var(--background);
-  color: var(--foreground);
+  @apply bg-[#05080a] text-slate-200 antialiased;
   font-family: 'Inter', sans-serif;
   overflow-x: hidden;
 }
 
-/* Animaciones personalizadas */
+/* Animaciones personalizadas de la landing */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
@@ -25,7 +24,7 @@ body {
   animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
-/* El "Glow" de fondo que viste en Wasaaa */
+/* El "Glow" de fondo tecnológico */
 .bg-gradient-glow {
   background: radial-gradient(circle at 50% -20%, rgba(6, 182, 212, 0.15), transparent 80%);
 }
