@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, ChevronRight, LogOut} from 'lucide-react';
+import { Menu, X, ChevronRight, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 import Logo from '../assets/logosis.webp'; 
@@ -82,10 +82,21 @@ const Navbar = () => {
             ))}
           </nav>
 
-          {/* --- PROPUESTA PREMIUM: Solo Iconos de Usuario y Logout --- */}
+          {/* --- PROPUESTA PREMIUM: Iconos de Usuario y Logout --- */}
           <div className="hidden md:flex items-center gap-3">
             {user ? (
-              <div className="flex items-center gap-2 p-1 pl-1 pr-1 bg-white/5 rounded-full border border-white/10 hover:border-white/20 transition-all">
+              <div className="flex items-center gap-3 p-1 pl-4 pr-1 bg-white/5 rounded-full border border-white/10 hover:border-white/20 transition-all">
+                
+                {/* Link al Dashboard (Desktop) */}
+                <Link 
+                  to="/dashboard" 
+                  className="text-sm font-bold text-slate-300 hover:text-cyan-400 transition-colors"
+                >
+                  Dashboard
+                </Link>
+
+                <div className="w-[1px] h-4 bg-white/20"></div>
+
                 {/* Avatar con inicial */}
                 <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center border border-cyan-500/30 text-cyan-400 text-xs font-bold uppercase">
                   {user.name.charAt(0)}
@@ -122,7 +133,7 @@ const Navbar = () => {
         </div>
       </header>
 
-      {/* PANEL MÓVIL (Mantenemos la info del usuario aquí por usabilidad) */}
+      {/* PANEL MÓVIL */}
       <div className={`fixed inset-0 z-[100] transition-opacity duration-300 md:hidden ${isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
         
@@ -148,6 +159,19 @@ const Navbar = () => {
           </div>
 
           <div className="flex flex-col p-6 gap-2 flex-grow">
+            
+            {/* Link al Dashboard (Mobile) */}
+            {user && (
+              <Link
+                to="/dashboard"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="group flex items-center justify-between p-4 rounded-2xl text-lg font-bold text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 mb-4"
+              >
+                Ir al Dashboard
+                <ChevronRight className="h-4 w-4 opacity-100" />
+              </Link>
+            )}
+
             {navLinks.map((link) => (
               <a
                 key={link.name}

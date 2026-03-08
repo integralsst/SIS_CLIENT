@@ -15,10 +15,11 @@ function AppContent() {
   const { user, loading } = useAuth();
   const location = useLocation();
   
-  // No mostramos Navbar/Footer en el Login ni en el Dashboard para mantener la limpieza visual
+  // No mostramos Navbar/Footer en Login, Dashboard ni en Email Marketing
   const isAuthPage = location.pathname === '/login';
   const isDashboard = location.pathname === '/dashboard';
-  const hideLayout = isAuthPage || isDashboard;
+  const isEmailMarketing = location.pathname === '/email-marketing';
+  const hideLayout = isAuthPage || isDashboard || isEmailMarketing;
 
   // Evitamos parpadeos mientras el contexto recupera la sesión del localStorage
   if (loading) return null;
@@ -38,15 +39,15 @@ function AppContent() {
             element={user ? <Navigate to="/dashboard" /> : <LoginPage />} 
           />
 
-          {/* RUTA PROTEGIDA: Solo entra si existe un usuario */}
+          {/* RUTAS PROTEGIDAS: Solo entra si existe un usuario */}
           <Route 
             path="/dashboard" 
             element={user ? <Dashboard /> : <Navigate to="/login" />} 
           />
           <Route 
-  path="/email-marketing" 
-  element={user ? <EmailMarketing /> : <Navigate to="/login" />} 
-/>
+            path="/email-marketing" 
+            element={user ? <EmailMarketing /> : <Navigate to="/login" />} 
+          />
           
           {/* Redirección por defecto si la ruta no existe */}
           <Route path="*" element={<Navigate to="/" />} />
