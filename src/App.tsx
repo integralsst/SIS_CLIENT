@@ -9,6 +9,7 @@ import Footer from './components/Footer';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
+import EmailMarketing from './pages/EmailMarketing';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -42,6 +43,10 @@ function AppContent() {
             path="/dashboard" 
             element={user ? <Dashboard /> : <Navigate to="/login" />} 
           />
+          <Route 
+  path="/email-marketing" 
+  element={user ? <EmailMarketing /> : <Navigate to="/login" />} 
+/>
           
           {/* Redirección por defecto si la ruta no existe */}
           <Route path="*" element={<Navigate to="/" />} />
