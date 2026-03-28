@@ -1,55 +1,127 @@
 // src/pages/Users.tsx
-import  { useState } from 'react';
-import { UserPlus, MoreHorizontal, Shield, Mail, Building, Search } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { UserPlus, Trash2, Shield, Mail, Building, Search, Loader2, X } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext'; // Ajusta la ruta a tu contexto
 
-// Interfaz temporal para los datos de prueba
 interface UserData {
   id: string;
   name: string;
   email: string;
-  role: 'OWNER' | 'ADMIN' | 'USER';
-  company: string;
-  status: 'Activo' | 'Pendiente';
+  role: 'SUPERADMIN' | 'OWNER' | 'ADMIN' | 'USER';
+  companyId: string | null;
+  company?: { name: string };
+  status?: string; // Lo dejaremos simulado en el front por ahora si no está en la BD
 }
 
-const mockUsers: UserData[] = [
-  { id: '1', name: 'Administrador Principal', email: 'admin@empresa.com', role: 'OWNER', company: 'Consultoría Global', status: 'Activo' },
-  { id: '2', name: 'Carlos Mendoza', email: 'carlos@tecnologia.com', role: 'ADMIN', company: 'TechCorp Solutions', status: 'Activo' },
-  { id: '3', name: 'Ana Ruiz', email: 'ana.ruiz@industrias.com', role: 'USER', company: 'Industrias XYZ', status: 'Pendiente' },
-  { id: '4', name: 'Laura Gómez', email: 'laura@servicios.com', role: 'USER', company: 'Servicios Integrales', status: 'Activo' },
-];
-
 export default function Users() {
+  const [users, setUsers] = useState<UserData[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({ name: '', email: '', password: '', role: 'USER' });
 
-  // Función para renderizar el badge del rol con diferentes colores
-  const getRoleBadge = (role: string) => {
-    switch (role) {
-      case 'OWNER':
-        return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20">PROPIETARIO</span>;
-      case 'ADMIN':
-        return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">ADMIN</span>;
-      default:
-        return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-neutral-800 text-neutral-300 border border-neutral-700">USUARIO</span>;
+  const { token, user: currentUser } = useAuth();
+  
+  const API_URL = import.meta.env.VITE_API_URL 
+    ? `${import.meta.env.VITE_API_URL}/api/users` 
+    : 'http://localhost:4000/api/users';
+
+  const getHeaders = () => ({
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  });
+
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch(API_URL, { headers: getHeaders() });
+      if (!response.ok) throw new Error('Error fetching users');
+      const data = await response.json();
+      setUsers(data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  useEffect(() => {
+    if (token) fetchUsers();
+  }, [token]);
+
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ ...formData, companyId: currentUser?.companyId })
+      });
+      
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Error creando usuario');
+      
+      setFormData({ name: '', email: '', password: '', role: 'USER' });
+      setIsModalOpen(false);
+      fetchUsers();
+    } catch (error: any) {
+      alert(error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id: string, name: string) => {
+    if (!window.confirm(`¿Eliminar al usuario ${name}?`)) return;
+    try {
+      const response = await fetch(`${API_URL}/${id}`, {
+        method: 'DELETE',
+        headers: getHeaders()
+      });
+      if (!response.ok) throw new Error('Error al eliminar');
+      setUsers(users.filter(u => u.id !== id));
+    } catch (error) {
+      alert('Error eliminando usuario');
+    }
+  };
+
+  const getRoleBadge = (role: string) => {
+    switch (role) {
+      case 'OWNER':
+      case 'SUPERADMIN':
+        return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20">{role}</span>;
+      case 'ADMIN':
+        return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">ADMIN</span>;
+      default:
+        return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-neutral-800 text-neutral-300 border border-neutral-700">USER</span>;
+    }
+  };
+
+  const filteredUsers = users.filter(user => 
+    user.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <div className="max-w-7xl mx-auto flex flex-col h-full">
-      {/* Encabezado */}
+    <div className="max-w-7xl mx-auto flex flex-col h-full relative">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Gestión de Usuarios</h1>
-          <p className="text-sm text-neutral-400 mt-1">Administra los accesos y roles de la plataforma multiempresa.</p>
+          <p className="text-sm text-neutral-400 mt-1">Administra los accesos y roles de la plataforma.</p>
         </div>
         
-        <button className="flex items-center gap-2 bg-white text-black px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-neutral-200 transition-colors shadow-lg shadow-white/5 active:scale-95">
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center gap-2 bg-white text-black px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-neutral-200 transition-colors shadow-lg shadow-white/5 active:scale-95"
+        >
           <UserPlus size={18} />
-          <span>Invitar Usuario</span>
+          <span>Nuevo Usuario</span>
         </button>
       </header>
 
-      {/* Barra de herramientas (Buscador y Filtros) */}
       <div className="flex items-center gap-4 mb-6">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
@@ -63,25 +135,25 @@ export default function Users() {
         </div>
       </div>
 
-      {/* Contenedor de la Tabla */}
-      <div className="bg-[#111111] border border-neutral-800/60 rounded-2xl overflow-hidden shadow-xl flex-1">
-        <div className="overflow-x-auto">
+      <div className="bg-[#111111] border border-neutral-800/60 rounded-2xl overflow-hidden shadow-xl flex-1 flex flex-col">
+        <div className="overflow-x-auto flex-1">
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead className="bg-[#0a0a0a] border-b border-neutral-800/60">
               <tr>
                 <th className="px-6 py-4 font-medium text-neutral-400 text-xs uppercase tracking-wider">Usuario</th>
-                <th className="px-6 py-4 font-medium text-neutral-400 text-xs uppercase tracking-wider">Empresa (Tenant)</th>
+                <th className="px-6 py-4 font-medium text-neutral-400 text-xs uppercase tracking-wider">Empresa</th>
                 <th className="px-6 py-4 font-medium text-neutral-400 text-xs uppercase tracking-wider">Rol</th>
-                <th className="px-6 py-4 font-medium text-neutral-400 text-xs uppercase tracking-wider">Estado</th>
                 <th className="px-6 py-4 font-medium text-neutral-400 text-xs uppercase tracking-wider text-right">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-800/60">
-              {mockUsers.map((user) => (
+              {isLoading ? (
+                <tr><td colSpan={4} className="text-center py-10"><Loader2 className="animate-spin mx-auto text-neutral-500" /></td></tr>
+              ) : filteredUsers.map((user) => (
                 <tr key={user.id} className="hover:bg-neutral-800/20 transition-colors group">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-neutral-800 flex items-center justify-center text-white font-bold border border-neutral-700">
+                      <div className="w-9 h-9 rounded-full bg-neutral-800 flex items-center justify-center text-white font-bold border border-neutral-700 uppercase">
                         {user.name.charAt(0)}
                       </div>
                       <div>
@@ -95,7 +167,7 @@ export default function Users() {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2 text-neutral-300">
                       <Building size={14} className="text-neutral-500" />
-                      {user.company}
+                      {user.company?.name || 'Global (Sin empresa)'}
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -104,32 +176,61 @@ export default function Users() {
                       {getRoleBadge(user.role)}
                     </div>
                   </td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium ${user.status === 'Activo' ? 'text-emerald-400 bg-emerald-400/10' : 'text-amber-400 bg-amber-400/10'}`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${user.status === 'Activo' ? 'bg-emerald-400' : 'bg-amber-400'}`}></span>
-                      {user.status}
-                    </span>
-                  </td>
                   <td className="px-6 py-4 text-right">
-                    <button className="text-neutral-500 hover:text-white p-2 rounded-lg hover:bg-neutral-800 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100">
-                      <MoreHorizontal size={18} />
-                    </button>
+                    {currentUser?.id !== user.id && ( // Evitar auto-eliminación
+                      <button 
+                        onClick={() => handleDelete(user.id, user.name)}
+                        className="text-neutral-500 hover:text-red-400 p-2 rounded-lg hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        
-        {/* Paginación simple (Visual) */}
-        <div className="px-6 py-4 border-t border-neutral-800/60 flex items-center justify-between text-xs text-neutral-500">
-          <span>Mostrando 1 a 4 de 4 usuarios</span>
-          <div className="flex gap-1">
-            <button className="px-3 py-1 rounded-md bg-[#0a0a0a] border border-neutral-800 hover:text-white transition-colors disabled:opacity-50" disabled>Anterior</button>
-            <button className="px-3 py-1 rounded-md bg-[#0a0a0a] border border-neutral-800 hover:text-white transition-colors disabled:opacity-50" disabled>Siguiente</button>
-          </div>
+        <div className="px-6 py-4 border-t border-neutral-800/60 text-xs text-neutral-500">
+          Mostrando {filteredUsers.length} usuarios
         </div>
       </div>
+
+      {/* MODAL CREAR USUARIO */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-[#111111] border border-neutral-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="flex justify-between items-center p-6 border-b border-neutral-800">
+              <h3 className="text-lg font-bold text-white">Nuevo Usuario</h3>
+              <button onClick={() => setIsModalOpen(false)} className="text-neutral-500 hover:text-white"><X size={20} /></button>
+            </div>
+            <form onSubmit={handleCreateUser} className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-neutral-400 mb-1">Nombre Completo</label>
+                <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-[#0a0a0a] border border-neutral-800 rounded-xl py-2 px-3 text-sm text-white focus:border-neutral-600 outline-none" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-neutral-400 mb-1">Correo Electrónico</label>
+                <input required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-[#0a0a0a] border border-neutral-800 rounded-xl py-2 px-3 text-sm text-white focus:border-neutral-600 outline-none" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-neutral-400 mb-1">Contraseña Temporal</label>
+                <input required type="password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full bg-[#0a0a0a] border border-neutral-800 rounded-xl py-2 px-3 text-sm text-white focus:border-neutral-600 outline-none" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-neutral-400 mb-1">Rol</label>
+                <select value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} className="w-full bg-[#0a0a0a] border border-neutral-800 rounded-xl py-2 px-3 text-sm text-white focus:border-neutral-600 outline-none">
+                  <option value="USER">Usuario Estándar</option>
+                  <option value="ADMIN">Administrador</option>
+                </select>
+              </div>
+              <button type="submit" disabled={isSubmitting} className="w-full py-2.5 mt-4 rounded-xl text-sm font-bold text-black bg-white hover:bg-neutral-200 disabled:opacity-50">
+                {isSubmitting ? 'Guardando...' : 'Crear Usuario'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
