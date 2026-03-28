@@ -1,6 +1,6 @@
 import { motion, type Variants } from 'framer-motion';
-import Hero from '../components/Hero';
-import Comparison from '../components/Comparison';
+import Hero from '../../components/Hero';
+import Comparison from '../../components/Comparison';
 
 // --- ANIMACIONES TIPO APPLE (Tipadas para TypeScript) ---
 // El "as const" le dice a TS que esto es una tupla exacta, no un array genérico

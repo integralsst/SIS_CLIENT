@@ -1,60 +1,75 @@
-import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 
-// Componentes Globales
+// --- COMPONENTES GLOBALES ---
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import DashboardLayout from './components/DashboardLayout';
 
-// Páginas
-import LandingPage from './pages/LandingPage';
-import LoginPage from './pages/LoginPage';
-import Dashboard from './pages/Dashboard';
-import EmailMarketing from './pages/EmailMarketing';
+// --- PÁGINAS PÚBLICAS ---
+import LandingPage from './pages/public/LandingPage';
+import LoginPage from './pages/public/LoginPage';
+
+// --- PÁGINAS ADMINISTRATIVAS (SaaS) ---
+import Dashboard from './pages/admin/Dashboard';
+import Companies from './pages/admin/Companies';
+import Users from './pages/admin/Users';
+import EmailMarketing from './pages/admin/EmailMarketing';
 
 function AppContent() {
   const { user, loading } = useAuth();
-  const location = useLocation();
-  
-  // No mostramos Navbar/Footer en Login, Dashboard ni en Email Marketing
-  const isAuthPage = location.pathname === '/login';
-  const isDashboard = location.pathname === '/dashboard';
-  const isEmailMarketing = location.pathname === '/email-marketing';
-  const hideLayout = isAuthPage || isDashboard || isEmailMarketing;
 
-  // Evitamos parpadeos mientras el contexto recupera la sesión del localStorage
+  // Evitamos parpadeos mientras el contexto recupera la sesión
   if (loading) return null;
 
   return (
     <div className="min-h-screen flex flex-col bg-[#05080a] text-slate-200 font-sans selection:bg-cyan-500/30">
       
-      {!hideLayout && <Navbar />}
+      {/* ==========================================
+          RUTAS PÚBLICAS (Con Navbar y Footer)
+          ========================================== */}
+      <Routes>
+        <Route 
+          path="/" 
+          element={
+            <>
+              <Navbar />
+              <main className="flex-grow">
+                <LandingPage />
+              </main>
+              <Footer />
+            </>
+          } 
+        />
+        
+        {/* Si el usuario ya está logueado, lo mandamos directo al dashboard */}
+        <Route 
+          path="/login" 
+          element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} 
+        />
 
-      <main className="flex-grow">
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
+        {/* ==========================================
+            RUTAS PRIVADAS (Panel Administrativo SaaS)
+            ========================================== */}
+        <Route 
+          path="/dashboard" 
+          element={user ? <DashboardLayout /> : <Navigate to="/login" replace />}
+        >
+          {/* El 'index' carga el Dashboard inicial al entrar a /dashboard */}
+          <Route index element={<Dashboard />} />
           
-          {/* Si el usuario ya está logueado y va a /login, lo mandamos al dashboard */}
-          <Route 
-            path="/login" 
-            element={user ? <Navigate to="/dashboard" /> : <LoginPage />} 
-          />
+          {/* Vistas anidadas dentro del Layout lateral */}
+          <Route path="empresas" element={<Companies />} />
+          <Route path="usuarios" element={<Users />} />
+          <Route path="email-marketing" element={<EmailMarketing />} />
+        </Route>
 
-          {/* RUTAS PROTEGIDAS: Solo entra si existe un usuario */}
-          <Route 
-            path="/dashboard" 
-            element={user ? <Dashboard /> : <Navigate to="/login" />} 
-          />
-          <Route 
-            path="/email-marketing" 
-            element={user ? <EmailMarketing /> : <Navigate to="/login" />} 
-          />
-          
-          {/* Redirección por defecto si la ruta no existe */}
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-      </main>
-
-      {!hideLayout && <Footer />}
+        {/* ==========================================
+            CATCH-ALL (Redirección de rutas no encontradas)
+            ========================================== */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+        
+      </Routes>
     </div>
   );
 }
