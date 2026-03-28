@@ -1,5 +1,5 @@
 // src/pages/Users.tsx
-import React, { useState } from 'react';
+import  { useState } from 'react';
 import { UserPlus, MoreHorizontal, Shield, Mail, Building, Search } from 'lucide-react';
 
 // Interfaz temporal para los datos de prueba
