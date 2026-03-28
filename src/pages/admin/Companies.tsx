@@ -1,15 +1,16 @@
 // src/pages/admin/Companies.tsx
 import React, { useState, useEffect } from 'react';
 import { Building2, Plus, Search, Users, Contact2, Calendar, Trash2, X, Loader2 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext'; // Importamos el contexto para el token
 
-// Interfaz que coincide con la respuesta de tu backend Prisma
+// Interfaz actualizada para manejar la ausencia de "contacts"
 interface Company {
   id: string;
   name: string;
   taxId: string | null;
   _count: {
     users: number;
-    contacts: number;
+    contacts?: number; // Se hace opcional para coincidir con el backend
   };
   createdAt: string;
 }
@@ -19,20 +20,28 @@ export default function Companies() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   
-  // Estado para el Modal de Crear Empresa
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({ name: '', taxId: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // URL base de tu API (Asegúrate de que el puerto coincida con tu backend)
- const API_URL = import.meta.env.VITE_API_URL 
-  ? `${import.meta.env.VITE_API_URL}/companies` 
-  : 'http://localhost:4000/api/companies';
+  const { token } = useAuth(); // Extraemos el token del contexto
 
-  // 1. READ: Obtener las empresas
+  // Corrección de la ruta de la API
+  const API_URL = import.meta.env.VITE_API_URL 
+    ? `${import.meta.env.VITE_API_URL}/api/companies` 
+    : 'http://localhost:4000/api/companies';
+
+  // Helper para generar los headers con el token
+  const getHeaders = () => ({
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  });
+
   const fetchCompanies = async () => {
     try {
-      const response = await fetch(API_URL);
+      const response = await fetch(API_URL, {
+        headers: getHeaders()
+      });
       if (!response.ok) throw new Error('Error al obtener empresas');
       const data = await response.json();
       setCompanies(data);
@@ -45,23 +54,23 @@ export default function Companies() {
   };
 
   useEffect(() => {
-    fetchCompanies();
-  }, []);
+    if (token) {
+      fetchCompanies();
+    }
+  }, [token]);
 
-  // 2. CREATE: Guardar nueva empresa
   const handleCreateCompany = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
       const response = await fetch(API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify(formData),
       });
       
       if (!response.ok) throw new Error('Error al crear la empresa');
       
-      // Limpiar formulario, cerrar modal y recargar lista
       setFormData({ name: '', taxId: '' });
       setIsModalOpen(false);
       fetchCompanies();
@@ -73,16 +82,17 @@ export default function Companies() {
     }
   };
 
-  // 3. DELETE: Eliminar empresa
   const handleDeleteCompany = async (id: string, name: string) => {
     const confirmDelete = window.confirm(`¿Estás seguro de eliminar "${name}"? Esto borrará todos sus usuarios y contactos.`);
     if (!confirmDelete) return;
 
     try {
-      const response = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+      const response = await fetch(`${API_URL}/${id}`, { 
+        method: 'DELETE',
+        headers: getHeaders()
+      });
       if (!response.ok) throw new Error('Error al eliminar');
       
-      // Actualizar el estado local para no tener que recargar toda la página
       setCompanies(companies.filter(company => company.id !== id));
     } catch (error) {
       console.error(error);
@@ -90,7 +100,6 @@ export default function Companies() {
     }
   };
 
-  // Filtrado de búsqueda
   const filteredCompanies = companies.filter(company => 
     company.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     (company.taxId && company.taxId.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -98,7 +107,6 @@ export default function Companies() {
 
   return (
     <div className="max-w-7xl mx-auto flex flex-col h-full relative">
-      {/* Encabezado */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">Gestión de Empresas</h1>
@@ -114,7 +122,6 @@ export default function Companies() {
         </button>
       </header>
 
-      {/* Barra de Búsqueda */}
       <div className="flex items-center gap-4 mb-6">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
@@ -128,7 +135,6 @@ export default function Companies() {
         </div>
       </div>
 
-      {/* Contenedor de la Tabla */}
       <div className="bg-[#111111] border border-neutral-800/60 rounded-2xl overflow-hidden shadow-xl flex-1 flex flex-col">
         <div className="overflow-x-auto flex-1">
           <table className="w-full text-left text-sm whitespace-nowrap">
@@ -179,7 +185,7 @@ export default function Companies() {
                         </div>
                         <div className="flex items-center gap-1.5 text-neutral-300" title="Contactos/Leads">
                           <Contact2 size={14} className="text-neutral-500" />
-                          <span className="font-medium">{company._count.contacts}</span>
+                          <span className="font-medium">{company._count?.contacts ?? 0}</span>
                         </div>
                       </div>
                     </td>
@@ -205,13 +211,11 @@ export default function Companies() {
           </table>
         </div>
         
-        {/* Footer de la tabla */}
         <div className="px-6 py-4 border-t border-neutral-800/60 text-xs text-neutral-500">
           Mostrando {filteredCompanies.length} empresas registradas
         </div>
       </div>
 
-      {/* MODAL DE CREACIÓN */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-[#111111] border border-neutral-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
