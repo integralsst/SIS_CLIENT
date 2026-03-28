@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 
-import Logo from '../assets/logosis.webp'; 
+import Logo from '../../assets/logosis.webp'; 
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
