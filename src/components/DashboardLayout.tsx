@@ -1,13 +1,19 @@
 // src/components/DashboardLayout.tsx
-import { Outlet, Link, useLocation } from 'react-router-dom';
-// Asumo que usas lucide-react por los íconos de tu proyecto anterior, si no, puedes cambiarlos
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Building2, Users, LogOut } from 'lucide-react';
+import { useAuth } from '../context/AuthContext'; // Asegúrate de que la ruta sea la correcta hacia tu contexto
 
 export default function DashboardLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
 
-  // Función auxiliar para saber si el link está activo y pintarlo diferente
   const isActive = (path: string) => location.pathname === path;
+
+  const handleLogout = () => {
+    logout();
+    navigate('/'); // Redirige a la página de login (o la raíz)
+  };
 
   return (
     <div className="flex h-screen bg-[#0a0a0a] text-white overflow-hidden">
@@ -46,7 +52,10 @@ export default function DashboardLayout() {
         </nav>
 
         <div className="p-4 border-t border-neutral-800/50">
-          <button className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-red-400 hover:bg-red-400/10 transition-colors">
+          <button 
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-red-400 hover:bg-red-400/10 transition-colors"
+          >
             <LogOut size={20} />
             <span className="font-medium text-sm">Cerrar Sesión</span>
           </button>
@@ -55,14 +64,13 @@ export default function DashboardLayout() {
 
       {/* CONTENIDO PRINCIPAL (Derecha) */}
       <main className="flex-1 relative overflow-y-auto">
-        {/* Fondo de grilla que tienes en tu diseño actual */}
+        {/* Fondo de grilla */}
         <div 
           className="absolute inset-0 opacity-[0.03] pointer-events-none" 
           style={{ backgroundImage: 'linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)', backgroundSize: '40px 40px' }} 
         />
         
         <div className="relative z-10 p-8">
-          {/* Aquí es donde React Router inyectará las páginas dinámicamente */}
           <Outlet /> 
         </div>
       </main>
