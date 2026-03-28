@@ -1,12 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-// Definimos la forma del usuario basada en tu modelo de Prisma
-interface User {
+// Definimos la forma del usuario basada en tu nuevo modelo Multi-tenant de Prisma
+export interface User {
   id: string;
   name: string;
   email: string;
-  company?: string;
-  role: 'USER' | 'ADMIN';
+  company?: string;            // Nombre de la empresa (si lo envías desde el backend)
+  companyId?: string | null;   // ID del tenant al que pertenece
+  role: 'USER' | 'ADMIN' | 'OWNER' | 'SUPERADMIN'; // Roles actualizados
 }
 
 interface AuthContextType {

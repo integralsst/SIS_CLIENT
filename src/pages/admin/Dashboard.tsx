@@ -1,110 +1,141 @@
 import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
-import { useNavigate, Link } from 'react-router-dom';
-import { LogOut, Home, ShieldCheck, Briefcase, Mail, ChevronRight } from 'lucide-react';
+import { ShieldCheck, Users, Building2, TrendingUp, Activity, BellRing } from 'lucide-react';
 
 export default function Dashboard() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+  const { user } = useAuth();
 
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-[#05080a] text-white p-6 md:p-12">
-      <div className="fixed inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
-      
-      <main className="max-w-5xl mx-auto relative">
-        {/* Header */}
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
-          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
-            <h1 className="text-4xl font-bold tracking-tight mb-2">Panel de Control</h1>
-            <p className="text-slate-500">Gestión de Seguridad y Salud en el Trabajo</p>
-          </motion.div>
+    <div className="max-w-7xl mx-auto h-full flex flex-col">
+      {/* Header Limpio (Sin botones, ya están en el layout) */}
+      <header className="mb-10">
+        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
+          <h1 className="text-3xl font-bold tracking-tight text-white mb-1">
+            Hola, {user.name.split(' ')[0]} 👋
+          </h1>
+          <p className="text-sm text-neutral-400">
+            Resumen de actividad de <span className="text-neutral-200 font-medium">{user.company || 'tu organización'}</span>.
+          </p>
+        </motion.div>
+      </header>
 
-          <div className="flex items-center gap-4">
-            <Link to="/" className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-sm font-medium">
-              <Home size={16} /> Ir al inicio
-            </Link>
-            <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-all text-sm font-medium">
-              <LogOut size={16} /> Cerrar Sesión
-            </button>
-          </div>
-        </header>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Card de Perfil */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="md:col-span-2 p-8 rounded-[2rem] bg-white/5 border border-white/10 backdrop-blur-md">
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-12 h-12 rounded-2xl bg-cyan-500/20 flex items-center justify-center text-cyan-400">
-                <ShieldCheck size={28} />
+      {/* Grid de Métricas Principales */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {[
+          { title: "Usuarios Activos", value: "12", trend: "+2 este mes", icon: <Users size={20} className="text-blue-400" />, bg: "bg-blue-500/10", border: "border-blue-500/20" },
+          { title: "Empresas Conectadas", value: "4", trend: "Estable", icon: <Building2 size={20} className="text-purple-400" />, bg: "bg-purple-500/10", border: "border-purple-500/20" },
+          { title: "Campañas Enviadas", value: "8", trend: "+12% vs mes anterior", icon: <TrendingUp size={20} className="text-emerald-400" />, bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
+          { title: "Estado del Sistema", value: "Óptimo", trend: "100% Uptime", icon: <Activity size={20} className="text-cyan-400" />, bg: "bg-cyan-500/10", border: "border-cyan-500/20" },
+        ].map((metric, index) => (
+          <motion.div 
+            key={index}
+            initial={{ opacity: 0, y: 20 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: index * 0.1 }}
+            className="p-6 rounded-2xl bg-[#111111] border border-neutral-800/60 shadow-lg relative overflow-hidden group"
+          >
+            <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/5 to-transparent rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+            
+            <div className="flex items-center justify-between mb-4 relative z-10">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${metric.bg} ${metric.border} border`}>
+                {metric.icon}
               </div>
-              <div>
-                <h2 className="text-xl font-bold italic">Bienvenido, {user.name}</h2>
-                <p className="text-slate-400 text-sm">Sesión activa como {user.role}</p>
+            </div>
+            <div className="relative z-10">
+              <h3 className="text-3xl font-bold text-white mb-1 tracking-tight">{metric.value}</h3>
+              <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-2">{metric.title}</p>
+              <p className="text-xs text-neutral-500">{metric.trend}</p>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Sección Inferior: Detalles y Actividad */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1">
+        
+        {/* Card de Perfil Técnico (Reutilizado pero adaptado) */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ delay: 0.4 }} 
+          className="lg:col-span-2 p-8 rounded-[2rem] bg-[#111111] border border-neutral-800/60 flex flex-col justify-between"
+        >
+          <div>
+            <div className="flex items-center gap-3 mb-6">
+              <ShieldCheck className="text-cyan-500" size={24} />
+              <h2 className="text-lg font-bold text-white">Información de Sesión</h2>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 rounded-2xl bg-[#0a0a0a] border border-neutral-800">
+                <p className="text-[10px] uppercase tracking-widest text-neutral-500 font-bold mb-1">Rol Asignado</p>
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                  <p className="text-sm font-medium text-neutral-200">{user.role}</p>
+                </div>
+              </div>
+              <div className="p-4 rounded-2xl bg-[#0a0a0a] border border-neutral-800">
+                <p className="text-[10px] uppercase tracking-widest text-neutral-500 font-bold mb-1">ID de Inquilino (Tenant)</p>
+                <p className="text-sm font-mono text-neutral-400">{user.companyId || 'global-admin-123'}</p>
+              </div>
+              <div className="col-span-2 p-4 rounded-2xl bg-[#0a0a0a] border border-neutral-800">
+                <p className="text-[10px] uppercase tracking-widest text-neutral-500 font-bold mb-1">Correo Electrónico</p>
+                <p className="text-sm font-medium text-neutral-200">{user.email}</p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Panel de Actividad Reciente (Mockup) */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ delay: 0.5 }} 
+          className="p-8 rounded-[2rem] bg-[#111111] border border-neutral-800/60"
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <BellRing className="text-purple-500" size={20} />
+            <h3 className="text-lg font-bold text-white">Actividad Reciente</h3>
+          </div>
+          
+          <div className="space-y-6 relative before:absolute before:inset-0 before:ml-2 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-neutral-800 before:to-transparent">
+            {/* Ítem de actividad 1 */}
+            <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+              <div className="flex items-center justify-center w-4 h-4 rounded-full bg-neutral-900 border-2 border-emerald-500 z-10"></div>
+              <div className="w-[calc(100%-2rem)] md:w-[calc(50%-2rem)] pl-4 md:pl-0 md:pr-4">
+                <div className="p-3 bg-[#0a0a0a] rounded-xl border border-neutral-800/60">
+                  <p className="text-xs text-white font-medium">Nueva empresa registrada</p>
+                  <p className="text-[10px] text-neutral-500 mt-0.5">Hace 2 horas</p>
+                </div>
               </div>
             </div>
             
-            <div className="grid grid-cols-2 gap-4 mt-8">
-              <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
-                <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-1">Empresa</p>
-                <p className="text-lg font-medium">{user.company || 'SIS Consultoría'}</p>
-              </div>
-              <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
-                <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-1">Correo</p>
-                <p className="text-lg font-medium">{user.email}</p>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Card de Estado */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="p-8 rounded-[2rem] bg-white/5 border border-white/10 backdrop-blur-md flex flex-col justify-between">
-            <Briefcase className="text-cyan-400 mb-4" size={32} />
-            <div>
-              <h3 className="text-lg font-bold mb-2">Estado del Sistema</h3>
-              <p className="text-sm text-slate-300 leading-relaxed">
-                Base de datos de Hostinger conectada. Tienes control total sobre tus procesos SST.
-              </p>
-            </div>
-            <div className="mt-6 pt-4 border-t border-white/10 text-[10px] uppercase tracking-widest text-cyan-400 font-black">
-              Servicio Activo
-            </div>
-          </motion.div>
-
-          {/* NUEVA CARD: ACCESO A EMAIL MARKETING */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            transition={{ delay: 0.3 }}
-            className="md:col-span-3 group relative overflow-hidden p-8 rounded-[2.5rem] bg-gradient-to-r from-cyan-600/20 to-blue-600/20 border border-white/10 backdrop-blur-md hover:border-cyan-500/30 transition-all"
-          >
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="flex items-center gap-6">
-                <div className="w-16 h-16 rounded-[1.5rem] bg-white/5 border border-white/10 flex items-center justify-center text-cyan-400 group-hover:scale-110 transition-transform">
-                  <Mail size={32} />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold mb-1 text-white">Labor Comercial</h3>
-                  <p className="text-slate-400 max-w-md">
-                    Informa requisitos legales a tus clientes y potencia el crecimiento de tu consultoría.
-                  </p>
+            {/* Ítem de actividad 2 */}
+            <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+              <div className="flex items-center justify-center w-4 h-4 rounded-full bg-neutral-900 border-2 border-blue-500 z-10"></div>
+              <div className="w-[calc(100%-2rem)] md:w-[calc(50%-2rem)] pl-4 md:pl-0 md:pr-4">
+                <div className="p-3 bg-[#0a0a0a] rounded-xl border border-neutral-800/60">
+                  <p className="text-xs text-white font-medium">Campaña SST enviada</p>
+                  <p className="text-[10px] text-neutral-500 mt-0.5">Ayer, 14:30</p>
                 </div>
               </div>
-              
-              <Link 
-                to="/email-marketing" 
-                className="flex items-center gap-3 px-8 py-4 rounded-2xl bg-white text-black font-bold hover:bg-cyan-50 transition-all shadow-xl"
-              >
-                Ir a Email Marketing <ChevronRight size={20} />
-              </Link>
             </div>
-          </motion.div>
-        </div>
-      </main>
+            
+            {/* Ítem de actividad 3 */}
+            <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+              <div className="flex items-center justify-center w-4 h-4 rounded-full bg-neutral-900 border-2 border-neutral-600 z-10"></div>
+              <div className="w-[calc(100%-2rem)] md:w-[calc(50%-2rem)] pl-4 md:pl-0 md:pr-4">
+                <div className="p-3 bg-[#0a0a0a] rounded-xl border border-neutral-800/60">
+                  <p className="text-xs text-white font-medium">Actualización de sistema</p>
+                  <p className="text-[10px] text-neutral-500 mt-0.5">25 Mar 2026</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+      </div>
     </div>
   );
 }
