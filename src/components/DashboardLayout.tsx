@@ -1,7 +1,7 @@
 // src/components/DashboardLayout.tsx
 import { Outlet, Link, useLocation } from 'react-router-dom';
 // Asumo que usas lucide-react por los íconos de tu proyecto anterior, si no, puedes cambiarlos
-import { LayoutDashboard, Building2, Users, Mail, LogOut } from 'lucide-react';
+import { LayoutDashboard, Building2, Users, LogOut } from 'lucide-react';
 
 export default function DashboardLayout() {
   const location = useLocation();
@@ -42,14 +42,6 @@ export default function DashboardLayout() {
           >
             <Users size={20} />
             <span className="font-medium text-sm">Usuarios</span>
-          </Link>
-
-          <Link 
-            to="/dashboard/email-marketing" 
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${isActive('/dashboard/email-marketing') ? 'bg-primary/10 text-primary' : 'text-neutral-400 hover:text-white hover:bg-neutral-800/50'}`}
-          >
-            <Mail size={20} />
-            <span className="font-medium text-sm">Email Marketing</span>
           </Link>
         </nav>
 

@@ -14,7 +14,6 @@ import LoginPage from './pages/public/LoginPage';
 import Dashboard from './pages/admin/Dashboard';
 import Companies from './pages/admin/Companies';
 import Users from './pages/admin/Users';
-import EmailMarketing from './pages/admin/EmailMarketing';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -61,7 +60,6 @@ function AppContent() {
           {/* Vistas anidadas dentro del Layout lateral */}
           <Route path="empresas" element={<Companies />} />
           <Route path="usuarios" element={<Users />} />
-          <Route path="email-marketing" element={<EmailMarketing />} />
         </Route>
 
         {/* ==========================================
