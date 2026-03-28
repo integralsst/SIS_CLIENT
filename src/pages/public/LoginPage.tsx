@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Mail, Lock, ArrowLeft, Loader2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 
 import Logo from '../assets/logosis.webp'; 
 
