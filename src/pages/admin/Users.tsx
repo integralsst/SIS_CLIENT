@@ -1,7 +1,7 @@
 // src/pages/Users.tsx
 import React, { useState, useEffect } from 'react';
-import { UserPlus, Trash2, Shield, Mail, Building, Search, Loader2, X } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext'; // Ajusta la ruta a tu contexto
+import { UserPlus, Trash2, Edit2, Shield, Mail, Building, Search, Loader2, X } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext'; 
 
 interface UserData {
   id: string;
@@ -10,7 +10,7 @@ interface UserData {
   role: 'SUPERADMIN' | 'OWNER' | 'ADMIN' | 'USER';
   companyId: string | null;
   company?: { name: string };
-  status?: string; // Lo dejaremos simulado en el front por ahora si no está en la BD
+  status?: string; 
 }
 
 export default function Users() {
@@ -18,9 +18,10 @@ export default function Users() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   
-  // Modal state
+  // Modal y estados de edición
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingUser, setEditingUser] = useState<UserData | null>(null);
   const [formData, setFormData] = useState({ name: '', email: '', password: '', role: 'USER' });
 
   const { token, user: currentUser } = useAuth();
@@ -51,20 +52,34 @@ export default function Users() {
     if (token) fetchUsers();
   }, [token]);
 
-  const handleCreateUser = async (e: React.FormEvent) => {
+  const openCreateModal = () => {
+    setEditingUser(null);
+    setFormData({ name: '', email: '', password: '', role: 'USER' });
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (user: UserData) => {
+    setEditingUser(user);
+    setFormData({ name: user.name, email: user.email, password: '', role: user.role });
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const response = await fetch(API_URL, {
-        method: 'POST',
+      const url = editingUser ? `${API_URL}/${editingUser.id}` : API_URL;
+      const method = editingUser ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
         headers: getHeaders(),
         body: JSON.stringify({ ...formData, companyId: currentUser?.companyId })
       });
       
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || 'Error creando usuario');
+      if (!response.ok) throw new Error(data.error || 'Error procesando la solicitud');
       
-      setFormData({ name: '', email: '', password: '', role: 'USER' });
       setIsModalOpen(false);
       fetchUsers();
     } catch (error: any) {
@@ -114,7 +129,7 @@ export default function Users() {
         </div>
         
         <button 
-          onClick={() => setIsModalOpen(true)}
+          onClick={openCreateModal}
           className="flex items-center gap-2 bg-white text-black px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-neutral-200 transition-colors shadow-lg shadow-white/5 active:scale-95"
         >
           <UserPlus size={18} />
@@ -177,7 +192,13 @@ export default function Users() {
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    {currentUser?.id !== user.id && ( // Evitar auto-eliminación
+                    <button 
+                      onClick={() => openEditModal(user)}
+                      className="text-neutral-500 hover:text-white p-2 rounded-lg hover:bg-neutral-800 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                    >
+                      <Edit2 size={18} />
+                    </button>
+                    {currentUser?.id !== user.id && (
                       <button 
                         onClick={() => handleDelete(user.id, user.name)}
                         className="text-neutral-500 hover:text-red-400 p-2 rounded-lg hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
@@ -196,15 +217,14 @@ export default function Users() {
         </div>
       </div>
 
-      {/* MODAL CREAR USUARIO */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-[#111111] border border-neutral-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
             <div className="flex justify-between items-center p-6 border-b border-neutral-800">
-              <h3 className="text-lg font-bold text-white">Nuevo Usuario</h3>
+              <h3 className="text-lg font-bold text-white">{editingUser ? 'Editar Usuario' : 'Nuevo Usuario'}</h3>
               <button onClick={() => setIsModalOpen(false)} className="text-neutral-500 hover:text-white"><X size={20} /></button>
             </div>
-            <form onSubmit={handleCreateUser} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div>
                 <label className="block text-xs font-medium text-neutral-400 mb-1">Nombre Completo</label>
                 <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-[#0a0a0a] border border-neutral-800 rounded-xl py-2 px-3 text-sm text-white focus:border-neutral-600 outline-none" />
@@ -214,18 +234,26 @@ export default function Users() {
                 <input required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-[#0a0a0a] border border-neutral-800 rounded-xl py-2 px-3 text-sm text-white focus:border-neutral-600 outline-none" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-neutral-400 mb-1">Contraseña Temporal</label>
-                <input required type="password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full bg-[#0a0a0a] border border-neutral-800 rounded-xl py-2 px-3 text-sm text-white focus:border-neutral-600 outline-none" />
+                <label className="block text-xs font-medium text-neutral-400 mb-1">
+                  {editingUser ? 'Nueva Contraseña (dejar en blanco para mantener actual)' : 'Contraseña Temporal'}
+                </label>
+                <input required={!editingUser} type="password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full bg-[#0a0a0a] border border-neutral-800 rounded-xl py-2 px-3 text-sm text-white focus:border-neutral-600 outline-none" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-neutral-400 mb-1">Rol</label>
                 <select value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})} className="w-full bg-[#0a0a0a] border border-neutral-800 rounded-xl py-2 px-3 text-sm text-white focus:border-neutral-600 outline-none">
                   <option value="USER">Usuario Estándar</option>
                   <option value="ADMIN">Administrador</option>
+                  {currentUser?.role === 'SUPERADMIN' && (
+                    <>
+                      <option value="OWNER">Propietario</option>
+                      <option value="SUPERADMIN">Super Administrador</option>
+                    </>
+                  )}
                 </select>
               </div>
               <button type="submit" disabled={isSubmitting} className="w-full py-2.5 mt-4 rounded-xl text-sm font-bold text-black bg-white hover:bg-neutral-200 disabled:opacity-50">
-                {isSubmitting ? 'Guardando...' : 'Crear Usuario'}
+                {isSubmitting ? 'Guardando...' : (editingUser ? 'Guardar Cambios' : 'Crear Usuario')}
               </button>
             </form>
           </div>
