@@ -3,6 +3,8 @@ import { motion, type Variants } from 'framer-motion';
 import Hero from '../../components/Hero';
 import Comparison from '../../components/Comparison';
 import { SGSSTDashboard } from '../../components/SGSSTDashboard';
+import FeaturesBento from '../../components/ModulesBento';
+import FAQSection from '../../components/FAQSection'; // Importación agregada
 
 // --- ANIMACIONES TIPO APPLE (Tipadas para TypeScript) ---
 const appleEase = [0.16, 1, 0.3, 1] as const;
@@ -50,6 +52,26 @@ export default function LandingPage() {
           variants={fadeUp}
         >
           <SGSSTDashboard />
+        </motion.div>
+
+        {/* BENTO GRID DE CARACTERÍSTICAS TÉCNICAS */}
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          variants={fadeUp}
+        >
+          <FeaturesBento />
+        </motion.div>
+
+        {/* SECCIÓN DE PREGUNTAS FRECUENTES (FAQ) */}
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          variants={fadeUp}
+        >
+          <FAQSection />
         </motion.div>
 
       </main>
