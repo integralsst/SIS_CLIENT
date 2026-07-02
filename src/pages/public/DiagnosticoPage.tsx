@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { DiagnosticQuiz } from '../../components/home/DiagnosticQuiz';
 import { ShieldCheck } from 'lucide-react';
 
