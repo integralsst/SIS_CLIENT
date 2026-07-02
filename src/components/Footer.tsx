@@ -5,7 +5,7 @@ import Logo from '../assets/logosis.webp';
 
 const Footer = () => {
   return (
-    <footer className="bg-[#05080a] border-t border-white/5 pt-16 pb-8 px-6 mt-12 md:mt-24">
+    <footer className="bg-[#05080a] border-t border-white/5 pt-16 pb-8 px-6">
       <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 md:gap-8 mb-16">
         
         {/* Branding */}
@@ -36,7 +36,7 @@ const Footer = () => {
           <ul className="space-y-3 text-xs font-medium text-slate-500">
             <li className="flex items-center gap-2"><Mail size={14} /> contacto@sis.com</li>
             <li className="flex items-center gap-2"><Phone size={14} /> +57 300 000 0000</li>
-            <li className="flex items-center gap-2"><MapPin size={14} /> Pereira, Colombia</li>
+            <li className="flex items-center gap-2"><MapPin size={14} /> Manizales, Colombia</li>
           </ul>
         </div>
 

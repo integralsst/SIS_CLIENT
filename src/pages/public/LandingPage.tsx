@@ -4,7 +4,8 @@ import Hero from '../../components/Hero';
 import Comparison from '../../components/Comparison';
 import { SGSSTDashboard } from '../../components/SGSSTDashboard';
 import FeaturesBento from '../../components/ModulesBento';
-import FAQSection from '../../components/FAQSection'; // Importación agregada
+import FAQSection from '../../components/FAQSection';
+import CTASection from '../../components/CTASection';
 
 // --- ANIMACIONES TIPO APPLE (Tipadas para TypeScript) ---
 const appleEase = [0.16, 1, 0.3, 1] as const;
@@ -29,7 +30,8 @@ export default function LandingPage() {
       {/* Gradiente superior sutil para integrar el nav/hero */}
       <div className="absolute top-0 inset-x-0 h-96 bg-gradient-to-b from-slate-900 to-transparent pointer-events-none z-0" />
 
-      <main className="relative z-10 flex flex-col gap-12 md:gap-20 pt-8 pb-16">
+      {/* El main mantiene su gap para separar de forma uniforme las secciones superiores */}
+      <main className="relative z-10 flex flex-col gap-12 md:gap-20 pt-8">
         
         {/* HERO SECTION */}
         <Hero />
@@ -64,15 +66,29 @@ export default function LandingPage() {
           <FeaturesBento />
         </motion.div>
 
-        {/* SECCIÓN DE PREGUNTAS FRECUENTES (FAQ) */}
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
-          variants={fadeUp}
-        >
-          <FAQSection />
-        </motion.div>
+        {/* ENVOLTORIO CLAVE: Agrupamos FAQ y CTA en un div sin 'gap'.
+            Esto elimina la franja azul oscuro entre ambas secciones y permite que el fondo blanco del FAQ se fusione con la parte superior del CTA. */}
+        <div className="flex flex-col">
+          
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={fadeUp}
+          >
+            <FAQSection />
+          </motion.div>
+
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={fadeUp}
+          >
+            <CTASection />
+          </motion.div>
+
+        </div>
 
       </main>
     </div>
