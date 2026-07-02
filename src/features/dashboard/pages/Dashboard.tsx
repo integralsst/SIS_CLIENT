@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../auth/context/AuthContext';
 import { ShieldCheck, Users, Building2, TrendingUp, Activity, BellRing } from 'lucide-react';
 
 export default function Dashboard() {

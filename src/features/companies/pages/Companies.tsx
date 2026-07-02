@@ -1,7 +1,7 @@
 // src/pages/admin/Companies.tsx
 import React, { useState, useEffect } from 'react';
 import { Building2, Plus, Search, Users, Contact2, Calendar, Trash2, X, Loader2 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext'; // Importamos el contexto para el token
+import { useAuth } from '../../auth/context/AuthContext'; // Importamos el contexto para el token
 
 // Interfaz actualizada para manejar la ausencia de "contacts"
 interface Company {

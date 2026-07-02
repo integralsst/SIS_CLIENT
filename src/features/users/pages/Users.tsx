@@ -1,7 +1,7 @@
 // src/pages/Users.tsx
 import React, { useState, useEffect } from 'react';
 import { UserPlus, Trash2, Edit2, Shield, Mail, Building, Search, Loader2, X } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext'; 
+import { useAuth } from '../../auth/context/AuthContext'; 
 
 interface UserData {
   id: string;

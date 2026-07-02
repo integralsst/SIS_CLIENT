@@ -1,20 +1,20 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth } from './context/AuthContext';
+import { useAuth } from '../features/auth/context/AuthContext';
 
 // --- COMPONENTES GLOBALES ---
-import Navbar from './components/layout/Navbar';
-import Footer from './components/layout/Footer';
-import DashboardLayout from './components/admin/DashboardLayout';
+import Navbar from '../components/layouts/Navbar';
+import Footer from '../components/layouts/Footer';
+import DashboardLayout from '../components/layouts/DashboardLayout';
 
 // --- PÁGINAS PÚBLICAS ---
-import LandingPage from './pages/public/Home';
-import LoginPage from './pages/public/LoginPage';
-import DiagnosticoPage from './pages/public/DiagnosticoPage'; // <-- Importamos la nueva página
+import LandingPage from '../features/landing/pages/Home';
+import LoginPage from '../features/auth/pages/LoginPage';
+import DiagnosticoPage from '../features/landing/pages/DiagnosticoPage'
 
 // --- PÁGINAS ADMINISTRATIVAS (SaaS) ---
-import Dashboard from './pages/admin/Dashboard';
-import Companies from './pages/admin/Companies';
-import Users from './pages/admin/Users';
+import Dashboard from '../features/dashboard/pages/Dashboard';
+import Companies from '../features/companies/pages/Companies';
+import Users from '../features/users/pages/Users';
 
 function AppContent() {
   const { user, loading } = useAuth();
