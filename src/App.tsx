@@ -9,6 +9,7 @@ import DashboardLayout from './components/admin/DashboardLayout';
 // --- PÁGINAS PÚBLICAS ---
 import LandingPage from './pages/public/Home';
 import LoginPage from './pages/public/LoginPage';
+import DiagnosticoPage from './pages/public/DiagnosticoPage'; // <-- Importamos la nueva página
 
 // --- PÁGINAS ADMINISTRATIVAS (SaaS) ---
 import Dashboard from './pages/admin/Dashboard';
@@ -24,10 +25,10 @@ function AppContent() {
   return (
     <div className="min-h-screen flex flex-col bg-[#05080a] text-slate-200 font-sans selection:bg-cyan-500/30">
       
-      {/* ==========================================
-          RUTAS PÚBLICAS (Con Navbar y Footer)
-          ========================================== */}
       <Routes>
+        {/* ==========================================
+            RUTAS PÚBLICAS (Con Navbar y Footer)
+            ========================================== */}
         <Route 
           path="/" 
           element={
@@ -41,10 +42,19 @@ function AppContent() {
           } 
         />
         
+        {/* ==========================================
+            RUTAS PÚBLICAS AISLADAS (Sin Layout Global)
+            ========================================== */}
         {/* Si el usuario ya está logueado, lo mandamos directo al dashboard */}
         <Route 
           path="/login" 
           element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />} 
+        />
+
+        {/* Squeeze Page dedicada para campañas publicitarias */}
+        <Route 
+          path="/diagnostico" 
+          element={<DiagnosticoPage />} 
         />
 
         {/* ==========================================

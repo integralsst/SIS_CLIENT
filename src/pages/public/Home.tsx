@@ -1,6 +1,7 @@
 import { motion, type Variants } from 'framer-motion';
 import Hero from '../../components/home/Hero';
 import Comparison from '../../components/home/Comparison';
+import { DiagnosticQuiz } from '../../components/home/DiagnosticQuiz';
 import { SGSSTDashboard } from '../../components/home/SGSSTDashboard';
 import FeaturesBento from '../../components/home/ModulesBento';
 import FAQSection from '../../components/home/FAQSection';
@@ -38,6 +39,19 @@ export default function LandingPage() {
           variants={fadeUp}
         >
           <Comparison />
+        </motion.div>
+
+        {/* --- SECCIÓN DEL DIAGNÓSTICO ESTRATÉGICO --- */}
+        {/* El ID "diagnostico" ancla el botón principal del Hero */}
+        <motion.div
+          id="diagnostico"
+          className="scroll-mt-24"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          variants={fadeUp}
+        >
+          <DiagnosticQuiz />
         </motion.div>
         
         {/* El ID "dashboard" conecta con el enlace del Navbar */}
