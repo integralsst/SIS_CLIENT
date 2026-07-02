@@ -1,5 +1,4 @@
 import { motion, type Variants } from 'framer-motion';
-// Asegúrate de que las rutas a tus componentes sean las correctas
 import Hero from '../../components/Hero';
 import Comparison from '../../components/Comparison';
 import { SGSSTDashboard } from '../../components/SGSSTDashboard';
@@ -7,7 +6,6 @@ import FeaturesBento from '../../components/ModulesBento';
 import FAQSection from '../../components/FAQSection';
 import CTASection from '../../components/CTASection';
 
-// --- ANIMACIONES TIPO APPLE (Tipadas para TypeScript) ---
 const appleEase = [0.16, 1, 0.3, 1] as const;
 
 const fadeUp: Variants = {
@@ -21,23 +19,19 @@ const fadeUp: Variants = {
 
 export default function LandingPage() {
   return (
-    // Contenedor principal con fondo oscuro corporativo (Slate 950)
     <div className="relative min-h-screen bg-slate-950 font-sans selection:bg-cyan-500/30">
       
-      {/* Fondo: Patrón de puntos sutil para profundidad corporativa, sin brillos excesivos */}
       <div className="absolute inset-0 z-0 opacity-20 pointer-events-none bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:24px_24px]" />
-      
-      {/* Gradiente superior sutil para integrar el nav/hero */}
       <div className="absolute top-0 inset-x-0 h-96 bg-gradient-to-b from-slate-900 to-transparent pointer-events-none z-0" />
 
-      {/* El main mantiene su gap para separar de forma uniforme las secciones superiores */}
       <main className="relative z-10 flex flex-col gap-12 md:gap-20 pt-8">
         
-        {/* HERO SECTION */}
         <Hero />
         
-        {/* COMPARISON SECTION */}
+        {/* El ID "comparativa" conecta con el enlace del Navbar */}
         <motion.div
+          id="comparativa"
+          className="scroll-mt-24" // Ajuste de margen para que el Navbar fijo no tape el título
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
@@ -46,8 +40,10 @@ export default function LandingPage() {
           <Comparison />
         </motion.div>
         
-        {/* DASHBOARD SG-SST (SIMULADOR DE AUDITORÍA) */}
+        {/* El ID "dashboard" conecta con el enlace del Navbar */}
         <motion.div
+          id="dashboard"
+          className="scroll-mt-24"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
@@ -56,8 +52,10 @@ export default function LandingPage() {
           <SGSSTDashboard />
         </motion.div>
 
-        {/* BENTO GRID DE CARACTERÍSTICAS TÉCNICAS */}
+        {/* El ID "modulos" conecta con el enlace del Navbar */}
         <motion.div
+          id="modulos"
+          className="scroll-mt-24"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
@@ -66,11 +64,12 @@ export default function LandingPage() {
           <FeaturesBento />
         </motion.div>
 
-        {/* ENVOLTORIO CLAVE: Agrupamos FAQ y CTA en un div sin 'gap'.
-            Esto elimina la franja azul oscuro entre ambas secciones y permite que el fondo blanco del FAQ se fusione con la parte superior del CTA. */}
         <div className="flex flex-col">
           
+          {/* El ID "faq" conecta con el enlace del Navbar */}
           <motion.div
+            id="faq"
+            className="scroll-mt-24"
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-100px" }}

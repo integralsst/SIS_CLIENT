@@ -5,10 +5,12 @@ import { useAuth } from '../context/AuthContext';
 
 import Logo from '../assets/logosis.webp'; 
 
+// Enlaces actualizados según la estructura real de tu LandingPage
 const navLinks = [
-  { name: 'Beneficios', href: '#features' },
-  { name: 'Cómo funciona', href: '#how' },
-  { name: 'Precios', href: '#pricing' },
+  { name: 'Comparativa', href: '#comparativa' },
+  { name: 'Simulador', href: '#dashboard' },
+  { name: 'Módulos', href: '#modulos' },
+  { name: 'FAQ', href: '#faq' },
 ];
 
 const Navbar = () => {
@@ -61,7 +63,7 @@ const Navbar = () => {
               <div className="absolute inset-0 bg-cyan-500/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <img 
                 src={Logo} 
-                alt="Logo" 
+                alt="Logo SIS" 
                 className="relative h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105 rounded-md" 
               />
             </div>
@@ -82,7 +84,7 @@ const Navbar = () => {
             ))}
           </nav>
 
-          {/* --- PROPUESTA PREMIUM: Iconos de Usuario y Logout --- */}
+          {/* Iconos de Usuario y Logout */}
           <div className="hidden md:flex items-center gap-3">
             {user ? (
               <div className="flex items-center gap-3 p-1 pl-4 pr-1 bg-white/5 rounded-full border border-white/10 hover:border-white/20 transition-all">
@@ -114,7 +116,7 @@ const Navbar = () => {
             ) : (
               <Link 
                 to="/login"
-                className="px-6 py-2.5 rounded-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-sm shadow-lg shadow-cyan-500/20 transition-all hover:scale-105 border border-white/10"
+                className="px-6 py-2.5 rounded-full bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-sm shadow-lg shadow-cyan-500/20 transition-all hover:scale-105 border border-cyan-400/50"
               >
                 Iniciar Sesión
               </Link>
@@ -137,7 +139,7 @@ const Navbar = () => {
       <div className={`fixed inset-0 z-[100] transition-opacity duration-300 md:hidden ${isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
         
-        <div className={`absolute top-0 right-0 w-[300px] h-full bg-[#0a0a0a]/95 backdrop-blur-2xl border-l border-white/10 flex flex-col transition-transform duration-300 ease-out ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className={`absolute top-0 right-0 w-[300px] h-full bg-[#05080a]/95 backdrop-blur-2xl border-l border-white/10 flex flex-col transition-transform duration-300 ease-out ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
           
           <div className="p-6 border-b border-white/10 flex items-center justify-between">
             {user ? (
@@ -147,11 +149,11 @@ const Navbar = () => {
                 </div>
                 <div className="flex flex-col">
                   <span className="text-sm font-bold text-white truncate max-w-[120px]">{user.name}</span>
-                  <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Sesión Activa</span>
+                  <span className="text-[10px] text-cyan-500 uppercase font-bold tracking-widest">Sesión Activa</span>
                 </div>
               </div>
             ) : (
-              <img src={Logo} alt="Logo" className="h-8 w-auto object-contain rounded-sm" />
+              <img src={Logo} alt="Logo SIS" className="h-8 w-auto object-contain rounded-sm" />
             )}
             <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 rounded-full bg-white/5 text-slate-400 hover:text-white transition-all">
               <X size={20} />
@@ -198,7 +200,7 @@ const Navbar = () => {
               <Link 
                 to="/login"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center justify-center w-full rounded-xl py-4 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold shadow-lg shadow-cyan-900/20 border border-white/10"
+                className="flex items-center justify-center w-full rounded-xl py-4 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold shadow-lg shadow-cyan-900/20 transition-all"
               >
                 Iniciar Sesión
               </Link>
