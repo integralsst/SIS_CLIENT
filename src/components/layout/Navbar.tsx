@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X, ChevronRight, LogOut } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 
-import Logo from '../assets/logosis.webp'; 
+import Logo from '../../assets/logosis.webp'; 
 
 // Enlaces actualizados según la estructura real de tu LandingPage
 const navLinks = [

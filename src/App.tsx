@@ -2,12 +2,12 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 
 // --- COMPONENTES GLOBALES ---
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
-import DashboardLayout from './components/DashboardLayout';
+import Navbar from './components/layout/Navbar';
+import Footer from './components/layout/Footer';
+import DashboardLayout from './components/admin/DashboardLayout';
 
 // --- PÁGINAS PÚBLICAS ---
-import LandingPage from './pages/public/LandingPage';
+import LandingPage from './pages/public/Home';
 import LoginPage from './pages/public/LoginPage';
 
 // --- PÁGINAS ADMINISTRATIVAS (SaaS) ---

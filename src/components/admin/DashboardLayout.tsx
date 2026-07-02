@@ -1,7 +1,7 @@
 // src/components/DashboardLayout.tsx
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Building2, Users, LogOut } from 'lucide-react';
-import { useAuth } from '../context/AuthContext'; // Asegúrate de que la ruta sea la correcta hacia tu contexto
+import { useAuth } from '../../context/AuthContext'; // Asegúrate de que la ruta sea la correcta hacia tu contexto
 
 export default function DashboardLayout() {
   const location = useLocation();

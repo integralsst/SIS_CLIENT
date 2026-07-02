@@ -1,10 +1,10 @@
 import { motion, type Variants } from 'framer-motion';
-import Hero from '../../components/Hero';
-import Comparison from '../../components/Comparison';
-import { SGSSTDashboard } from '../../components/SGSSTDashboard';
-import FeaturesBento from '../../components/ModulesBento';
-import FAQSection from '../../components/FAQSection';
-import CTASection from '../../components/CTASection';
+import Hero from '../../components/home/Hero';
+import Comparison from '../../components/home/Comparison';
+import { SGSSTDashboard } from '../../components/home/SGSSTDashboard';
+import FeaturesBento from '../../components/home/ModulesBento';
+import FAQSection from '../../components/home/FAQSection';
+import CTASection from '../../components/home/CTASection';
 
 const appleEase = [0.16, 1, 0.3, 1] as const;
 
