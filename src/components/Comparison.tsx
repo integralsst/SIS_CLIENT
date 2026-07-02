@@ -1,124 +1,144 @@
 import { motion, type Variants } from 'framer-motion';
-import { X, Check, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { 
+  FileWarning, 
+  ShieldCheck, 
+  Activity, 
+  FileText 
+} from 'lucide-react';
 
-// --- ANIMACIONES ---
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.15,
-      delayChildren: 0.1,
-    }
-  }
-};
-
-const itemVariants: Variants = {
-  hidden: { opacity: 0, x: -10 },
-  visible: { 
-    opacity: 1, 
-    x: 0, 
-    transition: { duration: 0.5, ease: "easeOut" } 
-  }
-};
-
-const cardVariants: Variants = {
-  hidden: { opacity: 0, y: 30 },
+// --- ANIMACIONES FLUIDAS ---
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 40 },
   visible: { 
     opacity: 1, 
     y: 0, 
-    transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] } 
+    transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } 
   }
 };
 
-const Comparison = () => {
+const staggerList: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.15, delayChildren: 0.3 }
+  }
+};
+
+const listItem: Variants = {
+  hidden: { opacity: 0, x: -15 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.5, ease: "easeOut" } }
+};
+
+export default function Comparison() {
   return (
-    <section id="how" className="py-8 md:py-12 px-4 md:px-6 max-w-5xl mx-auto overflow-hidden">
-      <div className="grid md:grid-cols-2 gap-6 md:gap-8">
+    <section id="how" className="py-16 md:py-24 px-4 md:px-8 w-full max-w-6xl mx-auto overflow-hidden">
+      
+      {/* Encabezado de la sección */}
+      <motion.div 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-50px" }}
+        variants={fadeUp}
+        className="text-center mb-16"
+      >
+        <h3 className="text-3xl md:text-4xl font-bold text-white tracking-tight mb-4">
+          La evolución del <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-slate-300">SG-SST</span>
+        </h3>
+        <p className="text-slate-400 font-medium max-w-xl mx-auto">
+          Deja atrás la incertidumbre operativa. Centraliza, audita y controla con precisión.
+        </p>
+      </motion.div>
+
+      {/* Contenedor Comparativo */}
+      <div className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-0 relative">
         
-        {/* LADO TRADICIONAL */}
+        {/* === TARJETA TRADICIONAL (Opaca y plana) === */}
         <motion.div 
-          variants={cardVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, margin: "-50px" }}
-          whileHover={{ y: -4, transition: { duration: 0.2 } }}
-          className="p-8 md:p-10 rounded-[2rem] border border-slate-800/50 bg-slate-900/40 flex flex-col justify-center transition-colors"
+          viewport={{ once: true }}
+          variants={fadeUp}
+          className="w-full lg:w-[45%] p-8 md:p-10 rounded-3xl border border-slate-800/60 bg-slate-900/30 lg:rounded-r-none lg:pr-16 z-0"
         >
-          <div className="flex items-center gap-3 mb-6 text-slate-500 font-bold uppercase tracking-widest text-[10px] md:text-xs">
-            <AlertTriangle size={18} className="text-slate-500" /> 
-            Gestión Manual
+          <div className="flex items-center gap-3 mb-8 opacity-60">
+            <div className="p-2 rounded-lg bg-slate-800">
+              <FileWarning size={20} className="text-slate-400" />
+            </div>
+            <h4 className="text-slate-300 font-semibold tracking-wide uppercase text-sm">
+              Gestión Desactualizada
+            </h4>
           </div>
           
-          <motion.ul 
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="space-y-5 text-slate-400 text-sm md:text-base font-medium"
-          >
-            <motion.li variants={itemVariants} className="flex items-start gap-3">
-              <X size={20} className="text-slate-600 shrink-0 mt-0.5" /> 
-              <span>Carpetas físicas y Excels fragmentados y desactualizados.</span>
-            </motion.li>
-            <motion.li variants={itemVariants} className="flex items-start gap-3">
-              <X size={20} className="text-slate-600 shrink-0 mt-0.5" /> 
-              <span>Olvido de vencimientos de carnets y capacitaciones.</span>
-            </motion.li>
-            <motion.li variants={itemVariants} className="flex items-start gap-3">
-              <X size={20} className="text-slate-600 shrink-0 mt-0.5" /> 
-              <span>Riesgo constante de hallazgos y sanciones legales.</span>
-            </motion.li>
-          </motion.ul>
+          <ul className="space-y-6 text-slate-500 font-medium text-sm md:text-base">
+            <li className="flex items-start gap-4">
+              <div className="mt-1 w-1.5 h-1.5 rounded-full bg-slate-700 shrink-0" />
+              <p>Matrices y bitácoras fragmentadas en hojas de cálculo propensas a errores.</p>
+            </li>
+            <li className="flex items-start gap-4">
+              <div className="mt-1 w-1.5 h-1.5 rounded-full bg-slate-700 shrink-0" />
+              <p>Vencimientos de capacitaciones que pasan desapercibidos.</p>
+            </li>
+            <li className="flex items-start gap-4">
+              <div className="mt-1 w-1.5 h-1.5 rounded-full bg-slate-700 shrink-0" />
+              <p>Alta exposición a sanciones y hallazgos críticos en auditorías.</p>
+            </li>
+          </ul>
         </motion.div>
 
-        {/* LADO SIS (GLASSMORPHISM CORPORATIVO) */}
+        {/* === BADGE "VS" (Solo Desktop) === */}
+        <div className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-slate-950 border border-slate-800 items-center justify-center shadow-xl">
+          <span className="text-slate-500 font-bold text-xs">VS</span>
+        </div>
+
+        {/* === TARJETA SIS (Destacada, Glassmorphism, Elevada) === */}
         <motion.div 
-          variants={cardVariants}
-          initial="hidden"
-          whileInView="visible"
+          initial={{ opacity: 0, y: 60, scale: 0.95 }}
+          whileInView={{ opacity: 1, y: 0, scale: 1 }}
           viewport={{ once: true, margin: "-50px" }}
-          whileHover={{ y: -4, transition: { duration: 0.2 } }}
-          className="p-8 md:p-10 rounded-[2rem] border border-blue-500/20 bg-slate-800/50 backdrop-blur-xl relative overflow-hidden flex flex-col justify-center"
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+          className="w-full lg:w-[55%] p-8 md:p-12 rounded-3xl border border-slate-700/50 bg-slate-800/40 backdrop-blur-2xl shadow-2xl z-10 relative overflow-hidden"
         >
-          {/* Etiqueta Superior Derecha */}
-          <div className="absolute top-0 right-0 bg-blue-500/10 border-b border-l border-blue-500/20 text-blue-300 px-5 py-2 rounded-bl-[1.5rem] text-[9px] font-black uppercase tracking-wider backdrop-blur-md">
-            El Estándar
-          </div>
+          {/* Acento sutil en el borde superior */}
+          <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-50" />
 
-          {/* Brillo sutil de fondo (sin exagerar artefactos de luz) */}
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent pointer-events-none" />
-
-          <div className="relative z-10 flex items-center gap-3 mb-6 text-blue-400 font-bold uppercase tracking-widest text-[10px] md:text-xs">
-            <ShieldCheck size={18} className="text-blue-400" /> 
-            Sistema SIS
+          <div className="flex items-center justify-between mb-10">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                <ShieldCheck size={24} className="text-blue-400" />
+              </div>
+              <h4 className="text-white font-bold tracking-wide uppercase text-sm md:text-base">
+                El Estándar SIS
+              </h4>
+            </div>
+            <span className="px-3 py-1 rounded-full bg-blue-500/10 text-blue-300 text-[10px] font-bold tracking-widest uppercase border border-blue-500/20">
+              Recomendado
+            </span>
           </div>
           
           <motion.ul 
-            variants={containerVariants}
+            variants={staggerList}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="relative z-10 space-y-5 text-slate-200 text-sm md:text-base font-medium"
+            className="space-y-6 text-slate-200 font-medium text-base md:text-lg"
           >
-            <motion.li variants={itemVariants} className="flex items-start gap-3">
-              <Check size={20} className="text-blue-400 shrink-0 mt-0.5" /> 
-              <span>Dashboards consolidados con alertas automáticas.</span>
+            <motion.li variants={listItem} className="flex items-start gap-4">
+              <Activity size={24} className="text-blue-400 shrink-0 mt-0.5" />
+              <p>Dashboards gerenciales con indicadores y alertas predictivas.</p>
             </motion.li>
-            <motion.li variants={itemVariants} className="flex items-start gap-3">
-              <Check size={20} className="text-blue-400 shrink-0 mt-0.5" /> 
-              <span>Repositorio cloud con trazabilidad de auditoría.</span>
+            <motion.li variants={listItem} className="flex items-start gap-4">
+              <FileText size={24} className="text-blue-400 shrink-0 mt-0.5" />
+              <p>Control centralizado de bitácoras y trazabilidad documental total.</p>
             </motion.li>
-            <motion.li variants={itemVariants} className="flex items-start gap-3">
-              <Check size={20} className="text-blue-400 shrink-0 mt-0.5" /> 
-              <span>Generación de reportes gerenciales en segundos.</span>
+            <motion.li variants={listItem} className="flex items-start gap-4">
+              <ShieldCheck size={24} className="text-blue-400 shrink-0 mt-0.5" />
+              <p>Cumplimiento normativo blindado y listo para cualquier auditoría.</p>
             </motion.li>
           </motion.ul>
+
         </motion.div>
 
       </div>
     </section>
   );
-};
-
-export default Comparison;
+}
