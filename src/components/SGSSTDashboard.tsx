@@ -16,7 +16,7 @@ const sgsstData = {
   periodo: "Corte: Julio 2026",
   fechaEmision: "01 de Julio, 2026",
   kpis: {
-    totalEstandares: 60, // Ref. Res 0312 para empresas riesgo V
+    totalEstandares: 60,
     cumplimiento: 56,
     planMejora: 4,
     criticos: 0,
@@ -53,7 +53,7 @@ const ReportSection: React.FC<{ title: string; icon: React.ElementType; children
   </div>
 );
 
-// 1. Gráfico de Barras (Cumplimiento por Áreas)
+// 1. Gráfico de Barras
 const ComplianceBarChart: React.FC<{ data: typeof sgsstData.auditoriasInternas }> = ({ data }) => {
   return (
     <div className="flex flex-col justify-between h-full w-full gap-2 md:gap-3">
@@ -66,7 +66,7 @@ const ComplianceBarChart: React.FC<{ data: typeof sgsstData.auditoriasInternas }
             </div>
             <div className="w-full h-2 md:h-2.5 bg-slate-100 rounded-sm overflow-hidden transform-gpu">
               <motion.div 
-                className={`h-full rounded-sm transform-gpu will-change-[width] ${item.avance === 100 ? 'bg-[#10b981]' : 'bg-[#1d428a]'}`}
+                className={`h-full rounded-sm transform-gpu will-change-[width] ${item.avance === 100 ? 'bg-cyan-500' : 'bg-[#1d428a]'}`}
                 initial={{ width: 0 }}
                 whileInView={{ width: `${item.avance}%` }}
                 viewport={{ once: true }}
@@ -80,10 +80,10 @@ const ComplianceBarChart: React.FC<{ data: typeof sgsstData.auditoriasInternas }
   );
 };
 
-// 2. Gráfico de Área (Evolución % de Cumplimiento)
+// 2. Gráfico de Área
 const TimelineAreaChart: React.FC<{ data: typeof sgsstData.evolucionCumplimiento }> = ({ data }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const maxVal = 100; // Porcentaje máximo fijo
+  const maxVal = 100;
 
   const getCoordinates = (index: number, value: number) => ({
     x: (index / (data.length - 1)) * 100,
@@ -98,7 +98,6 @@ const TimelineAreaChart: React.FC<{ data: typeof sgsstData.evolucionCumplimiento
     <div className="w-full h-full flex flex-col relative pt-2">
       <div className="flex-1 relative w-full mb-2 min-h-[120px]">
         
-        {/* Grid Horizontal (0%, 33%, 66%, 100%) */}
         <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
           {[0, 1, 2, 3].map(i => (
             <div key={i} className="w-full border-t border-slate-100 relative">
@@ -112,7 +111,7 @@ const TimelineAreaChart: React.FC<{ data: typeof sgsstData.evolucionCumplimiento
         <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 h-full overflow-visible ml-6 w-[calc(100%-1.5rem)]">
           <defs>
             <linearGradient id="areaColor" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#10b981" stopOpacity="0.15" />
+              <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.15" /> {/* Usando cyan-500 en HEX */}
               <stop offset="100%" stopColor="#1d428a" stopOpacity="0" />
             </linearGradient>
           </defs>
@@ -121,12 +120,11 @@ const TimelineAreaChart: React.FC<{ data: typeof sgsstData.evolucionCumplimiento
             initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ duration: 1 }} 
             className="transform-gpu" />
           
-          <motion.polyline points={polylinePoints} fill="transparent" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+          <motion.polyline points={polylinePoints} fill="transparent" stroke="#06b6d4" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
             initial={{ pathLength: 0 }} whileInView={{ pathLength: 1 }} transition={{ duration: 1.5, ease: "easeInOut" }} 
             className="transform-gpu" />
         </svg>
 
-        {/* Puntos de datos */}
         {pointsList.map((p, i) => (
           <div key={`dot-${i}`} 
                className="absolute w-6 h-6 -ml-3 -mt-3 flex items-center justify-center cursor-pointer z-20 group ml-6 touch-manipulation"
@@ -136,7 +134,7 @@ const TimelineAreaChart: React.FC<{ data: typeof sgsstData.evolucionCumplimiento
                onClick={() => setHoveredIndex(hoveredIndex === i ? null : i)}
           >
             <motion.div initial={{ scale: 0 }} whileInView={{ scale: 1 }} transition={{ delay: 0.5 + (i*0.1) }}
-                 className="relative w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-white border-2 border-[#10b981] group-hover:scale-125 group-hover:bg-[#10b981] transition-all duration-200 shadow-sm" />
+                 className="relative w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-white border-2 border-cyan-500 group-hover:scale-125 group-hover:bg-cyan-500 transition-all duration-200 shadow-sm" />
             
             <AnimatePresence>
               {hoveredIndex === i && (
@@ -159,10 +157,10 @@ const TimelineAreaChart: React.FC<{ data: typeof sgsstData.evolucionCumplimiento
   );
 };
 
-// 3. Gráfico de Dona (Estado Res 0312)
+// 3. Gráfico de Dona
 const StatusDonutChart: React.FC<{ kpis: typeof sgsstData.kpis }> = ({ kpis }) => {
   const data = [
-    { label: "Cumple Totalmente", val: kpis.cumplimiento, color: "#10b981" },     
+    { label: "Cumple Totalmente", val: kpis.cumplimiento, color: "#06b6d4" }, // Cyan-500     
     { label: "Plan de Acción", val: kpis.planMejora, color: "#f59e0b" }, 
     { label: "No Cumple (Crítico)", val: kpis.criticos, color: "#ef4444" } 
   ];
@@ -178,7 +176,7 @@ const StatusDonutChart: React.FC<{ kpis: typeof sgsstData.kpis }> = ({ kpis }) =
         <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible transform -rotate-90">
           <circle cx="50" cy="50" r={radius} fill="transparent" stroke="#f1f5f9" strokeWidth="8" />
           {data.map((d, i) => {
-            if (d.val === 0) return null; // Saltar si el valor es 0
+            if (d.val === 0) return null;
             const pct = (d.val / total) * 100;
             const dash = `${(pct / 100) * circumference} ${circumference}`; 
             const offset = -((accumulatedPct / 100) * circumference);
@@ -226,30 +224,34 @@ export const SGSSTDashboard = () => {
   if (!isMounted) return null;
 
   return (
-    <section className="min-h-screen w-full max-w-[100vw] overflow-x-hidden bg-white font-sans flex flex-col items-center p-4 py-12 md:py-16 lg:py-24">
+    // Se elimina el bg-white para que herede el fondo de LandingPage
+    <section className="w-full max-w-[100vw] overflow-x-hidden font-sans flex flex-col items-center p-4 py-16 md:py-24">
       
-      {/* --- CABECERA --- */}
+      {/* --- CABECERA ALINEADA CON EL HERO Y COMPARISON --- */}
       <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="w-full max-w-5xl flex flex-col items-center text-center mb-12 md:mb-24 z-10 px-2"
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-50px" }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full max-w-5xl flex flex-col items-center text-center mb-16 md:mb-20 z-10 px-2"
       >
-        <div className="flex items-center gap-3 md:gap-4 text-[9px] md:text-xs font-bold text-[#1d428a] tracking-[0.2em] uppercase mb-4 md:mb-6">
-          <span className="w-6 md:w-12 h-[1.5px] bg-[#1d428a]"></span>
-          Auditoría Normativa Continua
-          <span className="w-6 md:w-12 h-[1.5px] bg-[#1d428a]"></span>
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-300 text-[10px] md:text-xs uppercase tracking-[0.2em] font-medium mb-6">
+          <ShieldCheck size={12} /> Auditoría Normativa Continua
         </div>
 
-        <h2 className="text-3xl sm:text-4xl md:text-6xl lg:text-[4.5rem] leading-[1.1] font-black text-[#111827] tracking-tight flex flex-col md:block w-full">
-          <span>Preparados para el </span>
-          <span className="font-light italic text-slate-300 md:ml-4">
+        <h3 className="text-3xl md:text-5xl font-bold text-white tracking-tight mb-4 leading-[1.1]">
+          Preparados para el <br className="md:hidden" />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">
             Ministerio
           </span>
-        </h2>
+        </h3>
 
-        <div className="mt-6 md:mt-10 flex items-center justify-center gap-2 text-[10px] md:text-sm font-semibold text-slate-400 tracking-[0.1em] md:tracking-[0.15em] uppercase">
-          <MousePointerClick size={14} className="text-[#1d428a] md:w-4 md:h-4" /> 
+        <p className="text-slate-400 font-medium max-w-xl mx-auto text-base md:text-lg mb-8">
+          Simula visitas, identifica brechas en tu Resolución 0312 y mantén el cumplimiento legal impecable.
+        </p>
+
+        <div className="flex items-center justify-center gap-2 text-[10px] md:text-sm font-semibold text-slate-500 tracking-[0.1em] md:tracking-[0.15em] uppercase">
+          <MousePointerClick size={14} className="text-cyan-500" /> 
           Desliza para ver el diagnóstico
         </div>
       </motion.div>
@@ -257,49 +259,55 @@ export const SGSSTDashboard = () => {
       {/* --- CONTENEDOR RELATIVO PARA EL EFECTO APILADO --- */}
       <div className="relative w-full max-w-[900px] z-0 px-2 md:px-0">
         
-        {/* PAPEL 3 (Fondo profundo) */}
+        {/* PAPEL 3 (Fondo profundo) - Adaptado a colores oscuros */}
         <motion.div 
           initial={{ opacity: 0, rotate: 0, scale: 0.95 }}
-          animate={{ opacity: 1, rotate: 4, scale: 0.95, y: 25, x: 15 }}
+          whileInView={{ opacity: 1, rotate: 4, scale: 0.95, y: 25, x: 15 }}
+          viewport={{ once: true }}
           transition={{ duration: 0.7, delay: 0.4, ease: "easeOut" }}
-          className="absolute inset-0 bg-white shadow-xl border border-slate-300 rounded-sm overflow-hidden z-0 flex flex-col transform-gpu"
+          className="absolute inset-0 bg-slate-900 border border-slate-800 rounded-sm overflow-hidden z-0 flex flex-col transform-gpu shadow-xl"
         >
-          <div className="bg-slate-800 px-8 py-6 h-20 md:h-24 w-full border-b border-slate-200"></div>
-          <div className="flex-1 w-full bg-white opacity-40"></div>
+          <div className="bg-slate-950 px-8 py-6 h-20 md:h-24 w-full border-b border-slate-800"></div>
+          <div className="flex-1 w-full bg-slate-900/40"></div>
         </motion.div>
 
-        {/* PAPEL 2 (Medio) */}
+        {/* PAPEL 2 (Medio) - Adaptado a colores oscuros */}
         <motion.div 
           initial={{ opacity: 0, rotate: 0, scale: 0.98 }}
-          animate={{ opacity: 1, rotate: -3, scale: 0.98, y: 12, x: -15 }}
+          whileInView={{ opacity: 1, rotate: -3, scale: 0.98, y: 12, x: -15 }}
+          viewport={{ once: true }}
           transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
-          className="absolute inset-0 bg-white shadow-lg border border-slate-300 rounded-sm overflow-hidden z-10 flex flex-col transform-gpu"
+          className="absolute inset-0 bg-slate-800 border border-slate-700 rounded-sm overflow-hidden z-10 flex flex-col transform-gpu shadow-lg"
         >
-          <div className="bg-sky-700 px-8 py-6 h-20 md:h-24 w-full border-b border-slate-200"></div>
-          <div className="flex-1 w-full bg-white opacity-60"></div>
+          <div className="bg-cyan-950 px-8 py-6 h-20 md:h-24 w-full border-b border-slate-700"></div>
+          <div className="flex-1 w-full bg-slate-800/60"></div>
         </motion.div>
 
-        {/* PAPEL 1 (Principal) */}
+        {/* PAPEL 1 (Principal - El documento sigue siendo claro para legibilidad) */}
         <motion.div 
           initial={{ opacity: 0, y: 40 }} 
-          animate={{ opacity: 1, y: 0 }} 
+          whileInView={{ opacity: 1, y: 0 }} 
+          viewport={{ once: true }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          className="relative z-20 w-full bg-white shadow-[0_20px_50px_-15px_rgba(0,0,0,0.2)] border border-slate-200 rounded-sm overflow-hidden flex flex-col transform-gpu"
+          className="relative z-20 w-full bg-white shadow-[0_0_50px_-15px_rgba(6,182,212,0.15)] border border-slate-200 rounded-sm overflow-hidden flex flex-col transform-gpu"
         >
           {/* ENCABEZADO DEL REPORTE */}
-          <div className="bg-[#1d428a] px-4 py-4 md:px-8 md:py-6 text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 md:gap-4">
-            <div className="flex items-center gap-3">
-              <div className="p-1.5 md:p-2 bg-white/10 rounded-lg shrink-0">
-                <Scale size={24} className="text-white md:w-7 md:h-7" />
+          <div className="bg-slate-900 px-4 py-4 md:px-8 md:py-6 text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 md:gap-4 relative overflow-hidden">
+            {/* Acento cyan sutil */}
+            <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent" />
+            
+            <div className="flex items-center gap-3 relative z-10">
+              <div className="p-1.5 md:p-2 bg-cyan-500/10 border border-cyan-500/20 rounded-lg shrink-0">
+                <Scale size={24} className="text-cyan-400 md:w-7 md:h-7" />
               </div>
               <div>
                 <h1 className="text-base md:text-xl font-bold tracking-tight leading-tight">Estado de Cumplimiento Legal SG-SST</h1>
-                <p className="text-[10px] md:text-sm text-blue-100 font-medium opacity-90">Simulador de Visita - Ministerio del Trabajo</p>
+                <p className="text-[10px] md:text-sm text-slate-400 font-medium opacity-90">Simulador de Visita - Ministerio del Trabajo</p>
               </div>
             </div>
-            <div className="text-left sm:text-right w-full sm:w-auto mt-1 sm:mt-0 pt-3 sm:pt-0 border-t border-blue-400/30 sm:border-0">
-              <p className="text-[9px] md:text-xs text-blue-100 uppercase tracking-widest font-semibold mb-0.5 md:mb-1">Inspección de:</p>
-              <p className="text-xs md:text-sm font-bold flex items-center justify-start sm:justify-end gap-1.5 md:gap-2">
+            <div className="text-left sm:text-right w-full sm:w-auto mt-1 sm:mt-0 pt-3 sm:pt-0 border-t border-slate-800 sm:border-0 relative z-10">
+              <p className="text-[9px] md:text-xs text-slate-400 uppercase tracking-widest font-semibold mb-0.5 md:mb-1">Inspección de:</p>
+              <p className="text-xs md:text-sm font-bold flex items-center justify-start sm:justify-end gap-1.5 md:gap-2 text-cyan-300">
                 <Building2 size={12} className="md:w-[14px] md:h-[14px]" /> {sgsstData.cliente}
               </p>
             </div>
@@ -322,9 +330,8 @@ export const SGSSTDashboard = () => {
           {/* CUERPO DEL INFORME */}
           <div className="p-4 md:p-8 flex flex-col gap-4 md:gap-6">
             
-            {/* Título de Sección */}
             <div className="flex flex-col mb-1 md:mb-2">
-              <h2 className="text-sm md:text-lg font-bold text-[#0a1d37] border-l-3 md:border-l-4 border-[#1d428a] pl-2 md:pl-3 leading-tight">Indicadores de Conformidad</h2>
+              <h2 className="text-sm md:text-lg font-bold text-[#0a1d37] border-l-3 md:border-l-4 border-cyan-500 pl-2 md:pl-3 leading-tight">Indicadores de Conformidad</h2>
               <p className="text-[10px] md:text-sm text-slate-500 mt-1 pl-3 md:pl-4">Consolidado del estado documental e implementación técnica del sistema de gestión.</p>
             </div>
 
@@ -335,7 +342,7 @@ export const SGSSTDashboard = () => {
                 { label: "Cumplimiento Total", val: sgsstData.kpis.cumplimiento, Icon: CheckCircle2, color: "text-emerald-600" },
                 { label: "En Plan de Mejora", val: sgsstData.kpis.planMejora, Icon: AlertTriangle, color: "text-amber-500" },
                 { label: "Hallazgos Críticos", val: sgsstData.kpis.criticos, Icon: XCircle, color: "text-slate-400" },
-                { label: "Riesgo de Sanción", val: sgsstData.kpis.nivelRiesgoSancion, Icon: ShieldCheck, color: "text-[#10b981]" },
+                { label: "Riesgo de Sanción", val: sgsstData.kpis.nivelRiesgoSancion, Icon: ShieldCheck, color: "text-cyan-600" },
               ].map((kpi, i) => (
                 <div key={i} className={`bg-white border border-slate-200 rounded-lg p-2.5 md:p-4 flex flex-col relative overflow-hidden ${i === 4 ? 'col-span-2 md:col-span-1' : ''}`}>
                   <div className="flex justify-between items-start mb-1.5 md:mb-2">
