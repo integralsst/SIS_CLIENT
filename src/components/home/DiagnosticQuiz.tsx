@@ -81,8 +81,8 @@ export const DiagnosticQuiz = () => {
   const progressPercentage = ((currentQ) / questions.length) * 100;
 
   return (
-    // AJUSTE CLAVE: max-w-xl y mx-auto para evitar que se estire en Desktop
-    <div className="w-full max-w-xl mx-auto bg-white rounded-[2rem] shadow-2xl shadow-cyan-900/20 overflow-hidden font-sans border border-slate-100 flex flex-col min-h-[480px]">
+    // AJUSTE: w-[calc(100%-2rem)] en móviles y sm:w-full en pantallas grandes
+    <div className="w-[calc(100%-2rem)] sm:w-full max-w-xl mx-auto bg-white rounded-[2rem] shadow-2xl shadow-cyan-900/20 overflow-hidden font-sans border border-slate-100 flex flex-col min-h-[480px]">
       
       {/* HEADER DINÁMICO */}
       <div className="bg-slate-50 px-6 py-5 border-b border-slate-100 flex items-center justify-between relative">

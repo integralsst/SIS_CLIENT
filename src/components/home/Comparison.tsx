@@ -6,13 +6,13 @@ import {
   FileText 
 } from 'lucide-react';
 
-// --- ANIMACIONES FLUIDAS TIPO APPLE ---
+// --- ANIMACIONES FLUIDAS TIPO APPLE (Optimizadas) ---
 const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 40 },
+  hidden: { opacity: 0, y: 30 }, // Reducido ligeramente para menos recorrido en móviles
   visible: { 
     opacity: 1, 
     y: 0, 
-    transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } 
+    transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } 
   }
 };
 
@@ -20,26 +20,26 @@ const staggerList: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.15, delayChildren: 0.2 }
+    transition: { staggerChildren: 0.1, delayChildren: 0.15 } // Más rápido para evitar que el usuario scrollee antes de verlos
   }
 };
 
 const listItem: Variants = {
-  hidden: { opacity: 0, x: -15 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.5, ease: "easeOut" } }
+  hidden: { opacity: 0, x: -10 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.4, ease: "easeOut" } }
 };
 
 export default function Comparison() {
   return (
     <section id="how" className="py-16 md:py-24 px-4 md:px-8 w-full max-w-6xl mx-auto overflow-hidden">
       
-      {/* Encabezado sincronizado con los colores del Hero */}
+      {/* Encabezado */}
       <motion.div 
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: "-50px" }}
         variants={fadeUp}
-        className="text-center mb-16"
+        className="text-center mb-16 will-change-[transform,opacity]"
       >
         <h3 className="text-3xl md:text-5xl font-bold text-white tracking-tight mb-4">
           La evolución del <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">SG-SST</span>
@@ -49,16 +49,16 @@ export default function Comparison() {
         </p>
       </motion.div>
 
-      {/* Contenedor Comparativo - Estructura 50/50 para centrado perfecto */}
+      {/* Contenedor Comparativo */}
       <div className="relative flex flex-col lg:flex-row gap-6 lg:gap-8 items-stretch justify-center">
         
-        {/* === TARJETA TRADICIONAL (Diseño Opaco) === */}
+        {/* === TARJETA TRADICIONAL === */}
         <motion.div 
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
           variants={fadeUp}
-          className="flex-1 w-full p-8 md:p-10 rounded-[2rem] border border-slate-800/60 bg-slate-900/30 z-0 flex flex-col justify-center"
+          className="flex-1 w-full p-8 md:p-10 rounded-[2rem] border border-slate-800/60 bg-slate-900/30 z-0 flex flex-col justify-center will-change-[transform,opacity]"
         >
           <div className="flex items-center gap-3 mb-8 opacity-60">
             <div className="p-2 rounded-xl bg-slate-800">
@@ -85,21 +85,21 @@ export default function Comparison() {
           </ul>
         </motion.div>
 
-        {/* === BADGE "VS" (Centrado Matemáticamente) === */}
+        {/* === BADGE "VS" === */}
         <div className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-14 h-14 rounded-full bg-slate-950 border border-slate-800 items-center justify-center shadow-2xl">
           <span className="text-slate-500 font-black text-sm tracking-widest">VS</span>
         </div>
 
-        {/* === TARJETA SIS (Glassmorphism, Cyan Accent) === */}
+        {/* === TARJETA SIS (Optimizada para Safari) === */}
         <motion.div 
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-50px" }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
-          whileHover={{ y: -4, transition: { duration: 0.2 } }}
-          className="flex-1 w-full p-8 md:p-10 rounded-[2rem] border border-cyan-500/20 bg-slate-800/40 backdrop-blur-2xl shadow-2xl z-10 relative overflow-hidden flex flex-col justify-center"
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+          style={{ WebkitTransform: "translateZ(0)" }} // Hack vital para Safari
+          className="flex-1 w-full p-8 md:p-10 rounded-[2rem] border border-cyan-500/20 bg-slate-800/40 backdrop-blur-xl shadow-2xl z-10 relative overflow-hidden flex flex-col justify-center transform-gpu will-change-[transform,opacity] transition-transform duration-300 md:hover:-translate-y-1 md:hover:shadow-cyan-900/20"
         >
-          {/* Acento superior sutil (Sin blancos fuertes) */}
+          {/* Acento superior sutil */}
           <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent" />
 
           <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
