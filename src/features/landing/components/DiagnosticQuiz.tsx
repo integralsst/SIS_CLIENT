@@ -439,49 +439,63 @@ export const DiagnosticQuiz = () => {
               </p>
 
               <form
-                onSubmit={handleLeadSubmit}
-                className="flex w-full flex-col gap-4"
-              >
-                <input
-                  required
-                  type="text"
-                  placeholder="Nombre de la empresa"
-                  className="w-full rounded-2xl border border-white/5 bg-[#080b0e] p-4 text-[16px] font-medium text-white outline-none transition-all placeholder:text-slate-600 focus:border-cyan-500/40 focus:bg-[#0c131a]"
-                  value={leadData.name}
-                  onChange={(e) =>
-                    setLeadData({ ...leadData, name: e.target.value })
-                  }
-                />
+  onSubmit={handleLeadSubmit}
+  className="flex w-full flex-col gap-4"
+>
+  <input
+    required
+    name="company"
+    type="text"
+    placeholder="Nombre de la empresa"
+    autoComplete="organization"
+    enterKeyHint="next"
+    className="w-full appearance-none rounded-2xl border border-white/5 bg-[#080b0e] p-4 text-base leading-6 font-medium text-white outline-none transition-all placeholder:text-slate-600 focus:border-cyan-500/40 focus:bg-[#0c131a]"
+    value={leadData.name}
+    onChange={(e) =>
+      setLeadData({ ...leadData, name: e.target.value })
+    }
+  />
 
-                <input
-                  required
-                  type="email"
-                  placeholder="Correo corporativo"
-                  className="w-full rounded-2xl border border-white/5 bg-[#080b0e] p-4 text-[16px] font-medium text-white outline-none transition-all placeholder:text-slate-600 focus:border-cyan-500/40 focus:bg-[#0c131a]"
-                  value={leadData.email}
-                  onChange={(e) =>
-                    setLeadData({ ...leadData, email: e.target.value })
-                  }
-                />
+  <input
+    required
+    name="email"
+    type="email"
+    placeholder="Correo corporativo"
+    autoComplete="email"
+    inputMode="email"
+    enterKeyHint="next"
+    autoCapitalize="none"
+    autoCorrect="off"
+    spellCheck={false}
+    className="w-full appearance-none rounded-2xl border border-white/5 bg-[#080b0e] p-4 text-base leading-6 font-medium text-white outline-none transition-all placeholder:text-slate-600 focus:border-cyan-500/40 focus:bg-[#0c131a]"
+    value={leadData.email}
+    onChange={(e) =>
+      setLeadData({ ...leadData, email: e.target.value })
+    }
+  />
 
-                <input
-                  required
-                  type="tel"
-                  placeholder="WhatsApp o celular"
-                  className="w-full rounded-2xl border border-white/5 bg-[#080b0e] p-4 text-[16px] font-medium text-white outline-none transition-all placeholder:text-slate-600 focus:border-cyan-500/40 focus:bg-[#0c131a]"
-                  value={leadData.phone}
-                  onChange={(e) =>
-                    setLeadData({ ...leadData, phone: e.target.value })
-                  }
-                />
+  <input
+    required
+    name="phone"
+    type="tel"
+    placeholder="WhatsApp o celular"
+    autoComplete="tel"
+    inputMode="tel"
+    enterKeyHint="done"
+    className="w-full appearance-none rounded-2xl border border-white/5 bg-[#080b0e] p-4 text-base leading-6 font-medium text-white outline-none transition-all placeholder:text-slate-600 focus:border-cyan-500/40 focus:bg-[#0c131a]"
+    value={leadData.phone}
+    onChange={(e) =>
+      setLeadData({ ...leadData, phone: e.target.value })
+    }
+  />
 
-                <button
-                  type="submit"
-                  className="mt-2 w-full rounded-full bg-cyan-400 p-4 text-sm font-bold text-slate-950 transition-all hover:bg-cyan-300 active:scale-[0.98]"
-                >
-                  Revelar resultados
-                </button>
-              </form>
+  <button
+    type="submit"
+    className="mt-2 w-full touch-manipulation rounded-full bg-cyan-400 p-4 text-sm font-bold text-slate-950 transition-all hover:bg-cyan-300 active:scale-[0.98]"
+  >
+    Revelar resultados
+  </button>
+</form>
             </motion.div>
           )}
 
