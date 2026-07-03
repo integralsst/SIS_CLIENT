@@ -53,128 +53,75 @@ const DesktopDiagnosticBackground = () => {
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 -z-10 hidden overflow-hidden md:block"
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(6,182,212,0.16),transparent_26%),radial-gradient(circle_at_85%_15%,rgba(239,68,68,0.12),transparent_25%),radial-gradient(circle_at_50%_90%,rgba(14,165,233,0.12),transparent_32%)]" />
+      {/* Brillos muy suaves en los bordes */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_12%_18%,rgba(6,182,212,0.10),transparent_28%),radial-gradient(circle_at_88%_18%,rgba(14,165,233,0.08),transparent_26%),radial-gradient(circle_at_50%_100%,rgba(6,182,212,0.06),transparent_32%)]" />
 
-      <motion.div
-        className="absolute left-[-10%] top-[-20%] h-80 w-80 rounded-full bg-cyan-400/10 blur-3xl"
-        animate={{
-          x: [0, 80, 20, 0],
-          y: [0, 40, 90, 0],
-          scale: [1, 1.12, 0.95, 1],
-        }}
-        transition={{
-          duration: 12,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-      />
+      {/* Capa central oscura para proteger la lectura */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(5,8,10,0.92)_0%,rgba(5,8,10,0.76)_38%,transparent_72%)]" />
 
-      <motion.div
-        className="absolute bottom-[-25%] right-[-10%] h-96 w-96 rounded-full bg-red-500/10 blur-3xl"
-        animate={{
-          x: [0, -60, -20, 0],
-          y: [0, -30, -80, 0],
-          scale: [1, 0.9, 1.15, 1],
-        }}
-        transition={{
-          duration: 14,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-      />
-
+      {/* Grid suave solo en los bordes */}
       <svg
-        className="absolute inset-0 h-full w-full opacity-[0.35]"
+        className="absolute inset-0 h-full w-full opacity-[0.16]"
         viewBox="0 0 900 620"
         preserveAspectRatio="none"
+        style={{
+          maskImage:
+            "radial-gradient(ellipse at center, transparent 0%, transparent 42%, black 78%)",
+          WebkitMaskImage:
+            "radial-gradient(ellipse at center, transparent 0%, transparent 42%, black 78%)",
+        }}
       >
         <defs>
           <pattern
-            id="diagnostic-grid"
-            width="44"
-            height="44"
+            id="quiz-grid-soft"
+            width="46"
+            height="46"
             patternUnits="userSpaceOnUse"
           >
             <path
-              d="M 44 0 L 0 0 0 44"
+              d="M 46 0 L 0 0 0 46"
               fill="none"
-              stroke="rgba(148,163,184,0.25)"
+              stroke="rgba(148,163,184,0.22)"
               strokeWidth="1"
             />
           </pattern>
 
-          <linearGradient id="scan-line" x1="0" x2="1" y1="0" y2="0">
+          <linearGradient id="quiz-scan-line" x1="0" x2="1" y1="0" y2="0">
             <stop offset="0%" stopColor="rgba(6,182,212,0)" />
-            <stop offset="50%" stopColor="rgba(6,182,212,0.85)" />
+            <stop offset="50%" stopColor="rgba(6,182,212,0.45)" />
             <stop offset="100%" stopColor="rgba(6,182,212,0)" />
           </linearGradient>
         </defs>
 
-        <rect width="900" height="620" fill="url(#diagnostic-grid)" />
-
-        <motion.path
-          d="M80 440 C180 310 240 500 340 350 S520 250 630 320 S760 450 830 250"
-          fill="none"
-          stroke="rgba(6,182,212,0.55)"
-          strokeWidth="2"
-          strokeDasharray="8 10"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={{ pathLength: 1, opacity: 1 }}
-          transition={{
-            duration: 3,
-            repeat: Infinity,
-            repeatType: "reverse",
-            ease: "easeInOut",
-          }}
-        />
-
-        <motion.path
-          d="M110 185 L185 120 L260 175 L335 95 L410 150 L485 110"
-          fill="none"
-          stroke="rgba(34,211,238,0.7)"
-          strokeWidth="3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          initial={{ pathLength: 0 }}
-          animate={{ pathLength: [0, 1, 1, 0] }}
-          transition={{
-            duration: 6,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-
-        {[110, 185, 260, 335, 410, 485].map((cx, index) => (
-          <motion.circle
-            key={cx}
-            cx={cx}
-            cy={[185, 120, 175, 95, 150, 110][index]}
-            r="5"
-            fill="rgba(34,211,238,0.9)"
-            animate={{
-              r: [4, 7, 4],
-              opacity: [0.45, 1, 0.45],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              delay: index * 0.25,
-              ease: "easeInOut",
-            }}
-          />
-        ))}
+        <rect width="900" height="620" fill="url(#quiz-grid-soft)" />
 
         <motion.line
           x1="0"
           x2="900"
           y1="0"
           y2="0"
-          stroke="url(#scan-line)"
-          strokeWidth="2"
-          animate={{ y1: [80, 540, 80], y2: [80, 540, 80] }}
+          stroke="url(#quiz-scan-line)"
+          strokeWidth="1.5"
+          animate={{ y1: [90, 520, 90], y2: [90, 520, 90] }}
           transition={{
-            duration: 6,
+            duration: 8,
             repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+
+        <motion.path
+          d="M80 450 C180 320 250 500 350 360 S520 260 630 330 S760 450 830 260"
+          fill="none"
+          stroke="rgba(6,182,212,0.28)"
+          strokeWidth="1.5"
+          strokeDasharray="8 12"
+          initial={{ pathLength: 0, opacity: 0.2 }}
+          animate={{ pathLength: 1, opacity: 0.45 }}
+          transition={{
+            duration: 5,
+            repeat: Infinity,
+            repeatType: "reverse",
             ease: "easeInOut",
           }}
         />
@@ -182,108 +129,58 @@ const DesktopDiagnosticBackground = () => {
         <motion.g
           animate={{ rotate: 360 }}
           transition={{
-            duration: 24,
+            duration: 36,
             repeat: Infinity,
             ease: "linear",
           }}
-          style={{ transformOrigin: "720px 175px" }}
+          style={{ transformOrigin: "760px 170px" }}
         >
           <circle
-            cx="720"
-            cy="175"
+            cx="760"
+            cy="170"
             r="72"
             fill="none"
-            stroke="rgba(6,182,212,0.22)"
-            strokeWidth="2"
+            stroke="rgba(6,182,212,0.16)"
+            strokeWidth="1.5"
           />
           <circle
-            cx="720"
-            cy="175"
+            cx="760"
+            cy="170"
             r="42"
             fill="none"
-            stroke="rgba(6,182,212,0.3)"
-            strokeWidth="2"
-            strokeDasharray="6 8"
-          />
-          <path
-            d="M720 175 L720 103"
-            stroke="rgba(6,182,212,0.65)"
-            strokeWidth="2"
-            strokeLinecap="round"
+            stroke="rgba(6,182,212,0.18)"
+            strokeWidth="1.5"
+            strokeDasharray="6 10"
           />
         </motion.g>
       </svg>
 
+      {/* Elementos laterales muy discretos */}
       <motion.div
-        className="absolute right-8 top-24 w-48 rounded-2xl border border-cyan-400/15 bg-slate-950/40 p-4 shadow-2xl backdrop-blur-md"
+        className="absolute right-8 top-28 h-24 w-40 rounded-[1.5rem] border border-cyan-500/10 bg-white/[0.015] backdrop-blur-sm"
         animate={{
-          y: [0, -10, 0],
-          opacity: [0.65, 1, 0.65],
-        }}
-        transition={{
-          duration: 4,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-      >
-        <div className="mb-3 flex items-center justify-between">
-          <span className="text-[10px] font-bold uppercase tracking-[0.28em] text-cyan-300">
-            Scan SST
-          </span>
-          <span className="h-2 w-2 rounded-full bg-cyan-300 shadow-[0_0_12px_rgba(34,211,238,0.9)]" />
-        </div>
-        <div className="space-y-2">
-          <div className="h-2 w-full rounded-full bg-white/10">
-            <motion.div
-              className="h-full rounded-full bg-cyan-300"
-              animate={{ width: ["35%", "82%", "45%"] }}
-              transition={{
-                duration: 3.5,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-          </div>
-          <div className="h-2 w-4/5 rounded-full bg-white/10" />
-          <div className="h-2 w-3/5 rounded-full bg-white/10" />
-        </div>
-      </motion.div>
-
-      <motion.div
-        className="absolute bottom-16 left-8 w-44 rounded-2xl border border-red-400/15 bg-slate-950/40 p-4 shadow-2xl backdrop-blur-md"
-        animate={{
-          y: [0, 12, 0],
-          opacity: [0.55, 0.95, 0.55],
+          y: [0, -8, 0],
+          opacity: [0.22, 0.36, 0.22],
         }}
         transition={{
           duration: 5,
           repeat: Infinity,
           ease: "easeInOut",
         }}
-      >
-        <div className="mb-3 flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-red-400 shadow-[0_0_12px_rgba(248,113,113,0.9)]" />
-          <span className="text-[10px] font-bold uppercase tracking-[0.24em] text-red-300">
-            Riesgo
-          </span>
-        </div>
-        <div className="grid grid-cols-4 gap-2">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
-            <motion.div
-              key={item}
-              className="h-7 rounded-md border border-white/10 bg-white/5"
-              animate={{
-                opacity: [0.25, 0.8, 0.25],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                delay: item * 0.12,
-              }}
-            />
-          ))}
-        </div>
-      </motion.div>
+      />
+
+      <motion.div
+        className="absolute bottom-20 left-8 h-24 w-36 rounded-[1.5rem] border border-white/10 bg-white/[0.015] backdrop-blur-sm"
+        animate={{
+          y: [0, 8, 0],
+          opacity: [0.18, 0.3, 0.18],
+        }}
+        transition={{
+          duration: 6,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
     </div>
   );
 };
@@ -294,51 +191,29 @@ const MobileDiagnosticBackground = () => {
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 -z-10 overflow-hidden md:hidden"
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(6,182,212,0.18),transparent_36%),radial-gradient(circle_at_100%_80%,rgba(239,68,68,0.12),transparent_30%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(6,182,212,0.11),transparent_36%),radial-gradient(circle_at_100%_90%,rgba(14,165,233,0.07),transparent_34%)]" />
+
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(5,8,10,0.88)_0%,rgba(5,8,10,0.72)_48%,transparent_86%)]" />
 
       <motion.div
-        className="absolute -right-24 -top-24 h-64 w-64 rounded-full border border-cyan-400/20"
+        className="absolute -right-28 -top-28 h-64 w-64 rounded-full border border-cyan-400/10"
         animate={{
           rotate: 360,
-          scale: [1, 1.08, 1],
+          scale: [1, 1.05, 1],
         }}
         transition={{
           rotate: {
-            duration: 18,
+            duration: 28,
             repeat: Infinity,
             ease: "linear",
           },
           scale: {
-            duration: 4,
+            duration: 5,
             repeat: Infinity,
             ease: "easeInOut",
           },
         }}
       />
-
-      <motion.div
-        className="absolute left-6 top-24 h-px w-32 bg-gradient-to-r from-transparent via-cyan-300/70 to-transparent"
-        animate={{ x: [-80, 280, -80], opacity: [0, 1, 0] }}
-        transition={{
-          duration: 5,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-      />
-
-      <motion.div
-        className="absolute bottom-8 right-6 rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 backdrop-blur-sm"
-        animate={{ y: [0, -8, 0], opacity: [0.5, 0.9, 0.5] }}
-        transition={{
-          duration: 4,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-      >
-        <span className="text-[9px] font-black uppercase tracking-[0.22em] text-cyan-300">
-          Diagnóstico
-        </span>
-      </motion.div>
     </div>
   );
 };
@@ -385,50 +260,49 @@ export const DiagnosticQuiz = () => {
       : step === "result"
       ? 100
       : step === "lead_capture"
-      ? 85
-      : ((currentQ + 1) / questions.length) * 70;
+      ? 86
+      : ((currentQ + 1) / questions.length) * 72;
 
   return (
-    <div className="relative isolate mx-auto flex min-h-[560px] w-[calc(100%-1.25rem)] max-w-2xl flex-col overflow-hidden rounded-[1.75rem] border border-white/10 bg-[#0c1015] font-sans shadow-[0_0_90px_-28px_rgba(6,182,212,0.55)] sm:w-full md:min-h-[590px] md:rounded-[2rem]">
+    <div className="relative isolate mx-auto flex min-h-[540px] w-[calc(100%-1.25rem)] max-w-2xl flex-col overflow-hidden rounded-[2rem] border border-white/5 bg-[#0c1015] font-sans shadow-[0_0_80px_-30px_rgba(6,182,212,0.28)] sm:w-full md:min-h-[580px]">
       <DesktopDiagnosticBackground />
       <MobileDiagnosticBackground />
 
-      <div className="absolute inset-0 -z-20 bg-[linear-gradient(145deg,#05080a_0%,#0c1015_45%,#07131a_100%)]" />
+      <div className="absolute inset-0 -z-20 bg-[#05080a]" />
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/60 to-transparent" />
-
-      <div className="relative flex items-center justify-between border-b border-white/10 bg-[#05080a]/65 px-5 py-4 backdrop-blur-xl sm:px-6 sm:py-5">
+      {/* Header */}
+      <div className="relative flex items-center justify-between border-b border-white/5 bg-[#05080a]/80 px-5 py-4 backdrop-blur-xl sm:px-6 sm:py-5">
         <div className="flex items-center gap-3 text-slate-300">
-          <div className="relative rounded-xl border border-cyan-500/25 bg-cyan-500/10 p-2 text-cyan-300 shadow-[0_0_18px_rgba(6,182,212,0.18)]">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/5 bg-white/[0.03] text-cyan-400">
             <ClipboardCheck size={18} strokeWidth={2} />
-            <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.95)]" />
           </div>
 
           <div className="flex flex-col">
-            <span className="text-[10px] font-black uppercase tracking-[0.28em] text-slate-400 sm:text-xs">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
               Auditoría Flash
             </span>
-            <span className="hidden text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan-400/70 sm:block">
+            <span className="hidden text-[11px] font-medium text-slate-600 sm:block">
               Diagnóstico SG-SST
             </span>
           </div>
         </div>
 
         {step === "question" && (
-          <span className="rounded-full border border-cyan-400/15 bg-cyan-400/5 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300 sm:text-xs">
-            Fase 0{currentQ + 1} // 0{questions.length}
+          <span className="rounded-full border border-white/5 bg-white/[0.03] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">
+            Fase 0{currentQ + 1} / 0{questions.length}
           </span>
         )}
 
         {step === "lead_capture" && (
-          <span className="rounded-full border border-cyan-400/15 bg-cyan-400/5 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300 sm:text-xs">
-            Resultado listo
+          <span className="rounded-full border border-cyan-500/20 bg-cyan-950/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-cyan-400">
+            Listo
           </span>
         )}
 
         <div className="absolute bottom-0 left-0 h-[2px] w-full bg-white/5">
           <motion.div
-            className="h-full bg-cyan-300 shadow-[0_0_16px_rgba(6,182,212,0.9)]"
+            className="h-full bg-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.7)]"
             initial={{ width: 0 }}
             animate={{ width: `${progressPercentage}%` }}
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
@@ -436,7 +310,8 @@ export const DiagnosticQuiz = () => {
         </div>
       </div>
 
-      <div className="relative flex flex-1 flex-col justify-center p-5 sm:p-6 md:p-10">
+      {/* Content */}
+      <div className="relative flex flex-1 flex-col justify-center p-6 sm:p-8 md:p-10">
         <AnimatePresence mode="wait">
           {step === "start" && (
             <motion.div
@@ -444,46 +319,35 @@ export const DiagnosticQuiz = () => {
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.98 }}
-              transition={{ duration: 0.45, ease: "easeOut" }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
               style={{ willChange: "opacity, transform" }}
               className="mx-auto w-full max-w-lg text-center"
             >
-              <div className="relative mx-auto mb-7 flex h-20 w-20 items-center justify-center rounded-3xl border border-red-500/25 bg-red-950/30 text-red-400 shadow-[0_0_36px_rgba(239,68,68,0.18)] sm:h-24 sm:w-24">
-                <motion.div
-                  className="absolute inset-0 rounded-3xl bg-red-500/20"
-                  animate={{ scale: [1, 1.25, 1], opacity: [0.4, 0, 0.4] }}
-                  transition={{
-                    duration: 2.4,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                />
-                <ShieldAlert size={40} strokeWidth={1.5} />
+              <div className="mx-auto mb-7 flex h-20 w-20 items-center justify-center rounded-[1.75rem] border border-white/5 bg-white/[0.03] text-cyan-400 shadow-[0_0_40px_-20px_rgba(6,182,212,0.7)]">
+                <ShieldAlert size={34} strokeWidth={1.5} />
               </div>
 
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-cyan-400/15 bg-cyan-400/5 px-3 py-1">
-                <span className="h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.9)]" />
-                <span className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-300">
-                  Evaluación rápida
-                </span>
+              <div className="mb-6 inline-flex items-center justify-center gap-2 rounded-full border border-white/5 bg-white/[0.02] px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+                Evaluación rápida
               </div>
 
-              <h3 className="mb-4 text-3xl font-black leading-[0.98] tracking-[-0.06em] text-white sm:text-4xl md:text-5xl">
-                Identifica tu vulnerabilidad legal al instante.
+              <h3 className="mx-auto mb-6 max-w-xl text-4xl font-bold leading-[1.05] tracking-tighter text-white sm:text-5xl md:text-6xl">
+                Identifica tu vulnerabilidad{" "}
+                <span className="text-slate-700">legal.</span>
               </h3>
 
               <p className="mx-auto mb-9 max-w-sm text-sm font-medium leading-relaxed text-slate-400 sm:text-base">
-                El diagnóstico evalúa tu exposición a multas procesando 3
-                variables críticas de tu operación.
+                Evalúa tu exposición a multas procesando 3 variables críticas de
+                tu operación.
               </p>
 
               <button
                 onClick={handleStart}
-                className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-cyan-300 px-8 py-4 text-sm font-black text-slate-950 shadow-[0_0_28px_rgba(6,182,212,0.28)] transition-all duration-300 hover:scale-[1.02] hover:bg-cyan-200 active:scale-[0.98] sm:w-auto sm:px-10 sm:text-base"
+                className="group inline-flex w-full items-center justify-center gap-2 rounded-full border border-cyan-500/20 bg-cyan-400 px-8 py-4 text-sm font-bold text-slate-950 transition-all duration-300 hover:bg-cyan-300 active:scale-[0.98] sm:w-auto"
               >
-                Ejecutar Diagnóstico
+                Ejecutar diagnóstico
                 <ChevronRight
-                  size={18}
+                  size={16}
                   className="transition-transform group-hover:translate-x-1"
                 />
               </button>
@@ -493,62 +357,51 @@ export const DiagnosticQuiz = () => {
           {step === "question" && (
             <motion.div
               key={`q_${currentQ}`}
-              initial={{ opacity: 0, x: 24 }}
+              initial={{ opacity: 0, x: 22 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -24 }}
-              transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+              exit={{ opacity: 0, x: -22 }}
+              transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
               style={{ willChange: "opacity, transform" }}
-              className="w-full"
+              className="mx-auto w-full max-w-xl"
             >
-              <div className="mb-7 flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="shrink-0 rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-cyan-300 shadow-[0_0_22px_rgba(6,182,212,0.08)]">
-                    {React.createElement(questions[currentQ].icon, {
-                      size: 28,
-                      strokeWidth: 1.5,
-                    })}
-                  </div>
-
-                  <div className="hidden sm:block">
-                    <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">
-                      Variable crítica
-                    </p>
-                    <p className="text-sm font-semibold text-slate-300">
-                      Responde con la situación real de tu empresa
-                    </p>
-                  </div>
+              <div className="mb-7 flex items-center gap-3">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/5 bg-white/[0.03] text-cyan-400">
+                  {React.createElement(questions[currentQ].icon, {
+                    size: 24,
+                    strokeWidth: 1.6,
+                  })}
                 </div>
 
-                <div className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">
-                  {currentQ + 1}/{questions.length}
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-600">
+                    Variable crítica
+                  </p>
+                  <p className="text-sm font-medium text-slate-400">
+                    Selecciona la opción más cercana a tu realidad
+                  </p>
                 </div>
               </div>
 
-              <h3 className="mb-7 max-w-xl text-2xl font-black leading-tight tracking-[-0.04em] text-white sm:text-3xl">
+              <h3 className="mb-8 text-3xl font-bold leading-[1.1] tracking-tighter text-white sm:text-4xl">
                 {questions[currentQ].title}
               </h3>
 
-              <div className="flex max-w-xl flex-col gap-3">
+              <div className="flex flex-col gap-3">
                 {questions[currentQ].options.map((opt, idx) => (
                   <button
                     key={idx}
                     onClick={() =>
                       handleAnswer(questions[currentQ].id, opt.value, opt.score)
                     }
-                    className="group relative w-full overflow-hidden rounded-2xl border border-white/10 bg-[#05080a]/80 p-4 text-left font-semibold text-slate-300 backdrop-blur-sm transition-all hover:border-cyan-400/50 hover:bg-cyan-950/25 hover:text-white active:scale-[0.985] sm:p-5"
+                    className="group w-full rounded-2xl border border-white/5 bg-[#080b0e]/90 p-5 text-left transition-all duration-300 hover:border-cyan-500/30 hover:bg-[#0c131a] active:scale-[0.985]"
                   >
-                    <div className="absolute inset-y-0 left-0 w-1 bg-cyan-300 opacity-0 transition-opacity group-hover:opacity-100" />
-
                     <div className="flex items-center justify-between gap-4">
-                      <span className="text-sm leading-snug sm:text-base">
+                      <span className="text-sm font-semibold leading-relaxed text-slate-300 transition-colors group-hover:text-white sm:text-base">
                         {opt.label}
                       </span>
 
-                      <div className="relative ml-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-slate-600 transition-colors group-hover:border-cyan-300">
-                        <motion.div
-                          className="h-2.5 w-2.5 rounded-full bg-cyan-300 opacity-0 group-hover:opacity-100"
-                          whileHover={{ scale: 1.15 }}
-                        />
+                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-white/10 transition-colors group-hover:border-cyan-400/50">
+                        <div className="h-2 w-2 rounded-full bg-cyan-400 opacity-0 transition-opacity group-hover:opacity-100" />
                       </div>
                     </div>
                   </button>
@@ -563,16 +416,21 @@ export const DiagnosticQuiz = () => {
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.98 }}
-              transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
               style={{ willChange: "opacity, transform" }}
               className="mx-auto flex w-full max-w-md flex-col items-center"
             >
-              <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-cyan-500/30 bg-cyan-950/30 text-cyan-300 shadow-[0_0_28px_rgba(6,182,212,0.16)]">
+              <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/5 bg-white/[0.03] text-cyan-400">
                 <Activity size={28} strokeWidth={1.5} />
               </div>
 
-              <h3 className="mb-2 text-center text-3xl font-black tracking-[-0.05em] text-white sm:text-4xl">
+              <div className="mb-5 inline-flex items-center justify-center gap-2 rounded-full border border-white/5 bg-white/[0.02] px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
                 Análisis completado
+              </div>
+
+              <h3 className="mb-4 text-center text-4xl font-bold leading-[1.05] tracking-tighter text-white sm:text-5xl">
+                Tu resultado está{" "}
+                <span className="text-slate-700">listo.</span>
               </h3>
 
               <p className="mx-auto mb-8 max-w-xs text-center text-sm font-medium leading-relaxed text-slate-400 sm:text-base">
@@ -580,12 +438,15 @@ export const DiagnosticQuiz = () => {
                 detectado.
               </p>
 
-              <form onSubmit={handleLeadSubmit} className="flex w-full flex-col gap-4">
+              <form
+                onSubmit={handleLeadSubmit}
+                className="flex w-full flex-col gap-4"
+              >
                 <input
                   required
                   type="text"
                   placeholder="Nombre de la empresa"
-                  className="w-full rounded-2xl border border-white/10 bg-[#05080a]/85 p-4 text-[16px] font-medium text-white outline-none transition-all placeholder:text-slate-600 focus:border-cyan-400 focus:bg-[#0c131a] focus:ring-1 focus:ring-cyan-400/50"
+                  className="w-full rounded-2xl border border-white/5 bg-[#080b0e] p-4 text-[16px] font-medium text-white outline-none transition-all placeholder:text-slate-600 focus:border-cyan-500/40 focus:bg-[#0c131a]"
                   value={leadData.name}
                   onChange={(e) =>
                     setLeadData({ ...leadData, name: e.target.value })
@@ -596,7 +457,7 @@ export const DiagnosticQuiz = () => {
                   required
                   type="email"
                   placeholder="Correo corporativo"
-                  className="w-full rounded-2xl border border-white/10 bg-[#05080a]/85 p-4 text-[16px] font-medium text-white outline-none transition-all placeholder:text-slate-600 focus:border-cyan-400 focus:bg-[#0c131a] focus:ring-1 focus:ring-cyan-400/50"
+                  className="w-full rounded-2xl border border-white/5 bg-[#080b0e] p-4 text-[16px] font-medium text-white outline-none transition-all placeholder:text-slate-600 focus:border-cyan-500/40 focus:bg-[#0c131a]"
                   value={leadData.email}
                   onChange={(e) =>
                     setLeadData({ ...leadData, email: e.target.value })
@@ -607,7 +468,7 @@ export const DiagnosticQuiz = () => {
                   required
                   type="tel"
                   placeholder="WhatsApp o celular"
-                  className="w-full rounded-2xl border border-white/10 bg-[#05080a]/85 p-4 text-[16px] font-medium text-white outline-none transition-all placeholder:text-slate-600 focus:border-cyan-400 focus:bg-[#0c131a] focus:ring-1 focus:ring-cyan-400/50"
+                  className="w-full rounded-2xl border border-white/5 bg-[#080b0e] p-4 text-[16px] font-medium text-white outline-none transition-all placeholder:text-slate-600 focus:border-cyan-500/40 focus:bg-[#0c131a]"
                   value={leadData.phone}
                   onChange={(e) =>
                     setLeadData({ ...leadData, phone: e.target.value })
@@ -616,9 +477,9 @@ export const DiagnosticQuiz = () => {
 
                 <button
                   type="submit"
-                  className="mt-2 w-full rounded-2xl bg-cyan-300 p-4 text-base font-black text-slate-950 shadow-[0_0_24px_rgba(6,182,212,0.26)] transition-all hover:bg-cyan-200 active:scale-[0.98]"
+                  className="mt-2 w-full rounded-full bg-cyan-400 p-4 text-sm font-bold text-slate-950 transition-all hover:bg-cyan-300 active:scale-[0.98]"
                 >
-                  Revelar Resultados
+                  Revelar resultados
                 </button>
               </form>
             </motion.div>
@@ -633,8 +494,8 @@ export const DiagnosticQuiz = () => {
               style={{ willChange: "opacity, transform" }}
               className="mx-auto flex w-full max-w-lg flex-col items-center text-center"
             >
-              <div className="relative mb-6 h-36 w-36">
-                <svg className="h-full w-full -rotate-90 drop-shadow-[0_0_12px_rgba(6,182,212,0.45)]">
+              <div className="relative mb-7 h-36 w-36">
+                <svg className="h-full w-full -rotate-90">
                   <circle
                     cx="72"
                     cy="72"
@@ -643,6 +504,7 @@ export const DiagnosticQuiz = () => {
                     strokeWidth="7"
                     fill="transparent"
                   />
+
                   <motion.circle
                     cx="72"
                     cy="72"
@@ -657,7 +519,7 @@ export const DiagnosticQuiz = () => {
                       strokeDashoffset: 402 - (402 * score) / 100,
                     }}
                     transition={{
-                      duration: 1.5,
+                      duration: 1.4,
                       ease: [0.16, 1, 0.3, 1],
                       delay: 0.2,
                     }}
@@ -665,55 +527,67 @@ export const DiagnosticQuiz = () => {
                 </svg>
 
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-4xl font-black tracking-[-0.06em] text-white">
+                  <span className="text-4xl font-bold tracking-tighter text-white">
                     {score}%
                   </span>
-                  <span className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-600">
                     Score
                   </span>
                 </div>
               </div>
 
-              <h3 className="mb-4 text-3xl font-black tracking-[-0.05em] text-white sm:text-4xl">
-                {score > 70
-                  ? "Cumplimiento parcial"
-                  : "Riesgo de sanción crítico"}
+              <div className="mb-5 inline-flex items-center justify-center gap-2 rounded-full border border-white/5 bg-white/[0.02] px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+                Resultado del diagnóstico
+              </div>
+
+              <h3 className="mb-5 text-4xl font-bold leading-[1.05] tracking-tighter text-white sm:text-5xl">
+                {score > 70 ? (
+                  <>
+                    Cumplimiento{" "}
+                    <span className="text-slate-700">parcial.</span>
+                  </>
+                ) : (
+                  <>
+                    Riesgo{" "}
+                    <span className="text-slate-700">crítico.</span>
+                  </>
+                )}
               </h3>
 
-              <div className="mb-8 max-w-sm rounded-2xl border border-white/10 bg-[#05080a]/85 p-5 text-left text-sm font-medium leading-relaxed text-slate-400 backdrop-blur-sm">
+              <div className="mb-8 max-w-sm rounded-[1.5rem] border border-white/5 bg-[#080b0e] p-5 text-left text-sm font-medium leading-relaxed text-slate-400">
                 {isSmallBusiness
-                  ? "Para una operación de tu tamaño, la norma exige estándares clave innegociables. Detectamos brechas operativas que pueden ser gestionadas con un sistema documental claro, trazable y actualizado."
+                  ? "Para una operación de tu tamaño, la norma exige estándares clave innegociables. Detectamos brechas operativas que pueden gestionarse con un sistema documental claro, trazable y actualizado."
                   : "Por el volumen de trabajadores, tu empresa necesita mayor control documental, seguimiento técnico y evidencia organizada. Operar sin un sistema centralizado puede aumentar la exposición a sanciones y hallazgos."}
               </div>
 
               {isSmallBusiness ? (
                 <div className="flex w-full flex-col items-center">
                   <div className="mb-6 flex flex-col items-center">
-                    <span className="mb-3 rounded-full border border-cyan-500/20 bg-cyan-950/30 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-cyan-300">
+                    <span className="mb-3 rounded-full border border-cyan-500/20 bg-cyan-950/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-400">
                       Licencia autogestionable
                     </span>
 
-                    <div className="text-4xl font-black tracking-[-0.06em] text-white">
+                    <div className="text-4xl font-bold tracking-tighter text-white">
                       $99.000{" "}
-                      <span className="text-sm font-semibold uppercase tracking-widest text-slate-500">
+                      <span className="text-sm font-medium uppercase tracking-widest text-slate-500">
                         COP/mes
                       </span>
                     </div>
                   </div>
 
-                  <button className="flex w-full items-center justify-center gap-2 rounded-full bg-cyan-300 px-8 py-4 text-sm font-black text-slate-950 shadow-[0_0_24px_rgba(6,182,212,0.26)] transition-all hover:bg-cyan-200 active:scale-[0.98] sm:w-auto sm:text-base">
+                  <button className="flex w-full items-center justify-center gap-2 rounded-full bg-cyan-400 px-8 py-4 text-sm font-bold text-slate-950 transition-all hover:bg-cyan-300 active:scale-[0.98] sm:w-auto">
                     <CheckCircle2 size={18} strokeWidth={2.5} />
-                    Blindar mi Empresa
+                    Blindar mi empresa
                   </button>
                 </div>
               ) : (
                 <div className="flex w-full flex-col items-center pt-2">
-                  <button className="flex w-full items-center justify-center gap-2 rounded-full bg-white px-8 py-4 text-sm font-black text-slate-950 transition-all hover:bg-slate-200 active:scale-[0.98] sm:w-auto sm:text-base">
+                  <button className="flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-8 py-4 text-sm font-bold text-white transition-colors hover:bg-white/10 sm:w-auto">
                     <Users size={18} strokeWidth={2.5} />
-                    Agendar Auditoría Técnica
+                    Agendar auditoría técnica
                   </button>
 
-                  <p className="mt-4 text-xs font-black uppercase tracking-[0.22em] text-slate-500">
+                  <p className="mt-4 text-xs font-bold uppercase tracking-[0.2em] text-slate-600">
                     15 min con un especialista
                   </p>
                 </div>
