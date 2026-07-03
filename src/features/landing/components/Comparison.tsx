@@ -31,8 +31,8 @@ const comparisonData = [
 
 export default function Comparison() {
   return (
-    // FIX RITMO VERTICAL (CROP EXTREMO): Se redujo a pt-8 (móvil) y md:pt-12 (desktop)
-    <section id="how" className="relative z-10 bg-[#05080a] pt-8 pb-24 md:pt-12 md:pb-32 px-6 w-full mx-auto">
+    // FIX: md:pt-4 asegura que en pantallas grandes este componente empiece casi inmediatamente debajo del Hero.
+    <section id="how" className="relative z-10 bg-[#05080a] pt-12 pb-24 md:pt-4 md:pb-32 px-6 w-full mx-auto">
       
       <div className="max-w-[1200px] mx-auto w-full">
         {/* HEADER DE LA SECCIÓN */}
