@@ -18,7 +18,7 @@ body {
   /* antialiased es crucial en WebKit (Safari/iOS) para que la fuente se vea nítida y delgada */
   @apply bg-[#05080a] text-slate-200 antialiased;
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  overflow-x: hidden;
+  
 }
 
 /* Nota: Todas las animaciones (@keyframes fadeInUp, bg-gradient-glow, etc.) 

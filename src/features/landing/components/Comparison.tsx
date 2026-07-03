@@ -1,3 +1,4 @@
+// src/features/landing/components/Comparison.tsx
 import { motion } from 'framer-motion';
 import { AlertOctagon, CheckCircle, ArrowRight } from 'lucide-react';
 
@@ -5,11 +6,11 @@ export default function Comparison() {
   return (
     <section id="how" className="py-24 md:py-32 px-6 w-full max-w-[1200px] mx-auto overflow-hidden">
       
-      {/* Título Brutalista pero Tipográficamente alineado al Hero */}
+      {/* BUG FIX: viewport margin reducido a -20px para gatillar rápido en móviles */}
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-100px" }}
+        viewport={{ once: true, margin: "-20px" }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
         className="text-center mb-20 md:mb-28"
       >
@@ -22,14 +23,13 @@ export default function Comparison() {
         </p>
       </motion.div>
 
-      {/* Contenedor Grid Ultra-Optimizado (Sin Blurs pesados) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8 items-stretch">
         
         {/* === EL PASADO (El problema) === */}
         <motion.div 
           initial={{ opacity: 0, scale: 0.98 }}
           whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true, margin: "-100px" }}
+          viewport={{ once: true, margin: "-20px" }}
           transition={{ duration: 0.5, ease: "easeOut" }}
           className="p-8 md:p-12 rounded-[2rem] bg-[#050608] border border-red-900/20 flex flex-col justify-between group"
         >
@@ -62,7 +62,7 @@ export default function Comparison() {
         <motion.div 
           initial={{ opacity: 0, scale: 0.98 }}
           whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true, margin: "-100px" }}
+          viewport={{ once: true, margin: "-20px" }}
           transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
           className="relative p-8 md:p-12 rounded-[2rem] bg-[#0c131a] border border-cyan-500/30 flex flex-col justify-between isolate overflow-hidden shadow-[0_0_80px_-20px_rgba(6,182,212,0.15)]"
         >

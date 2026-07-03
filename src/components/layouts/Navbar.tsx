@@ -20,14 +20,15 @@ const Navbar = () => {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // BUG FIX: Liberación correcta del scroll en el body
   useEffect(() => {
     if (isMobileMenuOpen) {
       document.body.style.overflow = 'hidden';
     } else {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = '';
     }
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = '';
     };
   }, [isMobileMenuOpen]);
 
@@ -124,11 +125,7 @@ const Navbar = () => {
         </div>
       </header>
 
-      {/* MENÚ MÓVIL FULLSCREEN (BUG FIX)
-        1. z-[9999]: Máxima prioridad en el DOM.
-        2. bg-[#05080a]: Fondo completamente sólido para bloquear los textos y gradientes del Hero.
-        3. flex col unificado: Eliminamos divs absolutos innecesarios.
-      */}
+      {/* MENÚ MÓVIL FULLSCREEN */}
       <div 
         className={`fixed inset-0 z-[9999] bg-[#05080a] flex flex-col md:hidden transition-all duration-500 ease-[0.16,1,0.3,1] ${
           isMobileMenuOpen ? 'opacity-100 pointer-events-auto translate-y-0 scale-100' : 'opacity-0 pointer-events-none translate-y-8 scale-95'
