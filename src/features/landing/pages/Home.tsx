@@ -1,11 +1,11 @@
 import { motion, type Variants } from 'framer-motion';
-import Hero from '../../landing/components/Hero';
-import Comparison from '../../landing/components/Comparison';
-import { DiagnosticQuiz } from '../../landing/components/DiagnosticQuiz';
-import { SGSSTDashboard } from '../../landing/components/SGSSTDashboard';
-import FeaturesBento from '../../landing/components/ModulesBento';
-import FAQSection from '../../landing/components/FAQSection';
-import CTASection from '../../landing/components/CTASection';
+import Hero from '../components/Hero';
+import Comparison from '../components/Comparison';
+import { DiagnosticQuiz } from '../components/DiagnosticQuiz';
+import { SGSSTDashboard } from '../components/SGSSTDashboard';
+import FeaturesBento from '../components/ModulesBento';
+import FAQSection from '../components/FAQSection';
+import CTASection from '../components/CTASection';
 
 const appleEase = [0.16, 1, 0.3, 1] as const;
 
@@ -20,19 +20,22 @@ const fadeUp: Variants = {
 
 export default function LandingPage() {
   return (
-    <div className="relative min-h-screen bg-slate-950 font-sans selection:bg-cyan-500/30">
+    /* 1. Eliminamos el bg-slate-950 y el min-h-screen redundante.
+      2. Dejamos que herede el bg-[#05080a] global de App.tsx.
+    */
+    <div className="relative w-full">
       
+      {/* Malla de puntos optimizada */}
       <div className="absolute inset-0 z-0 opacity-20 pointer-events-none bg-[radial-gradient(#334155_1px,transparent_1px)] [background-size:24px_24px]" />
-      <div className="absolute top-0 inset-x-0 h-96 bg-gradient-to-b from-slate-900 to-transparent pointer-events-none z-0" />
 
-      <main className="relative z-10 flex flex-col gap-12 md:gap-20 pt-8">
+      {/* 3. Eliminamos el pt-8 que empujaba el contenido innecesariamente */}
+      <main className="relative z-10 flex flex-col gap-12 md:gap-24">
         
         <Hero />
         
-        {/* El ID "comparativa" conecta con el enlace del Navbar */}
         <motion.div
           id="comparativa"
-          className="scroll-mt-24" // Ajuste de margen para que el Navbar fijo no tape el título
+          className="scroll-mt-32" 
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
@@ -41,11 +44,11 @@ export default function LandingPage() {
           <Comparison />
         </motion.div>
 
-        {/* --- SECCIÓN DEL DIAGNÓSTICO ESTRATÉGICO --- */}
-        {/* El ID "diagnostico" ancla el botón principal del Hero */}
+        {/* ... el resto de tus componentes con la misma estructura ... */}
+        
         <motion.div
           id="diagnostico"
-          className="scroll-mt-24"
+          className="scroll-mt-32"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
@@ -54,10 +57,9 @@ export default function LandingPage() {
           <DiagnosticQuiz />
         </motion.div>
         
-        {/* El ID "dashboard" conecta con el enlace del Navbar */}
         <motion.div
           id="dashboard"
-          className="scroll-mt-24"
+          className="scroll-mt-32"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
@@ -66,10 +68,9 @@ export default function LandingPage() {
           <SGSSTDashboard />
         </motion.div>
 
-        {/* El ID "modulos" conecta con el enlace del Navbar */}
         <motion.div
           id="modulos"
-          className="scroll-mt-24"
+          className="scroll-mt-32"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}
@@ -79,11 +80,9 @@ export default function LandingPage() {
         </motion.div>
 
         <div className="flex flex-col">
-          
-          {/* El ID "faq" conecta con el enlace del Navbar */}
           <motion.div
             id="faq"
-            className="scroll-mt-24"
+            className="scroll-mt-32"
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-100px" }}
@@ -100,7 +99,6 @@ export default function LandingPage() {
           >
             <CTASection />
           </motion.div>
-
         </div>
 
       </main>
