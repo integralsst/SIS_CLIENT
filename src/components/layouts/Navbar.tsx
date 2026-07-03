@@ -68,10 +68,10 @@ const Navbar = () => {
         }`}
       >
         <div 
-          // Borde inferior activo solo en móviles (max-md), limpio en desktop
+          // Limpio sin bordes en todas las resoluciones
           className={`absolute inset-0 transition-all duration-300 ${
             isScrolled
-              ? 'bg-[#05080a] max-md:border-b max-md:border-white/5'
+              ? 'bg-[#05080a]'
               : 'bg-transparent'
           }`}
         />
