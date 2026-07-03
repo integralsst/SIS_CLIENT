@@ -31,9 +31,8 @@ const comparisonData = [
 
 export default function Comparison() {
   return (
-    // FIX: Se agregó bg-[#05080a] al contenedor raíz para bloquear cualquier SVG o elemento filtrado desde el Hero.
-    // También se agregó relative y z-10 para asegurar que este componente pinte POR ENCIMA de cualquier residuo visual.
-    <section id="how" className="relative z-10 bg-[#05080a] pt-32 pb-24 md:pt-40 md:pb-32 px-6 w-full mx-auto">
+    // FIX RITMO VERTICAL: Se redujo pt-32 a pt-16 (móvil) y md:pt-40 a md:pt-24 (desktop)
+    <section id="how" className="relative z-10 bg-[#05080a] pt-16 pb-24 md:pt-24 md:pb-32 px-6 w-full mx-auto">
       
       <div className="max-w-[1200px] mx-auto w-full">
         {/* HEADER DE LA SECCIÓN */}
@@ -43,7 +42,8 @@ export default function Comparison() {
           viewport={{ once: true, amount: 0.1 }}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           style={{ willChange: "opacity, transform" }}
-          className="text-center mb-20 md:mb-28"
+          // FIX RITMO VERTICAL: Se redujo mb-20 a mb-16 (móvil) y md:mb-28 a md:mb-20 (desktop)
+          className="text-center mb-16 md:mb-20"
         >
           <div className="inline-flex items-center justify-center gap-2 px-4 py-1.5 rounded-full border border-white/5 bg-white-[0.02] text-slate-400 text-[11px] uppercase tracking-[0.2em] font-semibold mb-6">
             Evolución Operativa
@@ -74,7 +74,6 @@ export default function Comparison() {
               viewport={{ once: true, amount: 0.2 }}
               transition={{ duration: 0.5, delay: index * 0.1, ease: "easeOut" }}
               style={{ willChange: "opacity, transform" }}
-              // Contenedor de fila: Stack en móvil, Grid asimétrico en Desktop
               className="group flex flex-col md:grid md:grid-cols-[1fr_auto_1.2fr] gap-0 md:gap-8 bg-[#0c1015] md:bg-transparent rounded-2xl md:rounded-none overflow-hidden md:overflow-visible border border-white/5 md:border-none"
             >
               
