@@ -31,8 +31,8 @@ const comparisonData = [
 
 export default function Comparison() {
   return (
-    // FIX RITMO VERTICAL: Se redujo pt-32 a pt-16 (móvil) y md:pt-40 a md:pt-24 (desktop)
-    <section id="how" className="relative z-10 bg-[#05080a] pt-16 pb-24 md:pt-24 md:pb-32 px-6 w-full mx-auto">
+    // FIX RITMO VERTICAL (CROP EXTREMO): Se redujo a pt-8 (móvil) y md:pt-12 (desktop)
+    <section id="how" className="relative z-10 bg-[#05080a] pt-8 pb-24 md:pt-12 md:pb-32 px-6 w-full mx-auto">
       
       <div className="max-w-[1200px] mx-auto w-full">
         {/* HEADER DE LA SECCIÓN */}
@@ -42,7 +42,6 @@ export default function Comparison() {
           viewport={{ once: true, amount: 0.1 }}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           style={{ willChange: "opacity, transform" }}
-          // FIX RITMO VERTICAL: Se redujo mb-20 a mb-16 (móvil) y md:mb-28 a md:mb-20 (desktop)
           className="text-center mb-16 md:mb-20"
         >
           <div className="inline-flex items-center justify-center gap-2 px-4 py-1.5 rounded-full border border-white/5 bg-white-[0.02] text-slate-400 text-[11px] uppercase tracking-[0.2em] font-semibold mb-6">
