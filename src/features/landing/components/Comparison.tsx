@@ -1,141 +1,117 @@
-import { motion, type Variants } from 'framer-motion';
-import { 
-  FileWarning, 
-  ShieldCheck, 
-  Activity, 
-  FileText 
-} from 'lucide-react';
-
-// --- ANIMACIONES FLUIDAS TIPO APPLE (Optimizadas) ---
-const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 30 }, // Reducido ligeramente para menos recorrido en móviles
-  visible: { 
-    opacity: 1, 
-    y: 0, 
-    transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } 
-  }
-};
-
-const staggerList: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1, delayChildren: 0.15 } // Más rápido para evitar que el usuario scrollee antes de verlos
-  }
-};
-
-const listItem: Variants = {
-  hidden: { opacity: 0, x: -10 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.4, ease: "easeOut" } }
-};
+import { motion } from 'framer-motion';
+import { AlertOctagon, CheckCircle, ArrowRight } from 'lucide-react';
 
 export default function Comparison() {
   return (
-    <section id="how" className="py-16 md:py-24 px-4 md:px-8 w-full max-w-6xl mx-auto overflow-hidden">
+    <section id="how" className="py-24 md:py-32 px-6 w-full max-w-[1200px] mx-auto overflow-hidden">
       
-      {/* Encabezado */}
+      {/* Título Brutalista pero Tipográficamente alineado al Hero */}
       <motion.div 
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-50px" }}
-        variants={fadeUp}
-        className="text-center mb-16 will-change-[transform,opacity]"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className="text-center mb-20 md:mb-28"
       >
-        <h3 className="text-3xl md:text-5xl font-bold text-white tracking-tight mb-4">
-          La evolución del <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">SG-SST</span>
-        </h3>
-        <p className="text-slate-400 font-medium max-w-xl mx-auto text-base md:text-lg">
-          Deja atrás la incertidumbre operativa. Centraliza, audita y controla con precisión.
+        <h2 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold text-white tracking-tighter leading-[1.1] md:leading-[1.05] mb-6 max-w-5xl mx-auto">
+          Tu tranquilidad no <br className="hidden md:block" />
+          <span className="text-slate-700">pertenece a un Excel.</span>
+        </h2>
+        <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-slate-400/90 font-medium leading-relaxed tracking-tight max-w-2xl mx-auto">
+          El SG-SST es una obligación legal crítica. Dejarlo en manos de carpetas físicas es jugar con el futuro de tu empresa.
         </p>
       </motion.div>
 
-      {/* Contenedor Comparativo */}
-      <div className="relative flex flex-col lg:flex-row gap-6 lg:gap-8 items-stretch justify-center">
+      {/* Contenedor Grid Ultra-Optimizado (Sin Blurs pesados) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8 items-stretch">
         
-        {/* === TARJETA TRADICIONAL === */}
+        {/* === EL PASADO (El problema) === */}
         <motion.div 
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeUp}
-          className="flex-1 w-full p-8 md:p-10 rounded-[2rem] border border-slate-800/60 bg-slate-900/30 z-0 flex flex-col justify-center will-change-[transform,opacity]"
+          initial={{ opacity: 0, scale: 0.98 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="p-8 md:p-12 rounded-[2rem] bg-[#050608] border border-red-900/20 flex flex-col justify-between group"
         >
-          <div className="flex items-center gap-3 mb-8 opacity-60">
-            <div className="p-2 rounded-xl bg-slate-800">
-              <FileWarning size={20} className="text-slate-400" />
-            </div>
-            <h4 className="text-slate-300 font-semibold tracking-wide uppercase text-sm">
-              Gestión Desactualizada
-            </h4>
-          </div>
-          
-          <ul className="space-y-6 text-slate-500 font-medium text-sm md:text-base">
-            <li className="flex items-start gap-4">
-              <div className="mt-2 w-1.5 h-1.5 rounded-full bg-slate-700 shrink-0" />
-              <p>Matrices y bitácoras fragmentadas en hojas de cálculo propensas a errores.</p>
-            </li>
-            <li className="flex items-start gap-4">
-              <div className="mt-2 w-1.5 h-1.5 rounded-full bg-slate-700 shrink-0" />
-              <p>Vencimientos de capacitaciones que pasan desapercibidos.</p>
-            </li>
-            <li className="flex items-start gap-4">
-              <div className="mt-2 w-1.5 h-1.5 rounded-full bg-slate-700 shrink-0" />
-              <p>Alta exposición a sanciones y hallazgos críticos en auditorías.</p>
-            </li>
-          </ul>
-        </motion.div>
-
-        {/* === BADGE "VS" === */}
-        <div className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-14 h-14 rounded-full bg-slate-950 border border-slate-800 items-center justify-center shadow-2xl">
-          <span className="text-slate-500 font-black text-sm tracking-widest">VS</span>
-        </div>
-
-        {/* === TARJETA SIS (Optimizada para Safari) === */}
-        <motion.div 
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-50px" }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
-          style={{ WebkitTransform: "translateZ(0)" }} // Hack vital para Safari
-          className="flex-1 w-full p-8 md:p-10 rounded-[2rem] border border-cyan-500/20 bg-slate-800/40 backdrop-blur-xl shadow-2xl z-10 relative overflow-hidden flex flex-col justify-center transform-gpu will-change-[transform,opacity] transition-transform duration-300 md:hover:-translate-y-1 md:hover:shadow-cyan-900/20"
-        >
-          {/* Acento superior sutil */}
-          <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent" />
-
-          <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20 shadow-inner">
-                <ShieldCheck size={22} className="text-cyan-400" />
-              </div>
-              <h4 className="text-white font-bold tracking-wide uppercase text-sm md:text-base">
-                El Estándar SIS
+          <div>
+            <div className="flex items-center gap-3 mb-10">
+              <AlertOctagon size={24} className="text-red-900/60" strokeWidth={2} />
+              <h4 className="text-slate-600 font-bold tracking-widest uppercase text-xs md:text-sm">
+                El Costo del Caos
               </h4>
             </div>
-            <span className="px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-300 text-[10px] font-bold tracking-widest uppercase border border-cyan-500/20">
-              Recomendado
-            </span>
+            
+            <ul className="space-y-8 text-slate-500 font-medium text-base md:text-lg">
+              <li className="flex flex-col gap-1">
+                <span className="text-slate-400 font-bold">Documentación Vulnerable</span>
+                <span className="text-sm">Pérdida de planillas físicas y firmas ilegibles que invalidan las inducciones.</span>
+              </li>
+              <li className="flex flex-col gap-1">
+                <span className="text-slate-400 font-bold">Ceguera Operativa</span>
+                <span className="text-sm">Fechas de capacitaciones y exámenes médicos que vencen sin que nadie lo note.</span>
+              </li>
+              <li className="flex flex-col gap-1">
+                <span className="text-slate-400 font-bold">Riesgo Financiero</span>
+                <span className="text-sm">Exposición total a demandas laborales y sanciones del Ministerio de Trabajo.</span>
+              </li>
+            </ul>
           </div>
-          
-          <motion.ul 
-            variants={staggerList}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="space-y-6 text-slate-200 font-medium text-sm md:text-base"
-          >
-            <motion.li variants={listItem} className="flex items-start gap-4">
-              <Activity size={22} className="text-cyan-400 shrink-0 mt-0.5" />
-              <p>Dashboards gerenciales con indicadores y alertas predictivas.</p>
-            </motion.li>
-            <motion.li variants={listItem} className="flex items-start gap-4">
-              <FileText size={22} className="text-cyan-400 shrink-0 mt-0.5" />
-              <p>Control centralizado de bitácoras y trazabilidad documental total.</p>
-            </motion.li>
-            <motion.li variants={listItem} className="flex items-start gap-4">
-              <ShieldCheck size={22} className="text-cyan-400 shrink-0 mt-0.5" />
-              <p>Cumplimiento normativo blindado y listo para cualquier auditoría.</p>
-            </motion.li>
-          </motion.ul>
+        </motion.div>
+
+        {/* === EL FUTURO (La Solución) === */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.98 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
+          className="relative p-8 md:p-12 rounded-[2rem] bg-[#0c131a] border border-cyan-500/30 flex flex-col justify-between isolate overflow-hidden shadow-[0_0_80px_-20px_rgba(6,182,212,0.15)]"
+        >
+          <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-80" />
+
+          <div>
+            <div className="flex items-center justify-between mb-10">
+              <div className="flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                <h4 className="text-white font-bold tracking-widest uppercase text-xs md:text-sm">
+                  El Poder del Control
+                </h4>
+              </div>
+              <span className="px-3 py-1 rounded-full border border-cyan-500/30 text-cyan-400 text-[10px] font-bold tracking-widest uppercase">
+                Sistema SIS
+              </span>
+            </div>
+            
+            <ul className="space-y-8 text-slate-200 font-medium text-base md:text-lg">
+              <li className="flex items-start gap-4">
+                <CheckCircle size={24} className="text-cyan-400 shrink-0 mt-0.5" strokeWidth={2.5} />
+                <div className="flex flex-col gap-1">
+                  <span className="text-white font-bold tracking-tight">Trazabilidad Absoluta</span>
+                  <span className="text-sm text-slate-400">Evidencias digitales inalterables (Art. 2.2.4.6.12) disponibles 24/7 en la nube.</span>
+                </div>
+              </li>
+              <li className="flex items-start gap-4">
+                <CheckCircle size={24} className="text-cyan-400 shrink-0 mt-0.5" strokeWidth={2.5} />
+                <div className="flex flex-col gap-1">
+                  <span className="text-white font-bold tracking-tight">Vigilancia Automatizada</span>
+                  <span className="text-sm text-slate-400">Alertas predictivas que te avisan antes de que un estándar mínimo caduque.</span>
+                </div>
+              </li>
+              <li className="flex items-start gap-4">
+                <CheckCircle size={24} className="text-cyan-400 shrink-0 mt-0.5" strokeWidth={2.5} />
+                <div className="flex flex-col gap-1">
+                  <span className="text-white font-bold tracking-tight">Auditorías a un Clic</span>
+                  <span className="text-sm text-slate-400">Genera reportes gerenciales al instante. Demuestra cumplimiento en segundos.</span>
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <div className="mt-12 pt-8 border-t border-white/5">
+            <a href="#diagnostico" className="group inline-flex items-center gap-2 text-cyan-400 font-bold text-sm md:text-base hover:text-cyan-300 transition-colors">
+              Iniciar transición al modelo digital 
+              <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
+            </a>
+          </div>
         </motion.div>
 
       </div>
