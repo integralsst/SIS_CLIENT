@@ -4,8 +4,7 @@ import { Sparkles, ClipboardCheck, ShieldCheck, ChevronDown } from 'lucide-react
 import { motion } from 'framer-motion';
 
 const Hero = () => {
-  // FIX TIPADO: Aceptamos explícitamente eventos tanto del <a> como del <motion.div>
-  const handleScroll = (e: React.MouseEvent<HTMLAnchorElement | HTMLDivElement>) => {
+  const handleScroll = (e: React.MouseEvent) => {
     e.preventDefault();
     const target = document.getElementById('how');
     if (target) {
@@ -14,10 +13,8 @@ const Hero = () => {
   };
 
   return (
-    <section className="relative w-full px-6 overflow-hidden flex flex-col items-center justify-center text-center min-h-[100dvh] md:min-h-0 pt-20 pb-16 md:pt-40 md:pb-16">
+    <section className="relative w-full px-6 overflow-hidden flex flex-col items-center justify-center text-center min-h-[100dvh] pt-24 pb-16">
       
-      {/* FIX ESPACIO: min-h-[100dvh] para móvil, pero md:min-h-0 en desktop para evitar el abismo negro. */}
-      {/* FONDO PREMIUM OPTIMIZADO */}
       <div className="absolute inset-0 -z-10 bg-[#05080a] flex items-center justify-center overflow-hidden pointer-events-none">
         <svg 
           className="absolute w-[200%] h-[200%] opacity-40 animate-[spin_120s_linear_infinite]" 
@@ -36,7 +33,7 @@ const Hero = () => {
           <rect width="100%" height="100%" fill="url(#fadeGradient)" />
         </svg>
 
-        <div className="absolute bottom-0 inset-x-0 h-32 md:h-24 bg-gradient-to-t from-[#05080a] to-transparent" />
+        <div className="absolute bottom-0 inset-x-0 h-32 md:h-40 bg-gradient-to-t from-[#05080a] to-transparent" />
       </div>
 
       <motion.div 
