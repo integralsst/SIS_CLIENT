@@ -1,144 +1,137 @@
+// src/features/landing/components/Comparison.tsx
 import { motion } from 'framer-motion';
-import { AlertOctagon, CheckCircle, ArrowRight, EyeOff, TrendingDown, ShieldCheck, Activity, FileCheck2 } from 'lucide-react';
+import { ArrowRight, FileX, ShieldCheck, Clock, Zap, AlertTriangle, CheckCircle2 } from 'lucide-react';
+
+const comparisonData = [
+  {
+    iconPast: <FileX size={20} />,
+    titlePast: "Carpetas y Excel",
+    descPast: "Documentación física vulnerable. Planillas que se pierden y firmas ilegibles.",
+    iconFuture: <ShieldCheck size={20} />,
+    titleFuture: "Nube Inalterable",
+    descFuture: "Evidencia digital centralizada, disponible 24/7 y protegida bajo el Art. 2.2.4.6.12.",
+  },
+  {
+    iconPast: <Clock size={20} />,
+    titlePast: "Ceguera Operativa",
+    descPast: "Capacitaciones y exámenes médicos vencidos sin que nadie lo note a tiempo.",
+    iconFuture: <Zap size={20} />,
+    titleFuture: "Vigilancia Activa",
+    descFuture: "Alertas predictivas que notifican a los responsables antes de cualquier caducidad.",
+  },
+  {
+    iconPast: <AlertTriangle size={20} />,
+    titlePast: "Pánico de Auditoría",
+    descPast: "Días enteros recopilando información ante una visita del Ministerio de Trabajo.",
+    iconFuture: <CheckCircle2 size={20} />,
+    titleFuture: "Auditorías a un Clic",
+    descFuture: "Reportes gerenciales instantáneos para demostrar el cumplimiento total del estándar.",
+  }
+];
 
 export default function Comparison() {
   return (
-    <section id="how" className="py-24 md:py-32 px-0 md:px-6 w-full max-w-[1200px] mx-auto overflow-hidden">
+    // FIX: Se agregó bg-[#05080a] al contenedor raíz para bloquear cualquier SVG o elemento filtrado desde el Hero.
+    // También se agregó relative y z-10 para asegurar que este componente pinte POR ENCIMA de cualquier residuo visual.
+    <section id="how" className="relative z-10 bg-[#05080a] pt-32 pb-24 md:pt-40 md:pb-32 px-6 w-full mx-auto">
       
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.1 }}
-        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        style={{ willChange: "opacity, transform" }}
-        className="text-center mb-16 md:mb-28 px-6"
-      >
-        <h2 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold text-white tracking-tighter leading-[1.1] md:leading-[1.05] mb-6 max-w-5xl mx-auto">
-          Tu tranquilidad no <br className="hidden md:block" />
-          <span className="text-slate-700">pertenece a un Excel.</span>
-        </h2>
-        <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-slate-400/90 font-medium leading-relaxed tracking-tight max-w-2xl mx-auto">
-          El SG-SST es una obligación legal crítica. Dejarlo en manos de carpetas físicas es jugar con el futuro de tu empresa.
-        </p>
-      </motion.div>
-
-      {/* CONTENEDOR HÍBRIDO: Carrusel CSS Scroll Snap en Móvil / Grid en Desktop */}
-      <div className="flex overflow-x-auto snap-x snap-mandatory md:grid md:grid-cols-2 gap-6 md:gap-8 items-stretch px-6 md:px-0 pb-8 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        
-        {/* === EL PASADO (El problema) === */}
+      <div className="max-w-[1200px] mx-auto w-full">
+        {/* HEADER DE LA SECCIÓN */}
         <motion.div 
-          initial={{ opacity: 0, scale: 0.98 }}
-          whileInView={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.1 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           style={{ willChange: "opacity, transform" }}
-          // SNAP CENTER para carrusel móvil
-          className="min-w-[85vw] md:min-w-0 snap-center shrink-0 p-8 md:p-12 rounded-[2rem] bg-[#050608] border border-red-900/20 flex flex-col justify-between group"
+          className="text-center mb-20 md:mb-28"
         >
-          <div className="flex flex-col items-center text-center">
-            <div className="inline-flex items-center justify-center gap-2 mb-12 px-4 py-1.5 rounded-full bg-red-950/30 border border-red-900/30">
-              <AlertOctagon size={16} className="text-red-500" strokeWidth={2.5} />
-              <h4 className="text-red-400 font-bold tracking-widest uppercase text-xs">
-                El Costo del Caos
-              </h4>
-            </div>
-            
-            {/* Ítems rediseñados en bloques verticales centrados */}
-            <div className="flex flex-col gap-10 text-slate-500 w-full max-w-xs mx-auto">
-              <div className="flex flex-col items-center gap-3">
-                <div className="p-3 rounded-2xl bg-white/5 text-slate-600">
-                  <FileCheck2 size={28} strokeWidth={1.5} />
-                </div>
-                <div>
-                  <span className="block text-slate-400 font-bold text-lg mb-1">Documentación Vulnerable</span>
-                  <span className="text-sm leading-relaxed">Pérdida de planillas físicas y firmas ilegibles que invalidan las inducciones.</span>
-                </div>
-              </div>
-
-              <div className="flex flex-col items-center gap-3">
-                <div className="p-3 rounded-2xl bg-white/5 text-slate-600">
-                  <EyeOff size={28} strokeWidth={1.5} />
-                </div>
-                <div>
-                  <span className="block text-slate-400 font-bold text-lg mb-1">Ceguera Operativa</span>
-                  <span className="text-sm leading-relaxed">Fechas de capacitaciones y exámenes médicos que vencen sin que nadie lo note.</span>
-                </div>
-              </div>
-
-              <div className="flex flex-col items-center gap-3">
-                <div className="p-3 rounded-2xl bg-white/5 text-slate-600">
-                  <TrendingDown size={28} strokeWidth={1.5} />
-                </div>
-                <div>
-                  <span className="block text-slate-400 font-bold text-lg mb-1">Riesgo Financiero</span>
-                  <span className="text-sm leading-relaxed">Exposición total a demandas laborales y sanciones del Ministerio de Trabajo.</span>
-                </div>
-              </div>
-            </div>
+          <div className="inline-flex items-center justify-center gap-2 px-4 py-1.5 rounded-full border border-white/5 bg-white-[0.02] text-slate-400 text-[11px] uppercase tracking-[0.2em] font-semibold mb-6">
+            Evolución Operativa
           </div>
+          <h2 className="text-4xl sm:text-5xl md:text-7xl font-bold text-white tracking-tighter leading-[1.1] mb-6 max-w-4xl mx-auto">
+            Abandona la Edad de Piedra <br className="hidden md:block" />
+            <span className="text-slate-700">del SG-SST.</span>
+          </h2>
         </motion.div>
 
-        {/* === EL FUTURO (La Solución) === */}
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.98 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true, amount: 0.1 }}
-          transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
-          style={{ willChange: "opacity, transform" }}
-          className="relative min-w-[85vw] md:min-w-0 snap-center shrink-0 p-8 md:p-12 rounded-[2rem] bg-[#0c131a] border border-cyan-500/30 flex flex-col justify-between isolate overflow-hidden"
-        >
-          <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-[radial-gradient(ellipse_at_center,_rgba(6,182,212,0.08)_0%,_transparent_50%)] pointer-events-none -z-10" />
-          <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-80" />
-
-          <div className="flex flex-col items-center text-center">
-            <div className="inline-flex items-center justify-center gap-2 mb-12 px-4 py-1.5 rounded-full bg-cyan-950/30 border border-cyan-500/30">
-              <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-              <h4 className="text-cyan-400 font-bold tracking-widest uppercase text-xs">
-                El Poder del Control
-              </h4>
-            </div>
-            
-            <div className="flex flex-col gap-10 text-slate-200 w-full max-w-xs mx-auto">
-              <div className="flex flex-col items-center gap-3">
-                <div className="p-3 rounded-2xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                  <ShieldCheck size={28} strokeWidth={1.5} />
-                </div>
-                <div>
-                  <span className="block text-white font-bold text-lg mb-1 tracking-tight">Trazabilidad Absoluta</span>
-                  <span className="text-sm text-slate-400 leading-relaxed">Evidencias digitales inalterables (Art. 2.2.4.6.12) disponibles 24/7 en la nube.</span>
-                </div>
-              </div>
-
-              <div className="flex flex-col items-center gap-3">
-                <div className="p-3 rounded-2xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                  <Activity size={28} strokeWidth={1.5} />
-                </div>
-                <div>
-                  <span className="block text-white font-bold text-lg mb-1 tracking-tight">Vigilancia Automatizada</span>
-                  <span className="text-sm text-slate-400 leading-relaxed">Alertas predictivas que te avisan antes de que un estándar mínimo caduque.</span>
-                </div>
-              </div>
-
-              <div className="flex flex-col items-center gap-3">
-                <div className="p-3 rounded-2xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                  <CheckCircle size={28} strokeWidth={1.5} />
-                </div>
-                <div>
-                  <span className="block text-white font-bold text-lg mb-1 tracking-tight">Auditorías a un Clic</span>
-                  <span className="text-sm text-slate-400 leading-relaxed">Genera reportes gerenciales al instante. Demuestra cumplimiento en segundos.</span>
-                </div>
-              </div>
+        {/* MATRIZ COMPARATIVA */}
+        <div className="flex flex-col gap-4 md:gap-6">
+          
+          {/* Cabeceras ocultas en móvil, visibles en desktop para dar contexto */}
+          <div className="hidden md:grid md:grid-cols-[1fr_auto_1.2fr] gap-8 px-8 mb-2">
+            <div className="text-right text-xs font-bold uppercase tracking-widest text-slate-600">Modelo Tradicional</div>
+            <div className="w-px" /> {/* Espaciador del divisor */}
+            <div className="text-left text-xs font-bold uppercase tracking-widest text-cyan-400 flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" /> Ecosistema SIS
             </div>
           </div>
 
-          <div className="mt-14 pt-8 border-t border-white/5 flex justify-center w-full">
-            <a href="#diagnostico" className="group inline-flex items-center gap-2 text-cyan-400 font-bold text-sm md:text-base hover:text-cyan-300 transition-colors">
-              Transición al modelo digital 
-              <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
+          {comparisonData.map((row, index) => (
+            <motion.div 
+              key={index}
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.5, delay: index * 0.1, ease: "easeOut" }}
+              style={{ willChange: "opacity, transform" }}
+              // Contenedor de fila: Stack en móvil, Grid asimétrico en Desktop
+              className="group flex flex-col md:grid md:grid-cols-[1fr_auto_1.2fr] gap-0 md:gap-8 bg-[#0c1015] md:bg-transparent rounded-2xl md:rounded-none overflow-hidden md:overflow-visible border border-white/5 md:border-none"
+            >
+              
+              {/* IZQUIERDA (El Problema) */}
+              <div className="flex flex-col justify-center p-6 md:p-8 md:text-right md:bg-[#080b0e] md:rounded-[2rem] md:border md:border-white/5 transition-colors group-hover:border-red-900/10">
+                <div className="flex items-center md:justify-end gap-3 mb-2 text-slate-600">
+                  <div className="md:order-2">{row.iconPast}</div>
+                  <h4 className="font-bold text-sm md:text-base tracking-tight line-through decoration-red-900/50">
+                    {row.titlePast}
+                  </h4>
+                </div>
+                <p className="text-slate-500 text-sm leading-relaxed max-w-sm md:ml-auto">
+                  {row.descPast}
+                </p>
+              </div>
+
+              {/* DIVISOR CENTRAL */}
+              <div className="hidden md:flex flex-col items-center justify-center relative">
+                <div className="absolute top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-white/10 to-transparent" />
+                <div className="w-8 h-8 rounded-full bg-[#05080a] border border-white/10 flex items-center justify-center relative z-10 text-slate-600 group-hover:text-cyan-500 group-hover:border-cyan-500/30 transition-colors duration-500">
+                  <ArrowRight size={14} />
+                </div>
+              </div>
+
+              {/* DERECHA (La Solución) */}
+              <div className="flex flex-col justify-center p-6 md:p-8 bg-cyan-950/10 md:bg-[#0c131a] border-t border-white/5 md:border-t-0 md:border md:border-cyan-500/20 md:rounded-[2rem] relative overflow-hidden transition-all duration-500 group-hover:shadow-[0_0_40px_-15px_rgba(6,182,212,0.15)] group-hover:border-cyan-500/40">
+                <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_left,_rgba(6,182,212,0.08)_0%,_transparent_70%)] pointer-events-none" />
+                
+                <div className="relative z-10 flex items-center gap-3 mb-2 text-cyan-400">
+                  {row.iconFuture}
+                  <h4 className="font-bold text-base md:text-lg tracking-tight text-white">
+                    {row.titleFuture}
+                  </h4>
+                </div>
+                <p className="relative z-10 text-slate-400 text-sm leading-relaxed max-w-md">
+                  {row.descFuture}
+                </p>
+              </div>
+
+            </motion.div>
+          ))}
+
+          {/* CTA INFERIOR */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="mt-12 flex justify-center w-full relative z-10"
+          >
+            <a href="#diagnostico" className="group inline-flex items-center gap-2 px-8 py-4 bg-white/5 rounded-full text-cyan-400 font-bold text-sm hover:bg-white/10 transition-colors border border-white/5 hover:border-cyan-500/30">
+              Iniciar transición digital 
+              <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
             </a>
-          </div>
-        </motion.div>
+          </motion.div>
 
+        </div>
       </div>
     </section>
   );

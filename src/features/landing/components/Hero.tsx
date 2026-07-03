@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 const Hero = () => {
   const handleScroll = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
     e.preventDefault();
-    const target = document.getElementById('diagnostico');
+    const target = document.getElementById('how');
     if (target) {
       target.scrollIntoView({ behavior: 'smooth' });
     }
@@ -21,7 +21,6 @@ const Hero = () => {
         >
           <defs>
             <pattern id="dotPattern" width="40" height="40" patternUnits="userSpaceOnUse">
-              {/* Puntos blancos reducidos (r=1) para una sutileza extrema */}
               <circle cx="20" cy="20" r="1" fill="#ffffff" />
             </pattern>
             <radialGradient id="fadeGradient" cx="50%" cy="50%" r="65%">
@@ -30,9 +29,11 @@ const Hero = () => {
             </radialGradient>
           </defs>
           <rect width="100%" height="100%" fill="url(#dotPattern)" />
-          {/* Capa de enmascaramiento para integrar los puntos con el fondo oscuro */}
           <rect width="100%" height="100%" fill="url(#fadeGradient)" />
         </svg>
+
+        {/* FIX EMPALME PERFECTO: Este gradiente borra los puntos justo antes de tocar el componente Comparison */}
+        <div className="absolute bottom-0 inset-x-0 h-32 sm:h-48 bg-gradient-to-t from-[#05080a] to-transparent" />
       </div>
       
       <motion.div 
@@ -77,12 +78,12 @@ const Hero = () => {
         className="flex flex-col sm:flex-row items-center justify-center gap-5 sm:gap-6"
       >
         <a 
-          href="#diagnostico"
+          href="#how"
           onClick={handleScroll}
           className="group relative w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 sm:px-8 sm:py-4 bg-cyan-400 text-slate-950 rounded-full font-semibold text-[15px] sm:text-base transition-all duration-300 hover:bg-cyan-300 hover:scale-[1.02] active:scale-[0.98]"
         >
           <ClipboardCheck size={20} className="transition-transform group-hover:-translate-y-0.5" /> 
-          Iniciar Diagnóstico Gratuito
+          Explorar el Modelo Digital
         </a>
         
         <div className="flex items-center gap-2 text-slate-400 text-xs sm:text-sm font-medium px-2 mt-2 sm:mt-0">
