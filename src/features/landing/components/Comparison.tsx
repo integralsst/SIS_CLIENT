@@ -1,4 +1,3 @@
-// src/features/landing/components/Comparison.tsx
 import { motion } from 'framer-motion';
 import { AlertOctagon, CheckCircle, ArrowRight } from 'lucide-react';
 
@@ -6,12 +5,13 @@ export default function Comparison() {
   return (
     <section id="how" className="py-24 md:py-32 px-6 w-full max-w-[1200px] mx-auto overflow-hidden">
       
-      {/* BUG FIX: viewport margin reducido a -20px para gatillar rápido en móviles */}
+      {/* FIX: amount: 0.1 y willChange nativo para hardware acceleration */}
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-20px" }}
+        viewport={{ once: true, amount: 0.1 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        style={{ willChange: "opacity, transform" }}
         className="text-center mb-20 md:mb-28"
       >
         <h2 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold text-white tracking-tighter leading-[1.1] md:leading-[1.05] mb-6 max-w-5xl mx-auto">
@@ -29,8 +29,9 @@ export default function Comparison() {
         <motion.div 
           initial={{ opacity: 0, scale: 0.98 }}
           whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true, margin: "-20px" }}
+          viewport={{ once: true, amount: 0.1 }}
           transition={{ duration: 0.5, ease: "easeOut" }}
+          style={{ willChange: "opacity, transform" }}
           className="p-8 md:p-12 rounded-[2rem] bg-[#050608] border border-red-900/20 flex flex-col justify-between group"
         >
           <div>
@@ -62,10 +63,16 @@ export default function Comparison() {
         <motion.div 
           initial={{ opacity: 0, scale: 0.98 }}
           whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true, margin: "-20px" }}
+          viewport={{ once: true, amount: 0.1 }}
           transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
-          className="relative p-8 md:p-12 rounded-[2rem] bg-[#0c131a] border border-cyan-500/30 flex flex-col justify-between isolate overflow-hidden shadow-[0_0_80px_-20px_rgba(6,182,212,0.15)]"
+          style={{ willChange: "opacity, transform" }}
+          // FIX: Eliminada la sombra [shadow-[0_0_80px_-20px...]] que mataba el performance en móvil. 
+          // Se usa un div interno radial rápido de procesar para la GPU.
+          className="relative p-8 md:p-12 rounded-[2rem] bg-[#0c131a] border border-cyan-500/30 flex flex-col justify-between isolate overflow-hidden"
         >
+          {/* Reemplazo de sombra pesada: Gradiente SVG-like acelerado por hardware */}
+          <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-[radial-gradient(ellipse_at_center,_rgba(6,182,212,0.08)_0%,_transparent_50%)] pointer-events-none -z-10" />
+          
           <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-80" />
 
           <div>

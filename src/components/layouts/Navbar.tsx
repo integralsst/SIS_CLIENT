@@ -1,9 +1,7 @@
-// src/components/layouts/Navbar.tsx
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, X, ChevronRight, LogOut } from 'lucide-react';
 import { useAuth } from '../../features/auth/context/AuthContext';
-
 import Logo from '../../assets/logosis.webp'; 
 
 const navLinks = [
@@ -20,21 +18,28 @@ const Navbar = () => {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // BUG FIX: Liberación correcta del scroll en el body
+  // Scroll lock agresivo para iOS y prevención de reflow
   useEffect(() => {
     if (isMobileMenuOpen) {
       document.body.style.overflow = 'hidden';
+      // Evita el elastic scroll en iOS Safari
+      document.body.style.touchAction = 'none'; 
     } else {
       document.body.style.overflow = '';
+      document.body.style.touchAction = '';
     }
     return () => {
       document.body.style.overflow = '';
+      document.body.style.touchAction = '';
     };
   }, [isMobileMenuOpen]);
 
+  // Ignorar scroll si el menú está abierto
   useEffect(() => {
     let ticking = false;
     const handleScroll = () => {
+      if (isMobileMenuOpen) return; // No mutar visibilidad si el menú está activo
+
       const currentScrollY = window.scrollY;
       if (!ticking) {
         window.requestAnimationFrame(() => {
@@ -52,19 +57,21 @@ const Navbar = () => {
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
+  }, [lastScrollY, isMobileMenuOpen]);
 
   return (
     <>
       <header
-        className={`fixed w-full top-0 z-50 transition-transform duration-300 ease-in-out ${
-          isVisible ? 'translate-y-0' : '-translate-y-full'
+        // Forzar visibilidad si el menú está abierto
+        className={`fixed w-full top-0 z-50 transition-transform duration-300 ease-in-out will-change-transform ${
+          (isVisible || isMobileMenuOpen) ? 'translate-y-0' : '-translate-y-full'
         }`}
       >
         <div 
+          // Borde inferior activo solo en móviles (max-md), limpio en desktop
           className={`absolute inset-0 transition-all duration-300 ${
             isScrolled
-              ? 'bg-[#05080a]/70 backdrop-blur-xl'
+              ? 'bg-[#05080a] max-md:border-b max-md:border-white/5'
               : 'bg-transparent'
           }`}
         />
@@ -127,8 +134,8 @@ const Navbar = () => {
 
       {/* MENÚ MÓVIL FULLSCREEN */}
       <div 
-        className={`fixed inset-0 z-[9999] bg-[#05080a] flex flex-col md:hidden transition-all duration-500 ease-[0.16,1,0.3,1] ${
-          isMobileMenuOpen ? 'opacity-100 pointer-events-auto translate-y-0 scale-100' : 'opacity-0 pointer-events-none translate-y-8 scale-95'
+        className={`fixed inset-0 z-[9999] bg-[#05080a] flex flex-col md:hidden transition-all duration-300 ease-out will-change-transform ${
+          isMobileMenuOpen ? 'opacity-100 pointer-events-auto translate-y-0' : 'opacity-0 pointer-events-none translate-y-4'
         }`}
       >
         <div className="flex items-center justify-between px-6 py-8">
@@ -158,7 +165,7 @@ const Navbar = () => {
         <div className="flex-grow" />
 
         <div className="p-6 mb-4">
-          <div className="bg-white/5 border border-white/10 rounded-[32px] p-6 shadow-2xl">
+          <div className="bg-white/5 border border-white/10 rounded-[32px] p-6">
             {user ? (
               <div className="flex flex-col gap-5">
                 <div className="flex items-center gap-4 mb-2">
