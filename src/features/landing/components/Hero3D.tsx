@@ -1,7 +1,7 @@
 // src/features/landing/components/Hero3D.tsx
 import { useRef, useState, useEffect } from 'react';
 import { motion, useScroll, useMotionValueEvent, useTransform, AnimatePresence, type Transition } from 'framer-motion';
-import { ShieldCheck } from 'lucide-react';
+import { ShieldCheck, ChevronDown } from 'lucide-react';
 
 export const Hero3D = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -9,13 +9,13 @@ export const Hero3D = () => {
   
   const frameRef = useRef<number | null>(null);
   const [showText, setShowText] = useState<boolean>(false);
+  const [hasScrolled, setHasScrolled] = useState<boolean>(false);
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end end"]
   });
 
-  // 1. Limpieza del requestAnimationFrame
   useEffect(() => {
     return () => {
       if (frameRef.current !== null) {
@@ -24,11 +24,9 @@ export const Hero3D = () => {
     };
   }, []);
 
-  // 2. FIX: API de Visibilidad de Página para cuando el usuario cambia de pestaña
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && videoRef.current && Number.isFinite(videoRef.current.duration)) {
-        // Al volver a la pestaña, leemos el progreso actual y forzamos la actualización
         const currentProgress = scrollYProgress.get();
         videoRef.current.currentTime = currentProgress * videoRef.current.duration;
       }
@@ -38,8 +36,14 @@ export const Hero3D = () => {
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, [scrollYProgress]);
 
-  // 3. Evento de scroll optimizado
   useMotionValueEvent(scrollYProgress, "change", (latest) => {
+    // Ocultar el indicador de scroll apenas el usuario baje un poco
+    if (latest > 0.02 && !hasScrolled) {
+      setHasScrolled(true);
+    } else if (latest <= 0.02 && hasScrolled) {
+      setHasScrolled(false);
+    }
+
     if (videoRef.current && Number.isFinite(videoRef.current.duration)) {
       const currentTime = latest * videoRef.current.duration;
 
@@ -72,7 +76,13 @@ export const Hero3D = () => {
         style={{ opacity, y, willChange: "opacity, transform" }}
         className="sticky top-0 w-full h-screen overflow-hidden m-0 p-0 z-0 flex items-center"
       >
-        <div className="absolute inset-0 w-full h-full z-0 overflow-hidden bg-[#05080a]">
+        {/* FADE-IN INICIAL: motion.div para suavizar la carga del video */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
+          className="absolute inset-0 w-full h-full z-0 overflow-hidden bg-[#05080a]"
+        >
           <video
             ref={videoRef}
             className="w-full h-full object-cover" 
@@ -83,13 +93,34 @@ export const Hero3D = () => {
           />
           
           <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,_transparent_70%,_#05080a_100%)] opacity-70" />
-          
           <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_100%_100%,_#05080a_0%,_#05080a_25%,_transparent_60%)]" />
-        </div>
+        </motion.div>
         
+        {/* INDICADOR DE SCROLL INICIAL */}
+        <AnimatePresence>
+          {!hasScrolled && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.8, delay: 1 }}
+              className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 pointer-events-none"
+            >
+              <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-semibold">
+                Explorar el sistema
+              </span>
+              <motion.div
+                animate={{ y: [0, 6, 0] }}
+                transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+              >
+                <ChevronDown size={20} className="text-cyan-500/70" />
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <div className="absolute right-6 md:right-24 lg:right-32 xl:right-40 top-1/2 -translate-y-1/2 z-10 w-full max-w-lg md:max-w-xl pointer-events-none">
           <AnimatePresence mode="wait">
-            
             {showText && (
               <motion.div
                 key="main-text"
@@ -117,7 +148,6 @@ export const Hero3D = () => {
                 </p>
               </motion.div>
             )}
-
           </AnimatePresence>
         </div>
       </motion.div>
