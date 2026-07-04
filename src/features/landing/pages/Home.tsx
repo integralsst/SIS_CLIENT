@@ -6,7 +6,6 @@ import { DiagnosticQuiz } from '../components/DiagnosticQuiz';
 import { SGSSTDashboard } from '../components/SGSSTDashboard';
 import FeaturesBento from '../components/ModulesBento';
 import FAQSection from '../components/FAQSection';
-import CTASection from '../components/CTASection';
 import { Hero3D } from '../components/Hero3D';
 
 
@@ -114,14 +113,7 @@ export default function LandingPage() {
             <FAQSection />
           </motion.div>
 
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
-            variants={fadeUp}
-          >
-            <CTASection />
-          </motion.div>
+       
         </div>
 
       </main>
