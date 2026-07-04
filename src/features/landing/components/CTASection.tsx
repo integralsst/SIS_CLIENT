@@ -5,25 +5,21 @@ import {
   ArrowRight,
   CalendarCheck,
   ShieldCheck,
-  Zap,
   CheckCircle2,
 } from "lucide-react";
 
-const proofPoints = [
+const highlights = [
   {
     icon: ShieldCheck,
-    title: "Evidencia trazable",
-    description: "Documentos, registros y soportes organizados para auditoría.",
+    title: "Evidencias listas",
   },
   {
-    icon: Zap,
-    title: "Activación rápida",
-    description: "Diagnóstico inicial y despliegue del sistema sin fricción.",
+    icon: CalendarCheck,
+    title: "Vencimientos visibles",
   },
   {
     icon: CheckCircle2,
-    title: "Control operativo",
-    description: "Seguimiento de responsables, vencimientos y cumplimiento.",
+    title: "Auditoría controlada",
   },
 ];
 
@@ -31,235 +27,114 @@ export default function CTASection() {
   const reduceMotion = useReducedMotion();
 
   return (
-    <section className="relative z-10 flex w-full justify-center overflow-hidden bg-[#05080a] px-4 py-14 sm:px-6 sm:py-20 md:py-32">
-      {/* Fondo ambiental liviano */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/2 top-0 h-[320px] w-[520px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(6,182,212,0.09),transparent_68%)] sm:h-[420px] sm:w-[720px]" />
-
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-
-        <div className="absolute inset-0 hidden md:block">
-          <svg
-            className="absolute right-0 top-0 h-full w-[54%] opacity-[0.08]"
-            viewBox="0 0 600 600"
-            fill="none"
-            preserveAspectRatio="none"
-          >
-            <path
-              d="M80 520 C180 360 300 420 420 240 S520 90 590 150"
-              stroke="white"
-              strokeWidth="1"
-              strokeDasharray="8 12"
-            />
-            <path
-              d="M120 570 C240 390 330 470 460 290 S550 130 620 190"
-              stroke="white"
-              strokeWidth="1"
-              strokeDasharray="8 12"
-            />
-            <circle cx="445" cy="235" r="84" stroke="white" strokeWidth="1" />
-            <circle cx="445" cy="235" r="42" stroke="white" strokeWidth="1" />
-          </svg>
-        </div>
-      </div>
-
-      <div className="relative z-10 w-full max-w-[1200px]">
+    <section className="relative z-10 w-full overflow-hidden px-4 py-16 sm:px-6 sm:py-20 lg:py-24">
+      <div className="mx-auto w-full max-w-6xl">
         <motion.div
-          initial={reduceMotion ? false : { opacity: 0, y: 24 }}
+          initial={reduceMotion ? false : { opacity: 0, y: 20 }}
           whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
           viewport={reduceMotion ? undefined : { once: true, amount: 0.25 }}
           transition={
             reduceMotion
               ? undefined
               : {
-                  duration: 0.7,
+                  duration: 0.65,
                   ease: [0.16, 1, 0.3, 1] as const,
                 }
           }
-          style={{ willChange: reduceMotion ? "auto" : "opacity, transform" }}
-          className="group relative overflow-hidden rounded-[1.75rem] border border-white/5 bg-[#0c1015] shadow-[0_0_70px_-35px_rgba(6,182,212,0.35)] sm:rounded-[2rem] md:rounded-[3rem]"
+          className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_24px_80px_-55px_rgba(15,23,42,0.45)]"
         >
-          {/* Luz superior muy sutil */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(6,182,212,0.14),transparent_48%)] opacity-75 transition-opacity duration-700 sm:bg-[radial-gradient(ellipse_at_top_right,rgba(6,182,212,0.12),transparent_45%)] md:group-hover:opacity-100"
-          />
-
-          {/* Protector de lectura */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(5,8,10,0.18),rgba(5,8,10,0.86)_70%,rgba(5,8,10,0.28))] sm:bg-[linear-gradient(135deg,rgba(5,8,10,0.18),rgba(5,8,10,0.82)_62%,rgba(5,8,10,0.25))]"
-          />
-
-          <div className="relative grid gap-7 p-5 sm:gap-10 sm:p-10 md:p-14 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:gap-14 lg:p-16">
-            {/* Bloque principal */}
-            <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
-              <div className="mb-5 inline-flex items-center justify-center gap-2 rounded-full border border-white/5 bg-white/[0.03] px-3.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400 sm:mb-6 sm:px-4 sm:text-[11px] sm:tracking-[0.2em]">
-                <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
-                Despliegue inmediato
+          <div className="grid gap-10 p-6 sm:p-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:gap-12 lg:p-14">
+            {/* Bloque izquierdo */}
+            <div className="text-center lg:text-left">
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-cyan-50 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-cyan-700">
+                <span className="h-2 w-2 rounded-full bg-cyan-500" />
+                SG-SST bajo control
               </div>
 
-              <h2 className="max-w-3xl text-[2.45rem] font-bold leading-[0.98] tracking-tighter text-white sm:text-5xl sm:leading-[1.05] md:text-6xl lg:text-7xl">
-                <span className="sm:hidden">
-                  Cumple SG-SST.{" "}
-                  <span className="text-slate-700">Sin improvisar.</span>
-                </span>
-
-                <span className="hidden sm:inline">
-                  Sistematiza el SG-SST.{" "}
-                  <span className="text-slate-700">
-                    Reduce el riesgo legal.
-                  </span>
+              <h2 className="mx-auto max-w-3xl text-4xl font-bold leading-tight tracking-tight text-slate-950 sm:text-5xl lg:mx-0 lg:text-6xl">
+                Menos papel.
+                <span className="block text-cyan-600">
+                  Más control del SG-SST.
                 </span>
               </h2>
 
-              <p className="mt-5 max-w-[20rem] text-sm font-medium leading-relaxed text-slate-400 sm:mt-6 sm:max-w-xl sm:text-base md:text-lg">
-                <span className="sm:hidden">
-                  Centraliza evidencias, vencimientos y auditorías en un solo
-                  sistema.
-                </span>
-
-                <span className="hidden sm:inline">
-                  Deja atrás plantillas dispersas, vencimientos invisibles y
-                  evidencias difíciles de encontrar. Implementa un sistema
-                  centralizado para gestionar cumplimiento, registros y auditorías
-                  con mayor control.
-                </span>
+              <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-slate-600 sm:text-lg lg:mx-0">
+                Centraliza evidencias, responsables, vencimientos y auditorías
+                en un sistema más claro, ordenado y fácil de gestionar.
               </p>
 
-              <div className="mt-7 flex w-full flex-col items-center gap-3 sm:mt-9 sm:w-auto sm:flex-row lg:items-start">
+              <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start">
                 <a
                   href="#diagnostico"
-                  aria-label="Agendar sesión técnica"
-                  className="group/btn inline-flex min-h-13 w-full touch-manipulation items-center justify-center gap-2.5 rounded-full bg-cyan-400 px-6 py-4 text-sm font-bold text-slate-950 transition-all duration-300 hover:bg-cyan-300 active:scale-[0.98] sm:min-h-14 sm:w-auto sm:gap-3 sm:px-7"
+                  aria-label="Agendar diagnóstico"
+                  className="group inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-6 text-sm font-bold text-white transition-all duration-300 hover:bg-slate-800 active:scale-[0.98] sm:w-auto"
                 >
-                  <CalendarCheck
-                    size={18}
-                    strokeWidth={2.4}
-                    className="transition-transform duration-300 md:group-hover/btn:-translate-y-0.5"
-                  />
-
-                  <span className="sm:hidden">Agendar diagnóstico</span>
-                  <span className="hidden sm:inline">Agendar sesión técnica</span>
-
+                  <CalendarCheck size={18} strokeWidth={2.4} />
+                  Agendar diagnóstico
                   <ArrowRight
                     size={17}
                     strokeWidth={2.4}
-                    className="transition-transform duration-300 md:group-hover/btn:translate-x-1"
+                    className="transition-transform duration-300 group-hover:translate-x-1"
                   />
                 </a>
 
                 <a
                   href="#how"
-                  className="hidden min-h-14 touch-manipulation items-center justify-center rounded-full border border-white/5 bg-white/[0.03] px-7 py-4 text-sm font-bold text-slate-300 transition-colors hover:bg-white/[0.06] hover:text-white sm:inline-flex sm:w-auto"
+                  className="inline-flex h-12 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-6 text-sm font-bold text-slate-700 transition-colors duration-300 hover:bg-slate-50 hover:text-slate-950 sm:w-auto"
                 >
                   Ver cómo funciona
                 </a>
               </div>
 
-              <p className="mt-3 text-center text-[10px] font-bold uppercase tracking-[0.16em] text-slate-600 sm:mt-4 sm:text-[11px] sm:tracking-[0.18em] lg:text-left">
-                <span className="sm:hidden">Cupos limitados · Julio 2026</span>
-                <span className="hidden sm:inline">
-                  Cupos limitados para julio 2026
-                </span>
+              <p className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+                Implementación clara · Gestión trazable · Soporte técnico
               </p>
             </div>
 
-            {/* Panel derecho */}
-            <div className="relative">
-              <div className="relative overflow-hidden rounded-[1.5rem] border border-white/5 bg-[#080b0e]/95 p-4 sm:rounded-[1.75rem] sm:p-5 md:rounded-[2rem] md:p-6">
-                <div
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(6,182,212,0.10),transparent_58%)]"
-                />
+            {/* Bloque derecho */}
+            <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5 sm:p-6">
+              <div className="mb-6 flex items-center gap-4">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-cyan-600 shadow-sm">
+                  <ShieldCheck size={24} strokeWidth={2} />
+                </div>
 
-                <div className="relative">
-                  <div className="mb-5 flex items-center justify-between gap-4 sm:mb-7">
-                    <div>
-                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-600 sm:text-[11px] sm:tracking-[0.2em]">
-                        Estado del sistema
-                      </p>
-
-                      <h3 className="mt-1.5 text-2xl font-bold tracking-tighter text-white sm:mt-2 sm:text-3xl">
-                        Listo para auditar.
-                      </h3>
-                    </div>
-
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-cyan-500/20 bg-cyan-950/20 text-cyan-400 sm:h-12 sm:w-12">
-                      <ShieldCheck size={23} strokeWidth={1.8} />
-                    </div>
-                  </div>
-
-                  <div className="mb-5 rounded-2xl border border-white/5 bg-white/[0.025] p-4 sm:mb-7">
-                    <div className="mb-3 flex items-center justify-between">
-                      <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500 sm:text-xs sm:tracking-[0.18em]">
-                        Cobertura documental
-                      </span>
-                      <span className="text-xs font-bold text-cyan-400">
-                        92%
-                      </span>
-                    </div>
-
-                    <div className="h-2 overflow-hidden rounded-full bg-white/5">
-                      <div className="h-full w-[92%] rounded-full bg-cyan-400" />
-                    </div>
-                  </div>
-
-                  {/* Mobile compacto */}
-                  <div className="grid grid-cols-3 gap-2 sm:hidden">
-                    {proofPoints.map((item) => {
-                      const Icon = item.icon;
-
-                      return (
-                        <div
-                          key={item.title}
-                          className="flex min-h-[84px] flex-col items-center justify-center rounded-2xl border border-white/5 bg-[#0c1015] px-2 py-3 text-center"
-                        >
-                          <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-xl bg-white/[0.03] text-cyan-400">
-                            <Icon size={17} strokeWidth={2} />
-                          </div>
-
-                          <h4 className="text-[11px] font-bold leading-tight tracking-tight text-white">
-                            {item.title}
-                          </h4>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Tablet / Desktop completo */}
-                  <div className="hidden gap-3 sm:grid">
-                    {proofPoints.map((item) => {
-                      const Icon = item.icon;
-
-                      return (
-                        <div
-                          key={item.title}
-                          className="flex gap-4 rounded-2xl border border-white/5 bg-[#0c1015] p-4"
-                        >
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/[0.03] text-cyan-400">
-                            <Icon size={19} strokeWidth={2} />
-                          </div>
-
-                          <div>
-                            <h4 className="text-sm font-bold tracking-tight text-white">
-                              {item.title}
-                            </h4>
-                            <p className="mt-1 text-sm leading-relaxed text-slate-500">
-                              {item.description}
-                            </p>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
+                    Estado del sistema
+                  </p>
+                  <h3 className="mt-1 text-2xl font-bold tracking-tight text-slate-950">
+                    Listo para auditar
+                  </h3>
                 </div>
               </div>
 
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-x-10 -bottom-px hidden h-px bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent md:block"
-              />
+              <div className="space-y-3">
+                {highlights.map((item) => {
+                  const Icon = item.icon;
+
+                  return (
+                    <div
+                      key={item.title}
+                      className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4"
+                    >
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-50 text-cyan-600">
+                        <Icon size={19} strokeWidth={2.2} />
+                      </div>
+
+                      <p className="text-sm font-bold text-slate-800">
+                        {item.title}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="mt-5 rounded-2xl border border-cyan-100 bg-cyan-50 p-4">
+                <p className="text-sm leading-relaxed text-cyan-900">
+                  Una sección más liviana, directa y con mayor contraste visual
+                  frente a bloques oscuros de la página.
+                </p>
+              </div>
             </div>
           </div>
         </motion.div>

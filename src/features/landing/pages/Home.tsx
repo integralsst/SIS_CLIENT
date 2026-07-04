@@ -9,6 +9,7 @@ import FAQSection from '../components/FAQSection';
 import CTASection from '../components/CTASection';
 import { Hero3D } from '../components/Hero3D';
 
+
 const appleEase = [0.16, 1, 0.3, 1] as const;
 
 const fadeUp: Variants = {
@@ -66,6 +67,7 @@ export default function LandingPage() {
           <Comparison />
         </motion.div>
 
+
         <motion.div
           id="diagnostico"
           className="scroll-mt-32"
@@ -74,6 +76,7 @@ export default function LandingPage() {
           viewport={{ once: true, margin: "-100px" }}
           variants={fadeUp}
         >
+          
           <DiagnosticQuiz />
         </motion.div>
         
