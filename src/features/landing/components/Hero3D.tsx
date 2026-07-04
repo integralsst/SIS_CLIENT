@@ -113,10 +113,12 @@ export const Hero3D = () => {
         <AnimatePresence>
           {!hasScrolled && (
             <motion.div
-              initial={{ opacity: 1, backdropFilter: "blur(12px)" }}
+              /* Se aumentó el blur de 12px a 16px */
+              initial={{ opacity: 1, backdropFilter: "blur(16px)" }}
               exit={{ opacity: 0, backdropFilter: "blur(0px)", scale: 1.05 }}
               transition={{ duration: 0.8, ease: "easeInOut" }}
-              className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-[#05080a]/40"
+              /* Se oscureció el fondo de /40 a /80 */
+              className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-[#05080a]/100"
             >
               {/* Logo Central con Animación Cinemática */}
               <motion.img 
