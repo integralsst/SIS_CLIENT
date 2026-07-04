@@ -7,7 +7,6 @@ export const Hero3D = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   
-  // Referencia para guardar el ID del frame de animación y poder cancelarlo
   const frameRef = useRef<number | null>(null);
   const [showText, setShowText] = useState<boolean>(false);
 
@@ -16,7 +15,7 @@ export const Hero3D = () => {
     offset: ["start start", "end end"]
   });
 
-  // Limpieza del requestAnimationFrame al desmontar el componente
+  // 1. Limpieza del requestAnimationFrame
   useEffect(() => {
     return () => {
       if (frameRef.current !== null) {
@@ -25,18 +24,31 @@ export const Hero3D = () => {
     };
   }, []);
 
+  // 2. FIX: API de Visibilidad de Página para cuando el usuario cambia de pestaña
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && videoRef.current && Number.isFinite(videoRef.current.duration)) {
+        // Al volver a la pestaña, leemos el progreso actual y forzamos la actualización
+        const currentProgress = scrollYProgress.get();
+        videoRef.current.currentTime = currentProgress * videoRef.current.duration;
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [scrollYProgress]);
+
+  // 3. Evento de scroll optimizado
   useMotionValueEvent(scrollYProgress, "change", (latest) => {
     if (videoRef.current && Number.isFinite(videoRef.current.duration)) {
       const currentTime = latest * videoRef.current.duration;
 
-      // 1. Manejo del estado del texto (Lógica sincrónica)
       if (currentTime < 6.0 && showText) {
         setShowText(false);
       } else if (currentTime >= 6.0 && !showText) {
         setShowText(true);
       }
 
-      // 2. Optimización del renderizado del video con requestAnimationFrame
       if (frameRef.current !== null) {
         cancelAnimationFrame(frameRef.current);
       }
