@@ -14,7 +14,11 @@ const navLinks = [
 const Navbar = () => {
   const { user, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isVisible, setIsVisible] = useState(true);
+  
+  // Modificamos el estado inicial de visibilidad para que no salte
+  const [isVisible, setIsVisible] = useState(false); 
+  const [isInSplash, setIsInSplash] = useState(true); 
+  
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -34,45 +38,62 @@ const Navbar = () => {
     };
   }, [isMobileMenuOpen]);
 
-  // Ignorar scroll si el menú está abierto
+  // Lógica de Scroll Corregida
   useEffect(() => {
+    // Verificación inicial 
+    if (window.scrollY > 50) {
+      setIsInSplash(false);
+    }
+
     let ticking = false;
     const handleScroll = () => {
-      if (isMobileMenuOpen) return; // No mutar visibilidad si el menú está activo
+      if (isMobileMenuOpen) return;
 
       const currentScrollY = window.scrollY;
       if (!ticking) {
         window.requestAnimationFrame(() => {
           setIsScrolled(currentScrollY > 20);
-          if (currentScrollY > lastScrollY && currentScrollY > 100) {
-            setIsVisible(false); 
+          
+          if (currentScrollY < 50) {
+            // Zona cero: Aseguramos que esté en modo splash y preparamos isVisible en false
+            setIsInSplash(true);
+            setIsVisible(false);
           } else {
-            setIsVisible(true);  
+            // Fuera de la zona cero
+            setIsInSplash(false);
+            
+            if (currentScrollY > lastScrollY) {
+              // Si baja, lo ocultamos
+              setIsVisible(false);
+            } else if (currentScrollY < lastScrollY) {
+              // Si sube, lo mostramos
+              setIsVisible(true);
+            }
           }
+
           setLastScrollY(currentScrollY);
           ticking = false;
         });
         ticking = true;
       }
     };
+    
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY, isMobileMenuOpen]);
 
+  const shouldShowNavbar = isMobileMenuOpen || (!isInSplash && isVisible);
+
   return (
     <>
       <header
-        // Forzar visibilidad si el menú está abierto
         className={`fixed w-full top-0 z-50 transition-transform duration-300 ease-in-out will-change-transform ${
-          (isVisible || isMobileMenuOpen) ? 'translate-y-0' : '-translate-y-full'
+          shouldShowNavbar ? 'translate-y-0' : '-translate-y-full'
         }`}
       >
         <div 
-          // Limpio sin bordes en todas las resoluciones
           className={`absolute inset-0 transition-all duration-300 ${
-            isScrolled
-              ? 'bg-[#05080a]'
-              : 'bg-transparent'
+            isScrolled ? 'bg-[#05080a]' : 'bg-transparent'
           }`}
         />
 
