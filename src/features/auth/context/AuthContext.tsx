@@ -1,68 +1,334 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 
-// Definimos la forma del usuario basada en tu nuevo modelo Multi-tenant de Prisma
+// ======================================================
+// ROLES DE AUTENTICACIÓN
+// ======================================================
+
+export type UserRole =
+  | "USER"
+  | "CLIENT_USER"
+  | "CLIENT_ADMIN"
+  | "PROFESSIONAL"
+  | "ADMIN"
+  | "OWNER"
+  | "SUPERADMIN";
+
+// ======================================================
+// TIPOS RELACIONADOS
+// ======================================================
+
+export interface CompanySummary {
+  id: string;
+  name: string;
+  taxId: string;
+  isActive: boolean;
+}
+
+export interface ProfessionalSummary {
+  id: string;
+  firstNames: string;
+  lastNames: string;
+  identificationNumber?: string;
+  profession?: string | null;
+  professionalRole?: string | null;
+  isActive: boolean;
+}
+
 export interface User {
   id: string;
   name: string;
   email: string;
-  company?: string;            // Nombre de la empresa (si lo envías desde el backend)
-  companyId?: string | null;   // ID del tenant al que pertenece
-  role: 'USER' | 'ADMIN' | 'OWNER' | 'SUPERADMIN'; // Roles actualizados
+  role: UserRole;
+
+  companyId: string | null;
+  professionalId: string | null;
+
+  company: CompanySummary | null;
+  professional: ProfessionalSummary | null;
+
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
+
+// ======================================================
+// RESPUESTAS DEL BACKEND
+// ======================================================
+
+export interface LoginResponse {
+  message: string;
+  token: string;
+  user: User;
+}
+
+// ======================================================
+// CONTEXTO
+// ======================================================
 
 interface AuthContextType {
   user: User | null;
   token: string | null;
+  loading: boolean;
+  isAuthenticated: boolean;
+
   login: (userData: User, token: string) => void;
   logout: () => void;
-  loading: boolean;
+  refreshSession: () => Promise<void>;
+
+  hasRole: (...roles: UserRole[]) => boolean;
+  isInternalUser: boolean;
+  isProfessional: boolean;
+  isClientUser: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(
+  undefined
+);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+// ======================================================
+// CONFIGURACIÓN
+// ======================================================
+
+const TOKEN_STORAGE_KEY = "sis_token";
+const USER_STORAGE_KEY = "sis_user";
+
+const API_URL = (
+  import.meta.env.VITE_API_URL as string | undefined
+)?.replace(/\/$/, "");
+
+function saveSession(user: User, token: string): void {
+  localStorage.setItem(TOKEN_STORAGE_KEY, token);
+  localStorage.setItem(
+    USER_STORAGE_KEY,
+    JSON.stringify(user)
+  );
+}
+
+function clearSession(): void {
+  localStorage.removeItem(TOKEN_STORAGE_KEY);
+  localStorage.removeItem(USER_STORAGE_KEY);
+}
+
+function getStoredUser(): User | null {
+  const storedUser = localStorage.getItem(USER_STORAGE_KEY);
+
+  if (!storedUser) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(storedUser) as User;
+  } catch {
+    localStorage.removeItem(USER_STORAGE_KEY);
+    return null;
+  }
+}
+
+// ======================================================
+// PROVIDER
+// ======================================================
+
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export function AuthProvider({
+  children,
+}: AuthProviderProps) {
+  const [user, setUser] = useState<User | null>(
+    () => getStoredUser()
+  );
+
+  const [token, setToken] = useState<string | null>(
+    () => localStorage.getItem(TOKEN_STORAGE_KEY)
+  );
+
   const [loading, setLoading] = useState(true);
 
-  // Al cargar la app, verificamos si ya había una sesión guardada
-  useEffect(() => {
-    const savedToken = localStorage.getItem('sis_token');
-    const savedUser = localStorage.getItem('sis_user');
-
-    if (savedToken && savedUser) {
-      setToken(savedToken);
-      setUser(JSON.parse(savedUser));
-    }
-    setLoading(false);
-  }, []);
-
-  const login = (userData: User, newToken: string) => {
-    setUser(userData);
-    setToken(newToken);
-    localStorage.setItem('sis_token', newToken);
-    localStorage.setItem('sis_user', JSON.stringify(userData));
-  };
-
-  const logout = () => {
+  const logout = useCallback(() => {
     setUser(null);
     setToken(null);
-    localStorage.removeItem('sis_token');
-    localStorage.removeItem('sis_user');
-  };
+    clearSession();
+  }, []);
+
+  const login = useCallback(
+    (userData: User, newToken: string) => {
+      setUser(userData);
+      setToken(newToken);
+      saveSession(userData, newToken);
+    },
+    []
+  );
+
+  const refreshSession = useCallback(async () => {
+    const storedToken =
+      localStorage.getItem(TOKEN_STORAGE_KEY);
+
+    if (!storedToken) {
+      logout();
+      return;
+    }
+
+    if (!API_URL) {
+      console.error(
+        "VITE_API_URL no está configurada."
+      );
+      logout();
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${API_URL}/api/auth/me`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${storedToken}`,
+            Accept: "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        logout();
+        return;
+      }
+
+      const currentUser =
+        (await response.json()) as User;
+
+      setUser(currentUser);
+      setToken(storedToken);
+      saveSession(currentUser, storedToken);
+    } catch (error) {
+      console.error(
+        "No fue posible validar la sesión:",
+        error
+      );
+
+      /*
+       * No cerramos automáticamente la sesión por un error
+       * temporal de red. Conservamos los datos almacenados
+       * para evitar sacar al usuario por una caída momentánea.
+       */
+      const storedUser = getStoredUser();
+
+      if (storedUser) {
+        setUser(storedUser);
+        setToken(storedToken);
+      } else {
+        logout();
+      }
+    }
+  }, [logout]);
+
+  useEffect(() => {
+    let active = true;
+
+    const initializeSession = async () => {
+      try {
+        await refreshSession();
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void initializeSession();
+
+    return () => {
+      active = false;
+    };
+  }, [refreshSession]);
+
+  const hasRole = useCallback(
+    (...roles: UserRole[]): boolean => {
+      if (!user) {
+        return false;
+      }
+
+      return roles.includes(user.role);
+    },
+    [user]
+  );
+
+  const isInternalUser = useMemo(() => {
+    return hasRole(
+      "ADMIN",
+      "OWNER",
+      "SUPERADMIN"
+    );
+  }, [hasRole]);
+
+  const isProfessional = useMemo(() => {
+    return hasRole("PROFESSIONAL");
+  }, [hasRole]);
+
+  const isClientUser = useMemo(() => {
+    return hasRole(
+      "CLIENT_USER",
+      "CLIENT_ADMIN"
+    );
+  }, [hasRole]);
+
+  const value = useMemo<AuthContextType>(
+    () => ({
+      user,
+      token,
+      loading,
+      isAuthenticated: Boolean(user && token),
+
+      login,
+      logout,
+      refreshSession,
+
+      hasRole,
+      isInternalUser,
+      isProfessional,
+      isClientUser,
+    }),
+    [
+      user,
+      token,
+      loading,
+      login,
+      logout,
+      refreshSession,
+      hasRole,
+      isInternalUser,
+      isProfessional,
+      isClientUser,
+    ]
+  );
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, loading }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
-};
+}
 
-// Hook personalizado para usar el contexto fácilmente
-export const useAuth = () => {
+// ======================================================
+// HOOK
+// ======================================================
+
+export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
+
   if (!context) {
-    throw new Error('useAuth debe usarse dentro de un AuthProvider');
+    throw new Error(
+      "useAuth debe utilizarse dentro de AuthProvider."
+    );
   }
+
   return context;
-};
+}
