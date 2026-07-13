@@ -3,9 +3,12 @@ import {
   Building2,
   ChevronLeft,
   ChevronRight,
+  ClipboardCheck,
   LayoutDashboard,
+  ListTodo,
   LogOut,
   Menu,
+  ShieldCheck,
   Users,
   X,
 } from "lucide-react";
@@ -17,7 +20,6 @@ import {
 } from "react-router-dom";
 import {
   useEffect,
-  useMemo,
   useState,
 } from "react";
 
@@ -37,13 +39,17 @@ export default function DashboardLayout() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(() => {
-    return (
-      localStorage.getItem(SIDEBAR_STORAGE_KEY) ===
-      "true"
-    );
-  });
+  const [mobileOpen, setMobileOpen] =
+    useState(false);
+
+  const [collapsed, setCollapsed] =
+    useState(() => {
+      return (
+        localStorage.getItem(
+          SIDEBAR_STORAGE_KEY
+        ) === "true"
+      );
+    });
 
   useEffect(() => {
     setMobileOpen(false);
@@ -58,9 +64,12 @@ export default function DashboardLayout() {
 
   if (!user) return null;
 
-  const isInternal = internalRoles.has(user.role);
+  const isInternal =
+    internalRoles.has(user.role);
+
   const canManageUsers =
-    isInternal || user.role === "CLIENT_ADMIN";
+    isInternal ||
+    user.role === "CLIENT_ADMIN";
 
   const items = [
     {
@@ -88,6 +97,25 @@ export default function DashboardLayout() {
       icon: BriefcaseBusiness,
       visible: isInternal,
     },
+    {
+      to: "/dashboard/sgsst",
+      label: "Gestión SG-SST",
+      icon: ShieldCheck,
+      visible: true,
+      exact: true,
+    },
+    {
+      to: "/dashboard/sgsst/evaluaciones",
+      label: "Evaluaciones",
+      icon: ClipboardCheck,
+      visible: true,
+    },
+    {
+      to: "/dashboard/sgsst/planes-accion",
+      label: "Planes de acción",
+      icon: ListTodo,
+      visible: true,
+    },
   ];
 
   const visibleItems = items.filter(
@@ -104,21 +132,27 @@ export default function DashboardLayout() {
 
     return (
       location.pathname === path ||
-      location.pathname.startsWith(`${path}/`)
+      location.pathname.startsWith(
+        `${path}/`
+      )
     );
   };
 
-  const currentPage = useMemo(() => {
-    return (
-      visibleItems.find((item) =>
+  const currentPage =
+    [...visibleItems]
+      .sort(
+        (a, b) =>
+          b.to.length - a.to.length
+      )
+      .find((item) =>
         isActive(item.to, item.exact)
-      )?.label ?? "Panel de control"
-    );
-  }, [location.pathname, user.role]);
+      )?.label ?? "Panel de control";
 
   const handleLogout = () => {
     logout();
-    navigate("/login", { replace: true });
+    navigate("/login", {
+      replace: true,
+    });
   };
 
   const renderSidebar = (
@@ -148,7 +182,9 @@ export default function DashboardLayout() {
           <button
             type="button"
             onClick={() =>
-              setCollapsed((current) => !current)
+              setCollapsed(
+                (current) => !current
+              )
             }
             className="hidden h-9 w-9 items-center justify-center rounded-xl border border-neutral-800 bg-[#151515] text-neutral-400 transition-colors hover:border-neutral-700 hover:text-white lg:flex"
             title={
@@ -168,7 +204,9 @@ export default function DashboardLayout() {
         {mobile && (
           <button
             type="button"
-            onClick={() => setMobileOpen(false)}
+            onClick={() =>
+              setMobileOpen(false)
+            }
             className="flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-800 bg-[#151515] text-neutral-400"
             aria-label="Cerrar menú"
           >
@@ -184,6 +222,7 @@ export default function DashboardLayout() {
       >
         {visibleItems.map((item) => {
           const Icon = item.icon;
+
           const active = isActive(
             item.to,
             item.exact
@@ -193,7 +232,11 @@ export default function DashboardLayout() {
             <Link
               key={item.to}
               to={item.to}
-              title={compact ? item.label : undefined}
+              title={
+                compact
+                  ? item.label
+                  : undefined
+              }
               className={`group flex items-center rounded-xl py-3 transition-all ${
                 compact
                   ? "justify-center px-3"
@@ -241,21 +284,30 @@ export default function DashboardLayout() {
             className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-neutral-800 bg-[#151515] text-sm font-bold text-cyan-400"
             title={`${user.name} · ${user.role}`}
           >
-            {user.name.charAt(0).toUpperCase()}
+            {user.name
+              .charAt(0)
+              .toUpperCase()}
           </div>
         )}
 
         <button
           type="button"
           onClick={handleLogout}
-          title={compact ? "Cerrar sesión" : undefined}
+          title={
+            compact
+              ? "Cerrar sesión"
+              : undefined
+          }
           className={`flex w-full items-center rounded-xl py-3 text-red-400 transition-colors hover:bg-red-400/10 ${
             compact
               ? "justify-center px-3"
               : "gap-3 px-4"
           }`}
         >
-          <LogOut size={20} className="shrink-0" />
+          <LogOut
+            size={20}
+            className="shrink-0"
+          />
 
           {!compact && (
             <span className="text-sm font-medium">
@@ -271,7 +323,9 @@ export default function DashboardLayout() {
     <div className="flex h-[100dvh] min-w-0 overflow-hidden bg-[#090909] text-white">
       <aside
         className={`relative z-40 hidden shrink-0 border-r border-neutral-800/60 bg-[#0b0b0b] transition-[width] duration-300 lg:flex ${
-          collapsed ? "w-[76px]" : "w-64"
+          collapsed
+            ? "w-[76px]"
+            : "w-64"
         }`}
       >
         {renderSidebar(collapsed)}
@@ -282,7 +336,9 @@ export default function DashboardLayout() {
           <button
             type="button"
             aria-label="Cerrar menú"
-            onClick={() => setMobileOpen(false)}
+            onClick={() =>
+              setMobileOpen(false)
+            }
             className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm lg:hidden"
           />
 
@@ -297,7 +353,9 @@ export default function DashboardLayout() {
           <div className="flex min-w-0 items-center gap-3">
             <button
               type="button"
-              onClick={() => setMobileOpen(true)}
+              onClick={() =>
+                setMobileOpen(true)
+              }
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-neutral-800 bg-[#151515] text-neutral-300 transition-colors hover:text-white lg:hidden"
               aria-label="Abrir menú"
             >
@@ -318,7 +376,9 @@ export default function DashboardLayout() {
           </div>
 
           <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-800 bg-[#151515] text-xs font-bold text-cyan-400 sm:h-10 sm:w-10">
-            {user.name.charAt(0).toUpperCase()}
+            {user.name
+              .charAt(0)
+              .toUpperCase()}
           </div>
         </header>
 

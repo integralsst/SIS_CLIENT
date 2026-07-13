@@ -36,6 +36,16 @@ import Users from "../features/users/pages/Users";
 import Professionals from "../features/profesionals/pages/Professionals";
 
 // ======================================================
+// MÓDULO SG-SST
+// ======================================================
+
+import SgsstDashboard from "../features/sgsst/pages/SgsstDashboard";
+import CompanySgsstConfiguration from "../features/sgsst/pages/CompanySgsstConfiguration";
+import Evaluations from "../features/sgsst/pages/Evaluations";
+import EvaluationMatrix from "../features/sgsst/pages/EvaluationMatrix";
+import ActionPlans from "../features/sgsst/pages/ActionPlans";
+
+// ======================================================
 // PERMISOS
 // ======================================================
 
@@ -52,6 +62,13 @@ const USER_MANAGEMENT_ROLES: UserRole[] = [
   "SUPERADMIN",
 ];
 
+const SGSST_MANAGEMENT_ROLES: UserRole[] = [
+  "PROFESSIONAL",
+  "ADMIN",
+  "OWNER",
+  "SUPERADMIN",
+];
+
 // ======================================================
 // CONTENIDO PRINCIPAL
 // ======================================================
@@ -59,7 +76,6 @@ const USER_MANAGEMENT_ROLES: UserRole[] = [
 function AppContent() {
   const { user, loading } = useAuth();
 
-  // Evita parpadeos mientras se recupera y valida la sesión.
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#05080a]">
@@ -69,11 +85,22 @@ function AppContent() {
   }
 
   const canManageUsers = Boolean(
-    user && USER_MANAGEMENT_ROLES.includes(user.role)
+    user &&
+      USER_MANAGEMENT_ROLES.includes(
+        user.role
+      )
   );
 
   const canManageProfessionals = Boolean(
-    user && INTERNAL_ROLES.includes(user.role)
+    user &&
+      INTERNAL_ROLES.includes(user.role)
+  );
+
+  const canManageSgsst = Boolean(
+    user &&
+      SGSST_MANAGEMENT_ROLES.includes(
+        user.role
+      )
   );
 
   return (
@@ -138,19 +165,16 @@ function AppContent() {
             )
           }
         >
-          {/* /dashboard */}
           <Route
             index
             element={<Dashboard />}
           />
 
-          {/* /dashboard/empresas */}
           <Route
             path="empresas"
             element={<Companies />}
           />
 
-          {/* /dashboard/usuarios */}
           <Route
             path="usuarios"
             element={
@@ -165,7 +189,6 @@ function AppContent() {
             }
           />
 
-          {/* /dashboard/profesionales */}
           <Route
             path="profesionales"
             element={
@@ -178,6 +201,44 @@ function AppContent() {
                 />
               )
             }
+          />
+
+          {/* ==================================================
+              MÓDULO SG-SST
+          ================================================== */}
+
+          <Route
+            path="sgsst"
+            element={<SgsstDashboard />}
+          />
+
+          <Route
+            path="sgsst/configuracion/:empresaId"
+            element={
+              canManageSgsst ? (
+                <CompanySgsstConfiguration />
+              ) : (
+                <Navigate
+                  to="/dashboard/sgsst"
+                  replace
+                />
+              )
+            }
+          />
+
+          <Route
+            path="sgsst/evaluaciones"
+            element={<Evaluations />}
+          />
+
+          <Route
+            path="sgsst/evaluaciones/:evaluacionId"
+            element={<EvaluationMatrix />}
+          />
+
+          <Route
+            path="sgsst/planes-accion"
+            element={<ActionPlans />}
           />
         </Route>
 
