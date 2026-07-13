@@ -3,6 +3,8 @@ import {
   useMemo,
   useState,
   type FormEvent,
+  type InputHTMLAttributes,
+  type ReactNode,
 } from "react";
 import {
   Building2,
@@ -15,7 +17,6 @@ import {
   Search,
   Trash2,
   Users,
-  X,
 } from "lucide-react";
 
 import { useAuth } from "../../auth/context/AuthContext";
@@ -24,6 +25,8 @@ import type {
   Company,
   RiskClass,
 } from "../../../types/domain";
+import AppModal from "../../../components/ui/AppModal";
+import AppSelect from "../../../components/ui/AppSelect";
 
 interface CompanyForm {
   taxId: string;
@@ -64,6 +67,9 @@ const emptyForm: CompanyForm = {
   agreedEmergencyVisits: "0",
   isActive: true,
 };
+
+const inputClass =
+  "w-full rounded-xl border border-neutral-800 bg-[#090909] px-3 py-2.5 text-sm text-white outline-none transition-all [color-scheme:dark] placeholder:text-neutral-600 hover:border-neutral-700 focus:border-cyan-500/60 focus:ring-2 focus:ring-cyan-500/10";
 
 function toInputDate(value: string | null): string {
   return value ? value.slice(0, 10) : "";
@@ -158,6 +164,7 @@ export default function Companies() {
         company.taxId,
         company.mainCity ?? "",
         company.companyEmail ?? "",
+        company.sstContactName ?? "",
       ].some((value) =>
         value.toLowerCase().includes(search)
       )
@@ -179,7 +186,6 @@ export default function Companies() {
   };
 
   const closeModal = () => {
-    if (submitting) return;
     setModalOpen(false);
     setEditingCompany(null);
     setForm(emptyForm);
@@ -283,21 +289,22 @@ export default function Companies() {
   };
 
   return (
-    <div className="relative mx-auto flex h-full max-w-7xl flex-col">
-      <header className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-center">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white md:text-3xl">
+    <div className="mx-auto flex min-h-full min-w-0 max-w-7xl flex-col">
+      <header className="mb-6 flex flex-col gap-4 sm:mb-8 md:flex-row md:items-center md:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
             Gestión de empresas
           </h1>
-          <p className="mt-1 text-sm text-neutral-400">
-            Administra la información de los clientes SG-SST.
+          <p className="mt-1 max-w-2xl text-sm leading-6 text-neutral-400">
+            Administra la información general, contractual y de riesgo de los clientes SG-SST.
           </p>
         </div>
 
         {isInternalUser && (
           <button
+            type="button"
             onClick={openCreate}
-            className="flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-black shadow-lg shadow-white/5 transition-colors hover:bg-neutral-200 active:scale-95"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-black shadow-lg shadow-white/5 transition-all hover:bg-neutral-200 active:scale-[0.98] sm:w-auto sm:py-2.5"
           >
             <Plus size={18} />
             Nueva empresa
@@ -306,30 +313,30 @@ export default function Companies() {
       </header>
 
       {pageError && (
-        <div className="mb-5 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+        <div className="mb-5 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
           {pageError}
         </div>
       )}
 
-      <div className="mb-6 flex items-center gap-4">
-        <div className="relative max-w-lg flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500" />
+      <div className="mb-5">
+        <div className="relative w-full max-w-xl">
+          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500" />
           <input
-            type="text"
-            placeholder="Buscar por razón social, NIT, ciudad o correo..."
+            type="search"
+            placeholder="Buscar por empresa, NIT, ciudad o contacto..."
             value={searchTerm}
             onChange={(event) =>
               setSearchTerm(event.target.value)
             }
-            className="w-full rounded-xl border border-neutral-800/60 bg-[#111111] py-2.5 pl-10 pr-4 text-sm text-white outline-none transition-all placeholder:text-neutral-500 focus:border-neutral-600 focus:ring-1 focus:ring-neutral-600"
+            className="w-full rounded-xl border border-neutral-800 bg-[#111111] py-3 pl-10 pr-4 text-sm text-white outline-none transition-all placeholder:text-neutral-500 hover:border-neutral-700 focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/10"
           />
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-neutral-800/60 bg-[#111111] shadow-xl">
-        <div className="flex-1 overflow-x-auto">
-          <table className="w-full whitespace-nowrap text-left text-sm">
-            <thead className="border-b border-neutral-800/60 bg-[#0a0a0a]">
+      <section className="min-w-0 overflow-hidden rounded-2xl border border-neutral-800/70 bg-[#111111] shadow-xl">
+        <div className="hidden overflow-x-auto lg:block">
+          <table className="w-full min-w-[980px] whitespace-nowrap text-left text-sm">
+            <thead className="border-b border-neutral-800 bg-[#0a0a0a]">
               <tr>
                 <HeaderCell>Empresa</HeaderCell>
                 <HeaderCell>Ubicación y riesgo</HeaderCell>
@@ -340,22 +347,14 @@ export default function Companies() {
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-neutral-800/60">
+            <tbody className="divide-y divide-neutral-800/70">
               {loading ? (
-                <tr>
-                  <td colSpan={6} className="px-6 py-14 text-center">
-                    <Loader2 className="mx-auto h-6 w-6 animate-spin text-neutral-500" />
-                  </td>
-                </tr>
+                <LoadingRow colSpan={6} />
               ) : filteredCompanies.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-6 py-14 text-center text-neutral-500"
-                  >
-                    No se encontraron empresas.
-                  </td>
-                </tr>
+                <EmptyRow
+                  colSpan={6}
+                  message="No se encontraron empresas."
+                />
               ) : (
                 filteredCompanies.map((company) => (
                   <tr
@@ -363,29 +362,22 @@ export default function Companies() {
                     className="group transition-colors hover:bg-neutral-800/20"
                   >
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-neutral-700/50 bg-neutral-800/80 text-neutral-300">
-                          <Building2 size={17} />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-white">
-                            {company.name}
-                          </p>
-                          <p className="mt-0.5 font-mono text-xs text-neutral-500">
-                            {company.taxId}
-                          </p>
-                        </div>
-                      </div>
+                      <CompanyIdentity company={company} />
                     </td>
 
                     <td className="px-6 py-4">
                       <div className="space-y-1 text-xs">
                         <p className="flex items-center gap-1.5 text-neutral-300">
-                          <MapPin size={13} className="text-neutral-500" />
+                          <MapPin
+                            size={13}
+                            className="text-neutral-500"
+                          />
                           {company.mainCity ?? "Sin ciudad"}
                         </p>
                         <p className="text-neutral-500">
-                          Riesgo: {company.mainRiskClass ?? "Sin definir"}
+                          Riesgo:{" "}
+                          {company.mainRiskClass ??
+                            "Sin definir"}
                         </p>
                       </div>
                     </td>
@@ -393,7 +385,8 @@ export default function Companies() {
                     <td className="px-6 py-4">
                       <div className="space-y-1 text-xs">
                         <p className="text-neutral-300">
-                          {company.sstContactName ?? "Sin contacto SST"}
+                          {company.sstContactName ??
+                            "Sin contacto SST"}
                         </p>
                         <p className="flex items-center gap-1.5 text-neutral-500">
                           <Mail size={12} />
@@ -405,55 +398,21 @@ export default function Companies() {
                     </td>
 
                     <td className="px-6 py-4">
-                      <div className="space-y-1 text-xs text-neutral-300">
-                        <p>
-                          SST:{" "}
-                          <strong>{company.agreedSstVisits}</strong>
-                        </p>
-                        <p>
-                          Emergencias:{" "}
-                          <strong>
-                            {company.agreedEmergencyVisits}
-                          </strong>
-                        </p>
-                      </div>
+                      <VisitSummary company={company} />
                     </td>
 
                     <td className="px-6 py-4">
-                      <div className="flex gap-4 text-xs text-neutral-300">
-                        <span className="flex items-center gap-1.5">
-                          <Users size={14} className="text-neutral-500" />
-                          {company._count?.users ?? 0} usuarios
-                        </span>
-                        <span className="flex items-center gap-1.5">
-                          <Calendar size={14} className="text-neutral-500" />
-                          {company._count
-                            ?.professionalAssignments ?? 0}{" "}
-                          profesionales
-                        </span>
-                      </div>
+                      <RelationSummary company={company} />
                     </td>
 
                     <td className="px-6 py-4 text-right">
                       {isInternalUser && (
-                        <>
-                          <button
-                            onClick={() => openEdit(company)}
-                            className="rounded-lg p-2 text-neutral-500 transition-colors hover:bg-neutral-800 hover:text-white"
-                            title="Editar empresa"
-                          >
-                            <Edit2 size={17} />
-                          </button>
-                          <button
-                            onClick={() =>
-                              void handleDeactivate(company)
-                            }
-                            className="rounded-lg p-2 text-neutral-500 transition-colors hover:bg-red-500/10 hover:text-red-400"
-                            title="Desactivar empresa"
-                          >
-                            <Trash2 size={17} />
-                          </button>
-                        </>
+                        <ActionButtons
+                          onEdit={() => openEdit(company)}
+                          onDelete={() =>
+                            void handleDeactivate(company)
+                          }
+                        />
                       )}
                     </td>
                   </tr>
@@ -463,293 +422,372 @@ export default function Companies() {
           </table>
         </div>
 
-        <div className="border-t border-neutral-800/60 px-6 py-4 text-xs text-neutral-500">
+        <div className="divide-y divide-neutral-800/70 lg:hidden">
+          {loading ? (
+            <div className="flex justify-center px-4 py-14">
+              <Loader2 className="h-6 w-6 animate-spin text-neutral-500" />
+            </div>
+          ) : filteredCompanies.length === 0 ? (
+            <div className="px-4 py-14 text-center text-sm text-neutral-500">
+              No se encontraron empresas.
+            </div>
+          ) : (
+            filteredCompanies.map((company) => (
+              <article
+                key={company.id}
+                className="space-y-4 p-4 sm:p-5"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <CompanyIdentity company={company} />
+
+                  {isInternalUser && (
+                    <ActionButtons
+                      compact
+                      onEdit={() => openEdit(company)}
+                      onDelete={() =>
+                        void handleDeactivate(company)
+                      }
+                    />
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <InfoCard
+                    label="Ubicación"
+                    value={
+                      company.mainCity ?? "Sin ciudad"
+                    }
+                    secondary={`Riesgo: ${
+                      company.mainRiskClass ??
+                      "Sin definir"
+                    }`}
+                  />
+
+                  <InfoCard
+                    label="Contacto SST"
+                    value={
+                      company.sstContactName ??
+                      "Sin contacto"
+                    }
+                    secondary={
+                      company.sstContactEmail ??
+                      company.companyEmail ??
+                      "Sin correo"
+                    }
+                  />
+
+                  <InfoCard
+                    label="Visitas"
+                    value={`SST: ${company.agreedSstVisits}`}
+                    secondary={`Emergencias: ${company.agreedEmergencyVisits}`}
+                  />
+
+                  <InfoCard
+                    label="Relaciones"
+                    value={`${
+                      company._count?.users ?? 0
+                    } usuarios`}
+                    secondary={`${
+                      company._count
+                        ?.professionalAssignments ?? 0
+                    } profesionales`}
+                  />
+                </div>
+              </article>
+            ))
+          )}
+        </div>
+
+        <div className="border-t border-neutral-800/70 px-4 py-4 text-xs text-neutral-500 sm:px-6">
           Mostrando {filteredCompanies.length} empresas activas
         </div>
-      </div>
+      </section>
 
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="max-h-[92vh] w-full max-w-5xl overflow-hidden rounded-2xl border border-neutral-800 bg-[#111111] shadow-2xl">
-            <div className="flex items-center justify-between border-b border-neutral-800 px-6 py-5">
-              <div>
-                <h3 className="text-lg font-bold text-white">
-                  {editingCompany
-                    ? "Editar empresa"
-                    : "Registrar empresa"}
-                </h3>
-                <p className="mt-1 text-xs text-neutral-500">
-                  Completa la información contractual, de contacto y riesgo.
-                </p>
-              </div>
-
-              <button
-                onClick={closeModal}
-                className="text-neutral-500 transition-colors hover:text-white"
-              >
-                <X size={21} />
-              </button>
-            </div>
-
-            <form
-              onSubmit={handleSubmit}
-              className="max-h-[calc(92vh-82px)] overflow-y-auto"
+      <AppModal
+        open={modalOpen}
+        title={
+          editingCompany
+            ? "Editar empresa"
+            : "Registrar empresa"
+        }
+        description="Completa la información contractual, de contacto y riesgo."
+        onClose={closeModal}
+        busy={submitting}
+        size="2xl"
+        footer={
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={closeModal}
+              disabled={submitting}
+              className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-5 py-3 text-sm font-medium text-neutral-300 transition-colors hover:bg-neutral-700 disabled:opacity-50 sm:w-auto sm:py-2.5"
             >
-              <div className="space-y-8 p-6">
-                {formError && (
-                  <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-                    {formError}
-                  </div>
-                )}
+              Cancelar
+            </button>
 
-                <FormSection title="Identificación y ubicación">
-                  <FormField label="NIT *">
-                    <TextInput
-                      required
-                      value={form.taxId}
-                      onChange={(value) =>
-                        updateField("taxId", value)
-                      }
-                    />
-                  </FormField>
-
-                  <FormField label="Razón social *">
-                    <TextInput
-                      required
-                      value={form.name}
-                      onChange={(value) =>
-                        updateField("name", value)
-                      }
-                    />
-                  </FormField>
-
-                  <FormField label="Fecha de inicio">
-                    <TextInput
-                      type="date"
-                      value={form.startDate}
-                      onChange={(value) =>
-                        updateField("startDate", value)
-                      }
-                    />
-                  </FormField>
-
-                  <FormField label="Ciudad principal">
-                    <TextInput
-                      value={form.mainCity}
-                      onChange={(value) =>
-                        updateField("mainCity", value)
-                      }
-                    />
-                  </FormField>
-
-                  <FormField
-                    label="Dirección principal"
-                    spanTwo
-                  >
-                    <TextInput
-                      value={form.mainAddress}
-                      onChange={(value) =>
-                        updateField("mainAddress", value)
-                      }
-                    />
-                  </FormField>
-
-                  <FormField
-                    label="Email de la empresa"
-                    spanTwo
-                  >
-                    <TextInput
-                      type="email"
-                      value={form.companyEmail}
-                      onChange={(value) =>
-                        updateField("companyEmail", value)
-                      }
-                    />
-                  </FormField>
-                </FormSection>
-
-                <FormSection title="Riesgo y actividad económica">
-                  <FormField label="Clase de riesgo principal">
-                    <select
-                      value={form.mainRiskClass}
-                      onChange={(event) =>
-                        updateField(
-                          "mainRiskClass",
-                          event.target.value as
-                            | ""
-                            | RiskClass
-                        )
-                      }
-                      className={inputClass}
-                    >
-                      <option value="">Sin definir</option>
-                      {["I", "II", "III", "IV", "V"].map(
-                        (risk) => (
-                          <option key={risk} value={risk}>
-                            Clase {risk}
-                          </option>
-                        )
-                      )}
-                    </select>
-                  </FormField>
-
-                  <FormField label="Código de actividad económica">
-                    <TextInput
-                      value={form.economicActivityCode}
-                      onChange={(value) =>
-                        updateField(
-                          "economicActivityCode",
-                          value
-                        )
-                      }
-                    />
-                  </FormField>
-
-                  <FormField
-                    label="Descripción de actividad económica"
-                    spanTwo
-                  >
-                    <TextArea
-                      value={
-                        form.economicActivityDescription
-                      }
-                      onChange={(value) =>
-                        updateField(
-                          "economicActivityDescription",
-                          value
-                        )
-                      }
-                    />
-                  </FormField>
-
-                  <FormField
-                    label="Descripción de la empresa"
-                    spanTwo
-                  >
-                    <TextArea
-                      value={form.companyDescription}
-                      onChange={(value) =>
-                        updateField(
-                          "companyDescription",
-                          value
-                        )
-                      }
-                    />
-                  </FormField>
-                </FormSection>
-
-                <FormSection title="Gerencia y contacto SST">
-                  <FormField label="Nombre del gerente">
-                    <TextInput
-                      value={form.managerName}
-                      onChange={(value) =>
-                        updateField("managerName", value)
-                      }
-                    />
-                  </FormField>
-
-                  <FormField label="Email del gerente">
-                    <TextInput
-                      type="email"
-                      value={form.managerEmail}
-                      onChange={(value) =>
-                        updateField("managerEmail", value)
-                      }
-                    />
-                  </FormField>
-
-                  <FormField label="Nombre del contacto SST">
-                    <TextInput
-                      value={form.sstContactName}
-                      onChange={(value) =>
-                        updateField("sstContactName", value)
-                      }
-                    />
-                  </FormField>
-
-                  <FormField label="Email del contacto SST">
-                    <TextInput
-                      type="email"
-                      value={form.sstContactEmail}
-                      onChange={(value) =>
-                        updateField(
-                          "sstContactEmail",
-                          value
-                        )
-                      }
-                    />
-                  </FormField>
-                </FormSection>
-
-                <FormSection title="Visitas convenidas">
-                  <FormField label="Visitas SST">
-                    <TextInput
-                      type="number"
-                      min="0"
-                      value={form.agreedSstVisits}
-                      onChange={(value) =>
-                        updateField(
-                          "agreedSstVisits",
-                          value
-                        )
-                      }
-                    />
-                  </FormField>
-
-                  <FormField label="Visitas de emergencias">
-                    <TextInput
-                      type="number"
-                      min="0"
-                      value={form.agreedEmergencyVisits}
-                      onChange={(value) =>
-                        updateField(
-                          "agreedEmergencyVisits",
-                          value
-                        )
-                      }
-                    />
-                  </FormField>
-                </FormSection>
-              </div>
-
-              <div className="sticky bottom-0 flex justify-end gap-3 border-t border-neutral-800 bg-[#111111] px-6 py-4">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="rounded-xl bg-neutral-800 px-5 py-2.5 text-sm font-medium text-neutral-300 transition-colors hover:bg-neutral-700"
-                >
-                  Cancelar
-                </button>
-
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-black transition-colors hover:bg-neutral-200 disabled:opacity-50"
-                >
-                  {submitting && (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  )}
-                  {editingCompany
-                    ? "Guardar cambios"
-                    : "Crear empresa"}
-                </button>
-              </div>
-            </form>
+            <button
+              type="submit"
+              form="company-form"
+              disabled={submitting}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-black transition-colors hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:py-2.5"
+            >
+              {submitting && (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              )}
+              {editingCompany
+                ? "Guardar cambios"
+                : "Crear empresa"}
+            </button>
           </div>
-        </div>
-      )}
+        }
+      >
+        <form
+          id="company-form"
+          onSubmit={handleSubmit}
+          className="space-y-8"
+        >
+          {formError && (
+            <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+              {formError}
+            </div>
+          )}
+
+          <FormSection title="Identificación y ubicación">
+            <FormField label="NIT *">
+              <TextInput
+                required
+                value={form.taxId}
+                onChange={(value) =>
+                  updateField("taxId", value)
+                }
+              />
+            </FormField>
+
+            <FormField label="Razón social *">
+              <TextInput
+                required
+                value={form.name}
+                onChange={(value) =>
+                  updateField("name", value)
+                }
+              />
+            </FormField>
+
+            <FormField label="Fecha de inicio">
+              <TextInput
+                type="date"
+                value={form.startDate}
+                onChange={(value) =>
+                  updateField("startDate", value)
+                }
+              />
+            </FormField>
+
+            <FormField label="Ciudad principal">
+              <TextInput
+                value={form.mainCity}
+                onChange={(value) =>
+                  updateField("mainCity", value)
+                }
+              />
+            </FormField>
+
+            <FormField
+              label="Dirección principal"
+              spanTwo
+            >
+              <TextInput
+                value={form.mainAddress}
+                onChange={(value) =>
+                  updateField("mainAddress", value)
+                }
+              />
+            </FormField>
+
+            <FormField
+              label="Email de la empresa"
+              spanTwo
+            >
+              <TextInput
+                type="email"
+                value={form.companyEmail}
+                onChange={(value) =>
+                  updateField("companyEmail", value)
+                }
+              />
+            </FormField>
+          </FormSection>
+
+          <FormSection title="Riesgo y actividad económica">
+            <FormField label="Clase de riesgo principal">
+              <AppSelect
+                value={form.mainRiskClass}
+                onChange={(event) =>
+                  updateField(
+                    "mainRiskClass",
+                    event.target.value as
+                      | ""
+                      | RiskClass
+                  )
+                }
+              >
+                <option value="">Sin definir</option>
+                {["I", "II", "III", "IV", "V"].map(
+                  (risk) => (
+                    <option
+                      key={risk}
+                      value={risk}
+                    >
+                      Clase {risk}
+                    </option>
+                  )
+                )}
+              </AppSelect>
+            </FormField>
+
+            <FormField label="Código de actividad económica">
+              <TextInput
+                value={form.economicActivityCode}
+                onChange={(value) =>
+                  updateField(
+                    "economicActivityCode",
+                    value
+                  )
+                }
+              />
+            </FormField>
+
+            <FormField
+              label="Descripción de actividad económica"
+              spanTwo
+            >
+              <TextArea
+                value={
+                  form.economicActivityDescription
+                }
+                onChange={(value) =>
+                  updateField(
+                    "economicActivityDescription",
+                    value
+                  )
+                }
+              />
+            </FormField>
+
+            <FormField
+              label="Descripción de la empresa"
+              spanTwo
+            >
+              <TextArea
+                value={form.companyDescription}
+                onChange={(value) =>
+                  updateField(
+                    "companyDescription",
+                    value
+                  )
+                }
+              />
+            </FormField>
+          </FormSection>
+
+          <FormSection title="Gerencia y contacto SST">
+            <FormField label="Nombre del gerente">
+              <TextInput
+                value={form.managerName}
+                onChange={(value) =>
+                  updateField("managerName", value)
+                }
+              />
+            </FormField>
+
+            <FormField label="Email del gerente">
+              <TextInput
+                type="email"
+                value={form.managerEmail}
+                onChange={(value) =>
+                  updateField("managerEmail", value)
+                }
+              />
+            </FormField>
+
+            <FormField label="Nombre del contacto SST">
+              <TextInput
+                value={form.sstContactName}
+                onChange={(value) =>
+                  updateField("sstContactName", value)
+                }
+              />
+            </FormField>
+
+            <FormField label="Email del contacto SST">
+              <TextInput
+                type="email"
+                value={form.sstContactEmail}
+                onChange={(value) =>
+                  updateField(
+                    "sstContactEmail",
+                    value
+                  )
+                }
+              />
+            </FormField>
+          </FormSection>
+
+          <FormSection title="Visitas convenidas">
+            <FormField label="Visitas SST">
+              <TextInput
+                type="number"
+                min="0"
+                value={form.agreedSstVisits}
+                onChange={(value) =>
+                  updateField(
+                    "agreedSstVisits",
+                    value
+                  )
+                }
+              />
+            </FormField>
+
+            <FormField label="Visitas de emergencias">
+              <TextInput
+                type="number"
+                min="0"
+                value={form.agreedEmergencyVisits}
+                onChange={(value) =>
+                  updateField(
+                    "agreedEmergencyVisits",
+                    value
+                  )
+                }
+              />
+            </FormField>
+
+            {editingCompany && (
+              <FormField
+                label="Estado de la empresa"
+                spanTwo
+              >
+                <ToggleRow
+                  checked={form.isActive}
+                  onChange={(checked) =>
+                    updateField("isActive", checked)
+                  }
+                  label="Empresa activa"
+                />
+              </FormField>
+            )}
+          </FormSection>
+        </form>
+      </AppModal>
     </div>
   );
 }
-
-const inputClass =
-  "w-full rounded-xl border border-neutral-800 bg-[#0a0a0a] px-3 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-neutral-600 focus:border-neutral-600";
 
 function HeaderCell({
   children,
   alignRight = false,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   alignRight?: boolean;
 }) {
   return (
@@ -763,18 +801,182 @@ function HeaderCell({
   );
 }
 
+function LoadingRow({
+  colSpan,
+}: {
+  colSpan: number;
+}) {
+  return (
+    <tr>
+      <td
+        colSpan={colSpan}
+        className="px-6 py-14 text-center"
+      >
+        <Loader2 className="mx-auto h-6 w-6 animate-spin text-neutral-500" />
+      </td>
+    </tr>
+  );
+}
+
+function EmptyRow({
+  colSpan,
+  message,
+}: {
+  colSpan: number;
+  message: string;
+}) {
+  return (
+    <tr>
+      <td
+        colSpan={colSpan}
+        className="px-6 py-14 text-center text-neutral-500"
+      >
+        {message}
+      </td>
+    </tr>
+  );
+}
+
+function CompanyIdentity({
+  company,
+}: {
+  company: Company;
+}) {
+  return (
+    <div className="flex min-w-0 items-center gap-3">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-neutral-700/50 bg-neutral-800/80 text-neutral-300">
+        <Building2 size={17} />
+      </div>
+      <div className="min-w-0">
+        <p className="truncate font-semibold text-white">
+          {company.name}
+        </p>
+        <p className="mt-0.5 truncate font-mono text-xs text-neutral-500">
+          {company.taxId}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function VisitSummary({
+  company,
+}: {
+  company: Company;
+}) {
+  return (
+    <div className="space-y-1 text-xs text-neutral-300">
+      <p>
+        SST: <strong>{company.agreedSstVisits}</strong>
+      </p>
+      <p>
+        Emergencias:{" "}
+        <strong>
+          {company.agreedEmergencyVisits}
+        </strong>
+      </p>
+    </div>
+  );
+}
+
+function RelationSummary({
+  company,
+}: {
+  company: Company;
+}) {
+  return (
+    <div className="flex gap-4 text-xs text-neutral-300">
+      <span className="flex items-center gap-1.5">
+        <Users
+          size={14}
+          className="text-neutral-500"
+        />
+        {company._count?.users ?? 0} usuarios
+      </span>
+      <span className="flex items-center gap-1.5">
+        <Calendar
+          size={14}
+          className="text-neutral-500"
+        />
+        {company._count
+          ?.professionalAssignments ?? 0}{" "}
+        profesionales
+      </span>
+    </div>
+  );
+}
+
+function ActionButtons({
+  onEdit,
+  onDelete,
+  compact = false,
+}: {
+  onEdit: () => void;
+  onDelete: () => void;
+  compact?: boolean;
+}) {
+  return (
+    <div
+      className={`flex items-center ${
+        compact ? "gap-1" : "justify-end"
+      }`}
+    >
+      <button
+        type="button"
+        onClick={onEdit}
+        className="rounded-lg p-2 text-neutral-500 transition-colors hover:bg-neutral-800 hover:text-white"
+        title="Editar empresa"
+      >
+        <Edit2 size={17} />
+      </button>
+      <button
+        type="button"
+        onClick={onDelete}
+        className="rounded-lg p-2 text-neutral-500 transition-colors hover:bg-red-500/10 hover:text-red-400"
+        title="Desactivar empresa"
+      >
+        <Trash2 size={17} />
+      </button>
+    </div>
+  );
+}
+
+function InfoCard({
+  label,
+  value,
+  secondary,
+}: {
+  label: string;
+  value: string;
+  secondary: string;
+}) {
+  return (
+    <div className="min-w-0 rounded-xl border border-neutral-800 bg-[#0a0a0a] p-3">
+      <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-600">
+        {label}
+      </p>
+      <p className="mt-1 truncate text-sm text-neutral-200">
+        {value}
+      </p>
+      <p className="mt-0.5 truncate text-xs text-neutral-500">
+        {secondary}
+      </p>
+    </div>
+  );
+}
+
 function FormSection({
   title,
   children,
 }: {
   title: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <section>
-      <h4 className="mb-4 text-sm font-bold text-white">
+      <h3 className="mb-4 text-sm font-bold text-white sm:text-base">
         {title}
-      </h4>
+      </h3>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {children}
       </div>
@@ -788,12 +990,14 @@ function FormField({
   spanTwo = false,
 }: {
   label: string;
-  children: React.ReactNode;
+  children: ReactNode;
   spanTwo?: boolean;
 }) {
   return (
     <label
-      className={spanTwo ? "md:col-span-2" : ""}
+      className={`block min-w-0 ${
+        spanTwo ? "md:col-span-2" : ""
+      }`}
     >
       <span className="mb-1.5 block text-xs font-medium text-neutral-400">
         {label}
@@ -813,7 +1017,7 @@ function TextInput({
   onChange: (value: string) => void;
   type?: string;
 } & Omit<
-  React.InputHTMLAttributes<HTMLInputElement>,
+  InputHTMLAttributes<HTMLInputElement>,
   "value" | "onChange" | "type"
 >) {
   return (
@@ -842,8 +1046,45 @@ function TextArea({
       onChange={(event) =>
         onChange(event.target.value)
       }
-      rows={3}
+      rows={4}
       className={`${inputClass} resize-y`}
     />
+  );
+}
+
+function ToggleRow({
+  checked,
+  onChange,
+  label,
+}: {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  label: string;
+}) {
+  return (
+    <div className="flex items-center justify-between rounded-xl border border-neutral-800 bg-[#090909] px-4 py-3">
+      <span className="text-sm text-neutral-300">
+        {label}
+      </span>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        onClick={() => onChange(!checked)}
+        className={`relative h-6 w-11 rounded-full transition-colors ${
+          checked
+            ? "bg-cyan-500"
+            : "bg-neutral-700"
+        }`}
+      >
+        <span
+          className={`absolute top-1 h-4 w-4 rounded-full bg-white transition-transform ${
+            checked
+              ? "translate-x-6"
+              : "translate-x-1"
+          }`}
+        />
+      </button>
+    </div>
   );
 }

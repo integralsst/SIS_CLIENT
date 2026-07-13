@@ -3,6 +3,7 @@ import {
   useMemo,
   useState,
   type FormEvent,
+  type ReactNode,
 } from "react";
 import {
   Building,
@@ -13,7 +14,6 @@ import {
   Shield,
   Trash2,
   UserPlus,
-  X,
 } from "lucide-react";
 
 import {
@@ -27,6 +27,8 @@ import type {
   ManagedUser,
   Professional,
 } from "../../../types/domain";
+import AppModal from "../../../components/ui/AppModal";
+import AppSelect from "../../../components/ui/AppSelect";
 
 interface UserForm {
   name: string;
@@ -58,6 +60,9 @@ const internalRoles = new Set([
   "OWNER",
   "SUPERADMIN",
 ]);
+
+const inputClass =
+  "w-full rounded-xl border border-neutral-800 bg-[#090909] px-3 py-2.5 text-sm text-white outline-none transition-all placeholder:text-neutral-600 hover:border-neutral-700 focus:border-cyan-500/60 focus:ring-2 focus:ring-cyan-500/10";
 
 export default function Users() {
   const { token, user: currentUser } = useAuth();
@@ -188,6 +193,7 @@ export default function Users() {
         user.professional
           ? `${user.professional.firstNames} ${user.professional.lastNames}`
           : "",
+        user.role,
       ].some((value) =>
         value.toLowerCase().includes(search)
       )
@@ -229,7 +235,6 @@ export default function Users() {
   };
 
   const closeModal = () => {
-    if (submitting) return;
     setModalOpen(false);
     setEditingUser(null);
     setForm(emptyForm);
@@ -371,20 +376,21 @@ export default function Users() {
   };
 
   return (
-    <div className="relative mx-auto flex h-full max-w-7xl flex-col">
-      <header className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-center">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white md:text-3xl">
+    <div className="mx-auto flex min-h-full min-w-0 max-w-7xl flex-col">
+      <header className="mb-6 flex flex-col gap-4 sm:mb-8 md:flex-row md:items-center md:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
             Gestión de usuarios
           </h1>
-          <p className="mt-1 text-sm text-neutral-400">
+          <p className="mt-1 max-w-2xl text-sm leading-6 text-neutral-400">
             Administra credenciales, roles, empresas y perfiles profesionales.
           </p>
         </div>
 
         <button
+          type="button"
           onClick={openCreate}
-          className="flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-black shadow-lg shadow-white/5 transition-colors hover:bg-neutral-200 active:scale-95"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-black shadow-lg shadow-white/5 transition-all hover:bg-neutral-200 active:scale-[0.98] sm:w-auto sm:py-2.5"
         >
           <UserPlus size={18} />
           Nuevo usuario
@@ -392,30 +398,30 @@ export default function Users() {
       </header>
 
       {pageError && (
-        <div className="mb-5 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+        <div className="mb-5 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
           {pageError}
         </div>
       )}
 
-      <div className="mb-6 flex items-center gap-4">
-        <div className="relative max-w-md flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500" />
+      <div className="mb-5">
+        <div className="relative w-full max-w-xl">
+          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500" />
           <input
-            type="text"
-            placeholder="Buscar por nombre, correo, empresa o profesional..."
+            type="search"
+            placeholder="Buscar por nombre, correo, empresa, profesional o rol..."
             value={searchTerm}
             onChange={(event) =>
               setSearchTerm(event.target.value)
             }
-            className="w-full rounded-xl border border-neutral-800/60 bg-[#111111] py-2.5 pl-10 pr-4 text-sm text-white outline-none placeholder:text-neutral-500 focus:border-neutral-600"
+            className="w-full rounded-xl border border-neutral-800 bg-[#111111] py-3 pl-10 pr-4 text-sm text-white outline-none transition-all placeholder:text-neutral-500 hover:border-neutral-700 focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/10"
           />
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-neutral-800/60 bg-[#111111] shadow-xl">
-        <div className="flex-1 overflow-x-auto">
-          <table className="w-full whitespace-nowrap text-left text-sm">
-            <thead className="border-b border-neutral-800/60 bg-[#0a0a0a]">
+      <section className="min-w-0 overflow-hidden rounded-2xl border border-neutral-800/70 bg-[#111111] shadow-xl">
+        <div className="hidden overflow-x-auto lg:block">
+          <table className="w-full min-w-[840px] whitespace-nowrap text-left text-sm">
+            <thead className="border-b border-neutral-800 bg-[#0a0a0a]">
               <tr>
                 <HeaderCell>Usuario</HeaderCell>
                 <HeaderCell>Contexto</HeaderCell>
@@ -425,22 +431,14 @@ export default function Users() {
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-neutral-800/60">
+            <tbody className="divide-y divide-neutral-800/70">
               {loading ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-14 text-center">
-                    <Loader2 className="mx-auto h-6 w-6 animate-spin text-neutral-500" />
-                  </td>
-                </tr>
+                <LoadingRow colSpan={5} />
               ) : filteredUsers.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={5}
-                    className="px-6 py-14 text-center text-neutral-500"
-                  >
-                    No se encontraron usuarios.
-                  </td>
-                </tr>
+                <EmptyRow
+                  colSpan={5}
+                  message="No se encontraron usuarios."
+                />
               ) : (
                 filteredUsers.map((user) => (
                   <tr
@@ -448,45 +446,11 @@ export default function Users() {
                     className="group transition-colors hover:bg-neutral-800/20"
                   >
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-700 bg-neutral-800 font-bold uppercase text-white">
-                          {user.name.charAt(0)}
-                        </div>
-                        <div>
-                          <p className="font-medium text-white">
-                            {user.name}
-                          </p>
-                          <p className="mt-0.5 flex items-center gap-1 text-xs text-neutral-500">
-                            <Mail size={12} />
-                            {user.email}
-                          </p>
-                        </div>
-                      </div>
+                      <UserIdentity user={user} />
                     </td>
 
                     <td className="px-6 py-4">
-                      {user.company ? (
-                        <div className="flex items-center gap-2 text-neutral-300">
-                          <Building size={14} className="text-neutral-500" />
-                          {user.company.name}
-                        </div>
-                      ) : user.professional ? (
-                        <div>
-                          <p className="text-neutral-300">
-                            {user.professional.firstNames}{" "}
-                            {user.professional.lastNames}
-                          </p>
-                          <p className="text-xs text-neutral-500">
-                            {user.professional.professionalRole ??
-                              user.professional.profession ??
-                              "Profesional"}
-                          </p>
-                        </div>
-                      ) : (
-                        <span className="text-neutral-500">
-                          Administración global
-                        </span>
-                      )}
+                      <UserContext user={user} />
                     </td>
 
                     <td className="px-6 py-4">
@@ -500,37 +464,19 @@ export default function Users() {
                     </td>
 
                     <td className="px-6 py-4">
-                      <span
-                        className={`rounded-full border px-2.5 py-1 text-[10px] font-bold ${
-                          user.isActive
-                            ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
-                            : "border-red-500/20 bg-red-500/10 text-red-400"
-                        }`}
-                      >
-                        {user.isActive ? "ACTIVO" : "INACTIVO"}
-                      </span>
+                      <StatusBadge active={user.isActive} />
                     </td>
 
                     <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => openEdit(user)}
-                        className="rounded-lg p-2 text-neutral-500 transition-colors hover:bg-neutral-800 hover:text-white"
-                        title="Editar usuario"
-                      >
-                        <Edit2 size={18} />
-                      </button>
-
-                      {currentUser?.id !== user.id && (
-                        <button
-                          onClick={() =>
-                            void handleDelete(user)
-                          }
-                          className="rounded-lg p-2 text-neutral-500 transition-colors hover:bg-red-500/10 hover:text-red-400"
-                          title="Eliminar usuario"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      )}
+                      <UserActions
+                        canDelete={
+                          currentUser?.id !== user.id
+                        }
+                        onEdit={() => openEdit(user)}
+                        onDelete={() =>
+                          void handleDelete(user)
+                        }
+                      />
                     </td>
                   </tr>
                 ))
@@ -539,232 +485,281 @@ export default function Users() {
           </table>
         </div>
 
-        <div className="border-t border-neutral-800/60 px-6 py-4 text-xs text-neutral-500">
+        <div className="divide-y divide-neutral-800/70 lg:hidden">
+          {loading ? (
+            <div className="flex justify-center px-4 py-14">
+              <Loader2 className="h-6 w-6 animate-spin text-neutral-500" />
+            </div>
+          ) : filteredUsers.length === 0 ? (
+            <div className="px-4 py-14 text-center text-sm text-neutral-500">
+              No se encontraron usuarios.
+            </div>
+          ) : (
+            filteredUsers.map((user) => (
+              <article
+                key={user.id}
+                className="space-y-4 p-4 sm:p-5"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <UserIdentity user={user} />
+
+                  <UserActions
+                    compact
+                    canDelete={
+                      currentUser?.id !== user.id
+                    }
+                    onEdit={() => openEdit(user)}
+                    onDelete={() =>
+                      void handleDelete(user)
+                    }
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <MobileInfo label="Contexto">
+                    <UserContext user={user} />
+                  </MobileInfo>
+
+                  <MobileInfo label="Rol">
+                    <RoleBadge role={user.role} />
+                  </MobileInfo>
+
+                  <MobileInfo label="Estado">
+                    <StatusBadge
+                      active={user.isActive}
+                    />
+                  </MobileInfo>
+                </div>
+              </article>
+            ))
+          )}
+        </div>
+
+        <div className="border-t border-neutral-800/70 px-4 py-4 text-xs text-neutral-500 sm:px-6">
           Mostrando {filteredUsers.length} usuarios
         </div>
-      </div>
+      </section>
 
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-lg overflow-hidden rounded-2xl border border-neutral-800 bg-[#111111] shadow-2xl">
-            <div className="flex items-center justify-between border-b border-neutral-800 p-6">
-              <div>
-                <h3 className="text-lg font-bold text-white">
-                  {editingUser
-                    ? "Editar usuario"
-                    : "Nuevo usuario"}
-                </h3>
-                <p className="mt-1 text-xs text-neutral-500">
-                  El formulario cambia según el rol seleccionado.
-                </p>
-              </div>
-
-              <button
-                onClick={closeModal}
-                className="text-neutral-500 hover:text-white"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <form
-              onSubmit={handleSubmit}
-              className="max-h-[80vh] space-y-4 overflow-y-auto p-6"
+      <AppModal
+        open={modalOpen}
+        title={
+          editingUser
+            ? "Editar usuario"
+            : "Nuevo usuario"
+        }
+        description="El formulario se adapta al rol seleccionado."
+        onClose={closeModal}
+        busy={submitting}
+        size="md"
+        footer={
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={closeModal}
+              disabled={submitting}
+              className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-5 py-3 text-sm font-medium text-neutral-300 transition-colors hover:bg-neutral-700 disabled:opacity-50 sm:w-auto sm:py-2.5"
             >
-              {formError && (
-                <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-                  {formError}
-                </div>
+              Cancelar
+            </button>
+
+            <button
+              type="submit"
+              form="user-form"
+              disabled={submitting}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-black transition-colors hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto sm:py-2.5"
+            >
+              {submitting && (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              )}
+              {editingUser
+                ? "Guardar cambios"
+                : "Crear usuario"}
+            </button>
+          </div>
+        }
+      >
+        <form
+          id="user-form"
+          onSubmit={handleSubmit}
+          className="space-y-5"
+        >
+          {formError && (
+            <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+              {formError}
+            </div>
+          )}
+
+          <Field label="Nombre completo">
+            <input
+              required
+              value={form.name}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  name: event.target.value,
+                }))
+              }
+              className={inputClass}
+            />
+          </Field>
+
+          <Field label="Correo electrónico">
+            <input
+              required
+              type="email"
+              value={form.email}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  email: event.target.value,
+                }))
+              }
+              className={inputClass}
+            />
+          </Field>
+
+          <Field
+            label={
+              editingUser
+                ? "Nueva contraseña (opcional)"
+                : "Contraseña temporal"
+            }
+          >
+            <input
+              required={!editingUser}
+              type="password"
+              minLength={8}
+              value={form.password}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  password: event.target.value,
+                }))
+              }
+              className={inputClass}
+            />
+          </Field>
+
+          {editingUser?.id !== currentUser?.id && (
+            <>
+              <Field label="Rol">
+                <AppSelect
+                  value={form.role}
+                  onChange={(event) =>
+                    handleRoleChange(
+                      event.target.value as UserRole
+                    )
+                  }
+                >
+                  {availableRoles.map((role) => (
+                    <option
+                      key={role}
+                      value={role}
+                    >
+                      {roleLabel(role)}
+                    </option>
+                  ))}
+                </AppSelect>
+              </Field>
+
+              {clientRoles.has(form.role) && (
+                <Field label="Empresa cliente">
+                  <AppSelect
+                    required
+                    value={form.companyId}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        companyId:
+                          event.target.value,
+                      }))
+                    }
+                  >
+                    <option value="">
+                      Selecciona una empresa
+                    </option>
+                    {companies.map((company) => (
+                      <option
+                        key={company.id}
+                        value={company.id}
+                      >
+                        {company.name} —{" "}
+                        {company.taxId}
+                      </option>
+                    ))}
+                  </AppSelect>
+                </Field>
               )}
 
-              <Field label="Nombre completo">
-                <input
-                  required
-                  value={form.name}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      name: event.target.value,
-                    }))
-                  }
-                  className={inputClass}
-                />
-              </Field>
-
-              <Field label="Correo electrónico">
-                <input
-                  required
-                  type="email"
-                  value={form.email}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      email: event.target.value,
-                    }))
-                  }
-                  className={inputClass}
-                />
-              </Field>
-
-              <Field
-                label={
-                  editingUser
-                    ? "Nueva contraseña (opcional)"
-                    : "Contraseña temporal"
-                }
-              >
-                <input
-                  required={!editingUser}
-                  type="password"
-                  minLength={8}
-                  value={form.password}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      password: event.target.value,
-                    }))
-                  }
-                  className={inputClass}
-                />
-              </Field>
-
-              {editingUser?.id !== currentUser?.id && (
-                <>
-                  <Field label="Rol">
-                    <select
-                      value={form.role}
-                      onChange={(event) =>
-                        handleRoleChange(
-                          event.target.value as UserRole
-                        )
-                      }
-                      className={inputClass}
-                    >
-                      {availableRoles.map((role) => (
-                        <option key={role} value={role}>
-                          {roleLabel(role)}
+              {form.role === "PROFESSIONAL" && (
+                <Field label="Perfil profesional">
+                  <AppSelect
+                    required
+                    value={form.professionalId}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        professionalId:
+                          event.target.value,
+                      }))
+                    }
+                  >
+                    <option value="">
+                      Selecciona un profesional
+                    </option>
+                    {professionals
+                      .filter(
+                        (professional) =>
+                          !professional.userId ||
+                          professional.id ===
+                            editingUser?.professional
+                              ?.id
+                      )
+                      .map((professional) => (
+                        <option
+                          key={professional.id}
+                          value={professional.id}
+                        >
+                          {professional.firstNames}{" "}
+                          {professional.lastNames} —{" "}
+                          {
+                            professional.identificationNumber
+                          }
                         </option>
                       ))}
-                    </select>
-                  </Field>
-
-                  {clientRoles.has(form.role) && (
-                    <Field label="Empresa cliente">
-                      <select
-                        required
-                        value={form.companyId}
-                        onChange={(event) =>
-                          setForm((current) => ({
-                            ...current,
-                            companyId:
-                              event.target.value,
-                          }))
-                        }
-                        className={inputClass}
-                      >
-                        <option value="">
-                          Selecciona una empresa
-                        </option>
-                        {companies.map((company) => (
-                          <option
-                            key={company.id}
-                            value={company.id}
-                          >
-                            {company.name} — {company.taxId}
-                          </option>
-                        ))}
-                      </select>
-                    </Field>
-                  )}
-
-                  {form.role === "PROFESSIONAL" && (
-                    <Field label="Perfil profesional">
-                      <select
-                        required
-                        value={form.professionalId}
-                        onChange={(event) =>
-                          setForm((current) => ({
-                            ...current,
-                            professionalId:
-                              event.target.value,
-                          }))
-                        }
-                        className={inputClass}
-                      >
-                        <option value="">
-                          Selecciona un profesional
-                        </option>
-                        {professionals
-                          .filter(
-                            (professional) =>
-                              !professional.userId ||
-                              professional.id ===
-                                editingUser?.professional
-                                  ?.id
-                          )
-                          .map((professional) => (
-                            <option
-                              key={professional.id}
-                              value={professional.id}
-                            >
-                              {professional.firstNames}{" "}
-                              {professional.lastNames} —{" "}
-                              {
-                                professional.identificationNumber
-                              }
-                            </option>
-                          ))}
-                      </select>
-                    </Field>
-                  )}
-
-                  <label className="flex items-center gap-3 rounded-xl border border-neutral-800 bg-[#0a0a0a] px-4 py-3">
-                    <input
-                      type="checkbox"
-                      checked={form.isActive}
-                      onChange={(event) =>
-                        setForm((current) => ({
-                          ...current,
-                          isActive:
-                            event.target.checked,
-                        }))
-                      }
-                    />
-                    <span className="text-sm text-neutral-300">
-                      Usuario activo
-                    </span>
-                  </label>
-                </>
+                  </AppSelect>
+                </Field>
               )}
 
-              <button
-                type="submit"
-                disabled={submitting}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-white py-2.5 text-sm font-bold text-black transition-colors hover:bg-neutral-200 disabled:opacity-50"
-              >
-                {submitting && (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                )}
-                {editingUser
-                  ? "Guardar cambios"
-                  : "Crear usuario"}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
+              <ToggleRow
+                checked={form.isActive}
+                onChange={(checked) =>
+                  setForm((current) => ({
+                    ...current,
+                    isActive: checked,
+                  }))
+                }
+                label="Usuario activo"
+              />
+            </>
+          )}
+
+          {editingUser?.id === currentUser?.id && (
+            <p className="rounded-xl border border-cyan-500/15 bg-cyan-500/5 px-4 py-3 text-xs leading-5 text-cyan-300">
+              Al editar tu propia cuenta solo puedes cambiar nombre, correo y contraseña.
+            </p>
+          )}
+        </form>
+      </AppModal>
     </div>
   );
 }
-
-const inputClass =
-  "w-full rounded-xl border border-neutral-800 bg-[#0a0a0a] px-3 py-2.5 text-sm text-white outline-none focus:border-neutral-600";
 
 function HeaderCell({
   children,
   alignRight = false,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   alignRight?: boolean;
 }) {
   return (
@@ -778,15 +773,176 @@ function HeaderCell({
   );
 }
 
+function LoadingRow({
+  colSpan,
+}: {
+  colSpan: number;
+}) {
+  return (
+    <tr>
+      <td
+        colSpan={colSpan}
+        className="px-6 py-14 text-center"
+      >
+        <Loader2 className="mx-auto h-6 w-6 animate-spin text-neutral-500" />
+      </td>
+    </tr>
+  );
+}
+
+function EmptyRow({
+  colSpan,
+  message,
+}: {
+  colSpan: number;
+  message: string;
+}) {
+  return (
+    <tr>
+      <td
+        colSpan={colSpan}
+        className="px-6 py-14 text-center text-neutral-500"
+      >
+        {message}
+      </td>
+    </tr>
+  );
+}
+
+function UserIdentity({
+  user,
+}: {
+  user: ManagedUser;
+}) {
+  return (
+    <div className="flex min-w-0 items-center gap-3">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neutral-700 bg-neutral-800 font-bold uppercase text-white">
+        {user.name.charAt(0)}
+      </div>
+
+      <div className="min-w-0">
+        <p className="truncate font-medium text-white">
+          {user.name}
+        </p>
+        <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-neutral-500">
+          <Mail size={12} className="shrink-0" />
+          <span className="truncate">
+            {user.email}
+          </span>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function UserContext({
+  user,
+}: {
+  user: ManagedUser;
+}) {
+  if (user.company) {
+    return (
+      <div className="flex min-w-0 items-center gap-2 text-sm text-neutral-300">
+        <Building
+          size={14}
+          className="shrink-0 text-neutral-500"
+        />
+        <span className="truncate">
+          {user.company.name}
+        </span>
+      </div>
+    );
+  }
+
+  if (user.professional) {
+    return (
+      <div className="min-w-0">
+        <p className="truncate text-sm text-neutral-300">
+          {user.professional.firstNames}{" "}
+          {user.professional.lastNames}
+        </p>
+        <p className="truncate text-xs text-neutral-500">
+          {user.professional.professionalRole ??
+            user.professional.profession ??
+            "Profesional"}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <span className="text-sm text-neutral-500">
+      Administración global
+    </span>
+  );
+}
+
+function UserActions({
+  onEdit,
+  onDelete,
+  canDelete,
+  compact = false,
+}: {
+  onEdit: () => void;
+  onDelete: () => void;
+  canDelete: boolean;
+  compact?: boolean;
+}) {
+  return (
+    <div
+      className={`flex items-center ${
+        compact ? "gap-1" : "justify-end"
+      }`}
+    >
+      <button
+        type="button"
+        onClick={onEdit}
+        className="rounded-lg p-2 text-neutral-500 transition-colors hover:bg-neutral-800 hover:text-white"
+        title="Editar usuario"
+      >
+        <Edit2 size={18} />
+      </button>
+
+      {canDelete && (
+        <button
+          type="button"
+          onClick={onDelete}
+          className="rounded-lg p-2 text-neutral-500 transition-colors hover:bg-red-500/10 hover:text-red-400"
+          title="Eliminar usuario"
+        >
+          <Trash2 size={18} />
+        </button>
+      )}
+    </div>
+  );
+}
+
+function MobileInfo({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="min-w-0 rounded-xl border border-neutral-800 bg-[#0a0a0a] p-3">
+      <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-neutral-600">
+        {label}
+      </p>
+      {children}
+    </div>
+  );
+}
+
 function Field({
   label,
   children,
 }: {
   label: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
-    <label className="block">
+    <label className="block min-w-0">
       <span className="mb-1.5 block text-xs font-medium text-neutral-400">
         {label}
       </span>
@@ -833,9 +989,65 @@ function RoleBadge({
 
   return (
     <span
-      className={`rounded-full border px-2.5 py-1 text-[10px] font-bold ${style[role]}`}
+      className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-bold ${style[role]}`}
     >
       {role}
     </span>
+  );
+}
+
+function StatusBadge({
+  active,
+}: {
+  active: boolean;
+}) {
+  return (
+    <span
+      className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-bold ${
+        active
+          ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
+          : "border-red-500/20 bg-red-500/10 text-red-400"
+      }`}
+    >
+      {active ? "ACTIVO" : "INACTIVO"}
+    </span>
+  );
+}
+
+function ToggleRow({
+  checked,
+  onChange,
+  label,
+}: {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  label: string;
+}) {
+  return (
+    <div className="flex items-center justify-between rounded-xl border border-neutral-800 bg-[#090909] px-4 py-3">
+      <span className="text-sm text-neutral-300">
+        {label}
+      </span>
+
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        onClick={() => onChange(!checked)}
+        className={`relative h-6 w-11 rounded-full transition-colors ${
+          checked
+            ? "bg-cyan-500"
+            : "bg-neutral-700"
+        }`}
+      >
+        <span
+          className={`absolute top-1 h-4 w-4 rounded-full bg-white transition-transform ${
+            checked
+              ? "translate-x-6"
+              : "translate-x-1"
+          }`}
+        />
+      </button>
+    </div>
   );
 }

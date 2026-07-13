@@ -1,9 +1,13 @@
 import {
   BriefcaseBusiness,
   Building2,
+  ChevronLeft,
+  ChevronRight,
   LayoutDashboard,
   LogOut,
+  Menu,
   Users,
+  X,
 } from "lucide-react";
 import {
   Link,
@@ -11,6 +15,11 @@ import {
   useLocation,
   useNavigate,
 } from "react-router-dom";
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import { useAuth } from "../../features/auth/context/AuthContext";
 
@@ -20,10 +29,32 @@ const internalRoles = new Set([
   "SUPERADMIN",
 ]);
 
+const SIDEBAR_STORAGE_KEY =
+  "stack44_dashboard_sidebar_collapsed";
+
 export default function DashboardLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    return (
+      localStorage.getItem(SIDEBAR_STORAGE_KEY) ===
+      "true"
+    );
+  });
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      SIDEBAR_STORAGE_KEY,
+      String(collapsed)
+    );
+  }, [collapsed]);
 
   if (!user) return null;
 
@@ -59,6 +90,10 @@ export default function DashboardLayout() {
     },
   ];
 
+  const visibleItems = items.filter(
+    (item) => item.visible
+  );
+
   const isActive = (
     path: string,
     exact = false
@@ -73,91 +108,235 @@ export default function DashboardLayout() {
     );
   };
 
+  const currentPage = useMemo(() => {
+    return (
+      visibleItems.find((item) =>
+        isActive(item.to, item.exact)
+      )?.label ?? "Panel de control"
+    );
+  }, [location.pathname, user.role]);
+
   const handleLogout = () => {
     logout();
     navigate("/login", { replace: true });
   };
 
-  return (
-    <div className="flex h-screen overflow-hidden bg-[#0a0a0a] text-white">
-      <aside className="z-20 flex w-64 shrink-0 flex-col border-r border-neutral-800/50 bg-[#0a0a0a]">
-        <div className="p-6">
-          <h2 className="text-xl font-bold tracking-tight">
-            Panel de control
-          </h2>
-          <p className="mt-1 text-xs text-neutral-500">
-            Gestión SG-SST
-          </p>
-        </div>
+  const renderSidebar = (
+    compact: boolean,
+    mobile = false
+  ) => (
+    <div className="flex h-full w-full flex-col">
+      <div
+        className={`flex h-20 shrink-0 items-center border-b border-neutral-800/60 ${
+          compact
+            ? "justify-center px-3"
+            : "justify-between px-5"
+        }`}
+      >
+        {!compact && (
+          <div className="min-w-0">
+            <h2 className="truncate text-lg font-bold tracking-tight text-white">
+              Panel de control
+            </h2>
+            <p className="mt-0.5 text-[11px] text-neutral-500">
+              Gestión SG-SST
+            </p>
+          </div>
+        )}
 
-        <nav className="mt-4 flex-1 space-y-2 px-4">
-          {items
-            .filter((item) => item.visible)
-            .map((item) => {
-              const Icon = item.icon;
-              const active = isActive(
-                item.to,
-                item.exact
-              );
+        {!mobile && (
+          <button
+            type="button"
+            onClick={() =>
+              setCollapsed((current) => !current)
+            }
+            className="hidden h-9 w-9 items-center justify-center rounded-xl border border-neutral-800 bg-[#151515] text-neutral-400 transition-colors hover:border-neutral-700 hover:text-white lg:flex"
+            title={
+              compact
+                ? "Expandir menú"
+                : "Ocultar menú"
+            }
+          >
+            {compact ? (
+              <ChevronRight size={18} />
+            ) : (
+              <ChevronLeft size={18} />
+            )}
+          </button>
+        )}
 
-              return (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  className={`flex items-center gap-3 rounded-xl px-4 py-3 transition-colors ${
-                    active
-                      ? "bg-cyan-500/10 text-cyan-400"
-                      : "text-neutral-400 hover:bg-neutral-800/50 hover:text-white"
-                  }`}
-                >
-                  <Icon size={20} />
-                  <span className="text-sm font-medium">
-                    {item.label}
-                  </span>
-                </Link>
-              );
-            })}
-        </nav>
+        {mobile && (
+          <button
+            type="button"
+            onClick={() => setMobileOpen(false)}
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-800 bg-[#151515] text-neutral-400"
+            aria-label="Cerrar menú"
+          >
+            <X size={18} />
+          </button>
+        )}
+      </div>
 
-        <div className="border-t border-neutral-800/50 p-4">
-          <div className="mb-3 rounded-xl border border-neutral-800 bg-[#111111] px-4 py-3">
+      <nav
+        className={`flex-1 space-y-2 overflow-y-auto py-5 ${
+          compact ? "px-2" : "px-4"
+        }`}
+      >
+        {visibleItems.map((item) => {
+          const Icon = item.icon;
+          const active = isActive(
+            item.to,
+            item.exact
+          );
+
+          return (
+            <Link
+              key={item.to}
+              to={item.to}
+              title={compact ? item.label : undefined}
+              className={`group flex items-center rounded-xl py-3 transition-all ${
+                compact
+                  ? "justify-center px-3"
+                  : "gap-3 px-4"
+              } ${
+                active
+                  ? "border border-cyan-500/15 bg-cyan-500/10 text-cyan-400"
+                  : "border border-transparent text-neutral-400 hover:bg-neutral-800/50 hover:text-white"
+              }`}
+            >
+              <Icon
+                size={20}
+                className="shrink-0"
+              />
+
+              {!compact && (
+                <span className="truncate text-sm font-medium">
+                  {item.label}
+                </span>
+              )}
+            </Link>
+          );
+        })}
+      </nav>
+
+      <div
+        className={`shrink-0 border-t border-neutral-800/60 ${
+          compact ? "p-2" : "p-4"
+        }`}
+      >
+        {!compact ? (
+          <div className="mb-3 rounded-2xl border border-neutral-800 bg-[#141414] px-4 py-3">
             <p className="truncate text-sm font-medium text-white">
               {user.name}
             </p>
-            <p className="truncate text-xs text-neutral-500">
+            <p className="mt-0.5 truncate text-xs text-neutral-500">
               {user.email}
             </p>
-            <p className="mt-1 text-[10px] font-bold tracking-wider text-cyan-500">
+            <p className="mt-2 text-[10px] font-bold tracking-wider text-cyan-500">
               {user.role}
             </p>
           </div>
-
-          <button
-            onClick={handleLogout}
-            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-red-400 transition-colors hover:bg-red-400/10"
+        ) : (
+          <div
+            className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-neutral-800 bg-[#151515] text-sm font-bold text-cyan-400"
+            title={`${user.name} · ${user.role}`}
           >
-            <LogOut size={20} />
+            {user.name.charAt(0).toUpperCase()}
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={handleLogout}
+          title={compact ? "Cerrar sesión" : undefined}
+          className={`flex w-full items-center rounded-xl py-3 text-red-400 transition-colors hover:bg-red-400/10 ${
+            compact
+              ? "justify-center px-3"
+              : "gap-3 px-4"
+          }`}
+        >
+          <LogOut size={20} className="shrink-0" />
+
+          {!compact && (
             <span className="text-sm font-medium">
               Cerrar sesión
             </span>
-          </button>
-        </div>
+          )}
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="flex h-[100dvh] min-w-0 overflow-hidden bg-[#090909] text-white">
+      <aside
+        className={`relative z-40 hidden shrink-0 border-r border-neutral-800/60 bg-[#0b0b0b] transition-[width] duration-300 lg:flex ${
+          collapsed ? "w-[76px]" : "w-64"
+        }`}
+      >
+        {renderSidebar(collapsed)}
       </aside>
 
-      <main className="relative flex-1 overflow-y-auto">
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage:
-              "linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)",
-            backgroundSize: "40px 40px",
-          }}
-        />
+      {mobileOpen && (
+        <>
+          <button
+            type="button"
+            aria-label="Cerrar menú"
+            onClick={() => setMobileOpen(false)}
+            className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm lg:hidden"
+          />
 
-        <div className="relative z-10 min-h-full p-6 lg:p-8">
-          <Outlet />
-        </div>
-      </main>
+          <aside className="fixed inset-y-0 left-0 z-50 w-[min(86vw,18rem)] border-r border-neutral-800 bg-[#0b0b0b] shadow-2xl lg:hidden">
+            {renderSidebar(false, true)}
+          </aside>
+        </>
+      )}
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between border-b border-neutral-800/60 bg-[#0b0b0b]/90 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
+          <div className="flex min-w-0 items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setMobileOpen(true)}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-neutral-800 bg-[#151515] text-neutral-300 transition-colors hover:text-white lg:hidden"
+              aria-label="Abrir menú"
+            >
+              <Menu size={20} />
+            </button>
+
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-white sm:text-base">
+                {currentPage}
+              </p>
+              <p className="hidden truncate text-xs text-neutral-500 sm:block">
+                {user.company?.name ??
+                  (user.professional
+                    ? "Panel profesional"
+                    : "Administración global")}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-800 bg-[#151515] text-xs font-bold text-cyan-400 sm:h-10 sm:w-10">
+            {user.name.charAt(0).toUpperCase()}
+          </div>
+        </header>
+
+        <main className="relative min-h-0 min-w-0 flex-1 overflow-y-auto">
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.025]"
+            style={{
+              backgroundImage:
+                "linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)",
+              backgroundSize: "40px 40px",
+            }}
+          />
+
+          <div className="relative z-10 min-h-full min-w-0 p-4 sm:p-6 lg:p-8">
+            <Outlet />
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

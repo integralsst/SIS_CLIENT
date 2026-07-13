@@ -9,7 +9,7 @@ import {
   type Transition,
 } from "framer-motion";
 import { ShieldCheck } from "lucide-react";
-import logoSis from "../../../assets/logosis.png";
+import logoSis from "../../../assets/logostack44.png";
 
 const clamp = (value: number, min: number, max: number) => {
   return Math.min(Math.max(value, min), max);

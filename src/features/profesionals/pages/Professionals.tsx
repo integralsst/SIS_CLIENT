@@ -3,6 +3,7 @@ import {
   useMemo,
   useState,
   type FormEvent,
+  type ReactNode,
 } from "react";
 import {
   BriefcaseBusiness,
@@ -16,7 +17,6 @@ import {
   Search,
   Trash2,
   Unlink,
-  X,
 } from "lucide-react";
 
 import { useAuth } from "../../auth/context/AuthContext";
@@ -27,6 +27,8 @@ import type {
   Professional,
   ProfessionalAssignment,
 } from "../../../types/domain";
+import AppModal from "../../../components/ui/AppModal";
+import AppSelect from "../../../components/ui/AppSelect";
 
 interface ProfessionalForm {
   identificationType: IdentificationType;
@@ -70,6 +72,8 @@ const emptyAssignmentForm: AssignmentForm = {
   endDate: "",
 };
 
+const inputClass =
+  "w-full rounded-xl border border-neutral-800 bg-[#090909] px-3 py-2.5 text-sm text-white outline-none transition-all [color-scheme:dark] placeholder:text-neutral-600 hover:border-neutral-700 focus:border-cyan-500/60 focus:ring-2 focus:ring-cyan-500/10";
 
 export default function Professionals() {
   const { token } = useAuth();
@@ -98,8 +102,10 @@ export default function Professionals() {
 
   const [assignmentOpen, setAssignmentOpen] =
     useState(false);
-  const [assignmentProfessional, setAssignmentProfessional] =
-    useState<Professional | null>(null);
+  const [
+    assignmentProfessional,
+    setAssignmentProfessional,
+  ] = useState<Professional | null>(null);
   const [assignmentForm, setAssignmentForm] =
     useState<AssignmentForm>(emptyAssignmentForm);
 
@@ -190,7 +196,6 @@ export default function Professionals() {
   };
 
   const closeModal = () => {
-    if (submitting) return;
     setModalOpen(false);
     setEditingProfessional(null);
     setForm(emptyProfessionalForm);
@@ -278,7 +283,6 @@ export default function Professionals() {
   };
 
   const closeAssignment = () => {
-    if (submitting) return;
     setAssignmentOpen(false);
     setAssignmentProfessional(null);
     setAssignmentForm(emptyAssignmentForm);
@@ -352,20 +356,21 @@ export default function Professionals() {
   };
 
   return (
-    <div className="relative mx-auto flex h-full max-w-7xl flex-col">
-      <header className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-center">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white md:text-3xl">
+    <div className="mx-auto flex min-h-full min-w-0 max-w-7xl flex-col">
+      <header className="mb-6 flex flex-col gap-4 sm:mb-8 md:flex-row md:items-center md:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
             Profesionales y prestadores
           </h1>
-          <p className="mt-1 text-sm text-neutral-400">
-            Gestiona perfiles, accesos y empresas asignadas.
+          <p className="mt-1 max-w-2xl text-sm leading-6 text-neutral-400">
+            Gestiona perfiles, acceso al sistema y empresas asignadas.
           </p>
         </div>
 
         <button
+          type="button"
           onClick={openCreate}
-          className="flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-black transition-colors hover:bg-neutral-200"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-black transition-all hover:bg-neutral-200 active:scale-[0.98] sm:w-auto sm:py-2.5"
         >
           <Plus size={18} />
           Nuevo profesional
@@ -373,28 +378,29 @@ export default function Professionals() {
       </header>
 
       {pageError && (
-        <div className="mb-5 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+        <div className="mb-5 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
           {pageError}
         </div>
       )}
 
-      <div className="mb-6">
-        <div className="relative max-w-lg">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500" />
+      <div className="mb-5">
+        <div className="relative w-full max-w-xl">
+          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500" />
           <input
+            type="search"
             value={searchTerm}
             onChange={(event) =>
               setSearchTerm(event.target.value)
             }
             placeholder="Buscar por nombre, identificación, correo o profesión..."
-            className="w-full rounded-xl border border-neutral-800 bg-[#111111] py-2.5 pl-10 pr-4 text-sm text-white outline-none placeholder:text-neutral-500 focus:border-neutral-600"
+            className="w-full rounded-xl border border-neutral-800 bg-[#111111] py-3 pl-10 pr-4 text-sm text-white outline-none transition-all placeholder:text-neutral-500 hover:border-neutral-700 focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/10"
           />
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-neutral-800/60 bg-[#111111]">
-        <div className="flex-1 overflow-x-auto">
-          <table className="w-full whitespace-nowrap text-left text-sm">
+      <section className="min-w-0 overflow-hidden rounded-2xl border border-neutral-800/70 bg-[#111111] shadow-xl">
+        <div className="hidden overflow-x-auto xl:block">
+          <table className="w-full min-w-[1120px] whitespace-nowrap text-left text-sm">
             <thead className="border-b border-neutral-800 bg-[#0a0a0a]">
               <tr>
                 <HeaderCell>Profesional</HeaderCell>
@@ -406,482 +412,505 @@ export default function Professionals() {
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-neutral-800">
+            <tbody className="divide-y divide-neutral-800/70">
               {loading ? (
-                <tr>
-                  <td colSpan={6} className="px-6 py-14 text-center">
-                    <Loader2 className="mx-auto h-6 w-6 animate-spin text-neutral-500" />
-                  </td>
-                </tr>
+                <LoadingRow colSpan={6} />
               ) : filteredProfessionals.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-6 py-14 text-center text-neutral-500"
-                  >
-                    No se encontraron profesionales.
-                  </td>
-                </tr>
+                <EmptyRow
+                  colSpan={6}
+                  message="No se encontraron profesionales."
+                />
               ) : (
                 filteredProfessionals.map(
-                  (professional) => {
-                    const activeAssignments =
-                      professional.companyAssignments.filter(
-                        (assignment) =>
-                          assignment.isActive
-                      );
+                  (professional) => (
+                    <tr
+                      key={professional.id}
+                      className="group transition-colors hover:bg-neutral-800/20"
+                    >
+                      <td className="px-6 py-4">
+                        <ProfessionalIdentity
+                          professional={professional}
+                        />
+                      </td>
 
-                    return (
-                      <tr
-                        key={professional.id}
-                        className="group hover:bg-neutral-800/20"
-                      >
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-neutral-700 bg-neutral-800">
-                              <BriefcaseBusiness
-                                size={17}
-                                className="text-emerald-400"
-                              />
-                            </div>
-                            <div>
-                              <p className="font-medium text-white">
-                                {professional.firstNames}{" "}
-                                {professional.lastNames}
-                              </p>
-                              <p className="font-mono text-xs text-neutral-500">
-                                {
-                                  professional.identificationType
-                                }{" "}
-                                {
-                                  professional.identificationNumber
-                                }
-                              </p>
-                            </div>
-                          </div>
-                        </td>
+                      <td className="px-6 py-4">
+                        <WorkSummary
+                          professional={professional}
+                        />
+                      </td>
 
-                        <td className="px-6 py-4">
-                          <p className="text-neutral-300">
-                            {professional.professionalRole ??
-                              professional.position ??
-                              "Sin rol operativo"}
-                          </p>
-                          <p className="text-xs text-neutral-500">
-                            {professional.profession ??
-                              "Profesión no registrada"}
-                          </p>
-                        </td>
+                      <td className="px-6 py-4">
+                        <ContactSummary
+                          professional={professional}
+                        />
+                      </td>
 
-                        <td className="px-6 py-4">
-                          <p className="flex items-center gap-1.5 text-xs text-neutral-300">
-                            <Mail size={12} />
-                            {professional.email}
-                          </p>
-                          <p className="mt-1 flex items-center gap-1.5 text-xs text-neutral-500">
-                            <Phone size={12} />
-                            {professional.phone ??
-                              "Sin celular"}
-                          </p>
-                        </td>
+                      <td className="px-6 py-4">
+                        <AssignmentChips
+                          professional={professional}
+                          onRemove={
+                            handleRemoveAssignment
+                          }
+                        />
+                      </td>
 
-                        <td className="px-6 py-4">
-                          <div className="flex max-w-xs flex-wrap gap-2">
-                            {activeAssignments.length === 0 ? (
-                              <span className="text-xs text-neutral-500">
-                                Sin asignaciones
-                              </span>
-                            ) : (
-                              activeAssignments.map(
-                                (assignment) => (
-                                  <button
-                                    key={assignment.id}
-                                    onClick={() =>
-                                      void handleRemoveAssignment(
-                                        professional,
-                                        assignment
-                                      )
-                                    }
-                                    title="Retirar asignación"
-                                    className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/20 bg-blue-500/10 px-2.5 py-1 text-[10px] font-medium text-blue-400 hover:border-red-500/20 hover:bg-red-500/10 hover:text-red-400"
-                                  >
-                                    <Building2 size={11} />
-                                    {
-                                      assignment.company
-                                        .name
-                                    }
-                                    <Unlink size={10} />
-                                  </button>
-                                )
-                              )
-                            )}
-                          </div>
-                        </td>
+                      <td className="px-6 py-4">
+                        <AccessSummary
+                          professional={professional}
+                        />
+                      </td>
 
-                        <td className="px-6 py-4">
-                          {professional.user ? (
-                            <div>
-                              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-bold text-emerald-400">
-                                <Link2 size={11} />
-                                CON USUARIO
-                              </span>
-                              <p className="mt-1 text-xs text-neutral-500">
-                                {professional.user.email}
-                              </p>
-                            </div>
-                          ) : (
-                            <span className="rounded-full border border-neutral-700 bg-neutral-800 px-2.5 py-1 text-[10px] font-bold text-neutral-400">
-                              SIN ACCESO
-                            </span>
-                          )}
-                        </td>
-
-                        <td className="px-6 py-4 text-right">
-                          <button
-                            onClick={() =>
-                              openAssignment(professional)
-                            }
-                            className="rounded-lg p-2 text-neutral-500 hover:bg-blue-500/10 hover:text-blue-400"
-                            title="Asignar empresa"
-                          >
-                            <Building2 size={17} />
-                          </button>
-
-                          <button
-                            onClick={() =>
-                              openEdit(professional)
-                            }
-                            className="rounded-lg p-2 text-neutral-500 hover:bg-neutral-800 hover:text-white"
-                            title="Editar profesional"
-                          >
-                            <Edit2 size={17} />
-                          </button>
-
-                          <button
-                            onClick={() =>
-                              void handleDeactivate(
-                                professional
-                              )
-                            }
-                            className="rounded-lg p-2 text-neutral-500 hover:bg-red-500/10 hover:text-red-400"
-                            title="Desactivar profesional"
-                          >
-                            <Trash2 size={17} />
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  }
+                      <td className="px-6 py-4 text-right">
+                        <ProfessionalActions
+                          onAssign={() =>
+                            openAssignment(
+                              professional
+                            )
+                          }
+                          onEdit={() =>
+                            openEdit(professional)
+                          }
+                          onDelete={() =>
+                            void handleDeactivate(
+                              professional
+                            )
+                          }
+                        />
+                      </td>
+                    </tr>
+                  )
                 )
               )}
             </tbody>
           </table>
         </div>
 
-        <div className="border-t border-neutral-800 px-6 py-4 text-xs text-neutral-500">
+        <div className="divide-y divide-neutral-800/70 xl:hidden">
+          {loading ? (
+            <div className="flex justify-center px-4 py-14">
+              <Loader2 className="h-6 w-6 animate-spin text-neutral-500" />
+            </div>
+          ) : filteredProfessionals.length === 0 ? (
+            <div className="px-4 py-14 text-center text-sm text-neutral-500">
+              No se encontraron profesionales.
+            </div>
+          ) : (
+            filteredProfessionals.map(
+              (professional) => (
+                <article
+                  key={professional.id}
+                  className="space-y-4 p-4 sm:p-5"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <ProfessionalIdentity
+                      professional={professional}
+                    />
+
+                    <ProfessionalActions
+                      compact
+                      onAssign={() =>
+                        openAssignment(professional)
+                      }
+                      onEdit={() =>
+                        openEdit(professional)
+                      }
+                      onDelete={() =>
+                        void handleDeactivate(
+                          professional
+                        )
+                      }
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    <MobileInfo label="Información laboral">
+                      <WorkSummary
+                        professional={professional}
+                      />
+                    </MobileInfo>
+
+                    <MobileInfo label="Contacto">
+                      <ContactSummary
+                        professional={professional}
+                      />
+                    </MobileInfo>
+
+                    <MobileInfo label="Acceso">
+                      <AccessSummary
+                        professional={professional}
+                      />
+                    </MobileInfo>
+
+                    <MobileInfo label="Empresas asignadas">
+                      <AssignmentChips
+                        professional={professional}
+                        onRemove={
+                          handleRemoveAssignment
+                        }
+                      />
+                    </MobileInfo>
+                  </div>
+                </article>
+              )
+            )
+          )}
+        </div>
+
+        <div className="border-t border-neutral-800/70 px-4 py-4 text-xs text-neutral-500 sm:px-6">
           Mostrando {filteredProfessionals.length} profesionales activos
         </div>
-      </div>
+      </section>
 
-      {modalOpen && (
-        <Modal
-          title={
-            editingProfessional
-              ? "Editar profesional"
-              : "Registrar profesional"
-          }
-          onClose={closeModal}
+      <AppModal
+        open={modalOpen}
+        title={
+          editingProfessional
+            ? "Editar profesional"
+            : "Registrar profesional"
+        }
+        description="Gestiona los datos personales, laborales y de contacto."
+        onClose={closeModal}
+        busy={submitting}
+        size="lg"
+        footer={
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={closeModal}
+              disabled={submitting}
+              className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-5 py-3 text-sm font-medium text-neutral-300 hover:bg-neutral-700 disabled:opacity-50 sm:w-auto sm:py-2.5"
+            >
+              Cancelar
+            </button>
+
+            <button
+              type="submit"
+              form="professional-form"
+              disabled={submitting}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-black hover:bg-neutral-200 disabled:opacity-50 sm:w-auto sm:py-2.5"
+            >
+              {submitting && (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              )}
+              {editingProfessional
+                ? "Guardar cambios"
+                : "Crear profesional"}
+            </button>
+          </div>
+        }
+      >
+        <form
+          id="professional-form"
+          onSubmit={handleSubmit}
+          className="space-y-5"
         >
-          <form
-            onSubmit={handleSubmit}
-            className="space-y-4"
-          >
-            {formError && <ErrorBox message={formError} />}
+          {formError && (
+            <ErrorBox message={formError} />
+          )}
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field label="Tipo de identificación">
-                <select
-                  value={form.identificationType}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      identificationType:
-                        event.target
-                          .value as IdentificationType,
-                    }))
-                  }
-                  className={inputClass}
-                >
-                  {[
-                    "CC",
-                    "CE",
-                    "TI",
-                    "PPT",
-                    "PASSPORT",
-                    "NIT",
-                    "OTHER",
-                  ].map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-
-              <Field label="Número de identificación">
-                <input
-                  required
-                  value={form.identificationNumber}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      identificationNumber:
-                        event.target.value,
-                    }))
-                  }
-                  className={inputClass}
-                />
-              </Field>
-
-              <Field label="Nombres">
-                <input
-                  required
-                  value={form.firstNames}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      firstNames: event.target.value,
-                    }))
-                  }
-                  className={inputClass}
-                />
-              </Field>
-
-              <Field label="Apellidos">
-                <input
-                  required
-                  value={form.lastNames}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      lastNames: event.target.value,
-                    }))
-                  }
-                  className={inputClass}
-                />
-              </Field>
-
-              <Field label="Cargo">
-                <input
-                  value={form.position}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      position: event.target.value,
-                    }))
-                  }
-                  className={inputClass}
-                />
-              </Field>
-
-              <Field label="Profesión">
-                <input
-                  value={form.profession}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      profession: event.target.value,
-                    }))
-                  }
-                  className={inputClass}
-                />
-              </Field>
-
-              <Field label="Rol operativo">
-                <input
-                  value={form.professionalRole}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      professionalRole:
-                        event.target.value,
-                    }))
-                  }
-                  className={inputClass}
-                />
-              </Field>
-
-              <Field label="Correo">
-                <input
-                  required
-                  type="email"
-                  value={form.email}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      email: event.target.value,
-                    }))
-                  }
-                  className={inputClass}
-                />
-              </Field>
-
-              <Field label="Celular">
-                <input
-                  value={form.phone}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      phone: event.target.value,
-                    }))
-                  }
-                  className={inputClass}
-                />
-              </Field>
-
-              <Field label="Dirección">
-                <input
-                  value={form.address}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      address: event.target.value,
-                    }))
-                  }
-                  className={inputClass}
-                />
-              </Field>
-            </div>
-
-            <label className="flex items-center gap-3 rounded-xl border border-neutral-800 bg-[#0a0a0a] px-4 py-3">
-              <input
-                type="checkbox"
-                checked={form.isActive}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label="Tipo de identificación">
+              <AppSelect
+                value={form.identificationType}
                 onChange={(event) =>
                   setForm((current) => ({
                     ...current,
-                    isActive: event.target.checked,
+                    identificationType:
+                      event.target
+                        .value as IdentificationType,
                   }))
                 }
-              />
-              <span className="text-sm text-neutral-300">
-                Profesional activo
-              </span>
-            </label>
-
-            <SubmitButton
-              submitting={submitting}
-              label={
-                editingProfessional
-                  ? "Guardar cambios"
-                  : "Crear profesional"
-              }
-            />
-          </form>
-        </Modal>
-      )}
-
-      {assignmentOpen && assignmentProfessional && (
-        <Modal
-          title={`Asignar empresa a ${assignmentProfessional.firstNames}`}
-          onClose={closeAssignment}
-        >
-          <form
-            onSubmit={handleAssignCompany}
-            className="space-y-4"
-          >
-            {formError && <ErrorBox message={formError} />}
-
-            <Field label="Empresa">
-              <select
-                required
-                value={assignmentForm.companyId}
-                onChange={(event) =>
-                  setAssignmentForm((current) => ({
-                    ...current,
-                    companyId: event.target.value,
-                  }))
-                }
-                className={inputClass}
               >
-                <option value="">
-                  Selecciona una empresa
-                </option>
-                {companies.map((company) => (
+                {[
+                  "CC",
+                  "CE",
+                  "TI",
+                  "PPT",
+                  "PASSPORT",
+                  "NIT",
+                  "OTHER",
+                ].map((type) => (
                   <option
-                    key={company.id}
-                    value={company.id}
+                    key={type}
+                    value={type}
                   >
-                    {company.name} — {company.taxId}
+                    {identificationTypeLabel(
+                      type as IdentificationType
+                    )}
                   </option>
                 ))}
-              </select>
+              </AppSelect>
             </Field>
 
-            <Field label="Rol en la asignación">
+            <Field label="Número de identificación">
               <input
-                value={assignmentForm.assignmentRole}
+                required
+                value={form.identificationNumber}
                 onChange={(event) =>
-                  setAssignmentForm((current) => ({
+                  setForm((current) => ({
                     ...current,
-                    assignmentRole:
+                    identificationNumber:
                       event.target.value,
                   }))
                 }
-                placeholder="Ej. Asesor principal SST"
                 className={inputClass}
               />
             </Field>
 
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Fecha inicial">
-                <input
-                  type="date"
-                  value={assignmentForm.startDate}
-                  onChange={(event) =>
-                    setAssignmentForm((current) => ({
-                      ...current,
-                      startDate: event.target.value,
-                    }))
-                  }
-                  className={inputClass}
-                />
-              </Field>
+            <Field label="Nombres">
+              <input
+                required
+                value={form.firstNames}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    firstNames: event.target.value,
+                  }))
+                }
+                className={inputClass}
+              />
+            </Field>
 
-              <Field label="Fecha final">
-                <input
-                  type="date"
-                  value={assignmentForm.endDate}
-                  onChange={(event) =>
-                    setAssignmentForm((current) => ({
-                      ...current,
-                      endDate: event.target.value,
-                    }))
-                  }
-                  className={inputClass}
-                />
-              </Field>
-            </div>
+            <Field label="Apellidos">
+              <input
+                required
+                value={form.lastNames}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    lastNames: event.target.value,
+                  }))
+                }
+                className={inputClass}
+              />
+            </Field>
 
-            <SubmitButton
-              submitting={submitting}
-              label="Guardar asignación"
+            <Field label="Cargo">
+              <input
+                value={form.position}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    position: event.target.value,
+                  }))
+                }
+                className={inputClass}
+              />
+            </Field>
+
+            <Field label="Profesión">
+              <input
+                value={form.profession}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    profession: event.target.value,
+                  }))
+                }
+                className={inputClass}
+              />
+            </Field>
+
+            <Field label="Rol operativo">
+              <input
+                value={form.professionalRole}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    professionalRole:
+                      event.target.value,
+                  }))
+                }
+                placeholder="Ej. Asesor SST"
+                className={inputClass}
+              />
+            </Field>
+
+            <Field label="Correo">
+              <input
+                required
+                type="email"
+                value={form.email}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    email: event.target.value,
+                  }))
+                }
+                className={inputClass}
+              />
+            </Field>
+
+            <Field label="Celular">
+              <input
+                value={form.phone}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    phone: event.target.value,
+                  }))
+                }
+                className={inputClass}
+              />
+            </Field>
+
+            <Field label="Dirección">
+              <input
+                value={form.address}
+                onChange={(event) =>
+                  setForm((current) => ({
+                    ...current,
+                    address: event.target.value,
+                  }))
+                }
+                className={inputClass}
+              />
+            </Field>
+          </div>
+
+          {editingProfessional && (
+            <ToggleRow
+              checked={form.isActive}
+              onChange={(checked) =>
+                setForm((current) => ({
+                  ...current,
+                  isActive: checked,
+                }))
+              }
+              label="Profesional activo"
             />
-          </form>
-        </Modal>
-      )}
+          )}
+        </form>
+      </AppModal>
+
+      <AppModal
+        open={
+          assignmentOpen &&
+          Boolean(assignmentProfessional)
+        }
+        title={`Asignar empresa${
+          assignmentProfessional
+            ? ` a ${assignmentProfessional.firstNames}`
+            : ""
+        }`}
+        description="La asignación define qué empresas puede consultar el profesional."
+        onClose={closeAssignment}
+        busy={submitting}
+        size="md"
+        footer={
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={closeAssignment}
+              disabled={submitting}
+              className="w-full rounded-xl border border-neutral-700 bg-neutral-800 px-5 py-3 text-sm font-medium text-neutral-300 hover:bg-neutral-700 disabled:opacity-50 sm:w-auto sm:py-2.5"
+            >
+              Cancelar
+            </button>
+
+            <button
+              type="submit"
+              form="assignment-form"
+              disabled={submitting}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-black hover:bg-neutral-200 disabled:opacity-50 sm:w-auto sm:py-2.5"
+            >
+              {submitting && (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              )}
+              Guardar asignación
+            </button>
+          </div>
+        }
+      >
+        <form
+          id="assignment-form"
+          onSubmit={handleAssignCompany}
+          className="space-y-5"
+        >
+          {formError && (
+            <ErrorBox message={formError} />
+          )}
+
+          <Field label="Empresa">
+            <AppSelect
+              required
+              value={assignmentForm.companyId}
+              onChange={(event) =>
+                setAssignmentForm((current) => ({
+                  ...current,
+                  companyId: event.target.value,
+                }))
+              }
+            >
+              <option value="">
+                Selecciona una empresa
+              </option>
+              {companies.map((company) => (
+                <option
+                  key={company.id}
+                  value={company.id}
+                >
+                  {company.name} — {company.taxId}
+                </option>
+              ))}
+            </AppSelect>
+          </Field>
+
+          <Field label="Rol en la asignación">
+            <input
+              value={assignmentForm.assignmentRole}
+              onChange={(event) =>
+                setAssignmentForm((current) => ({
+                  ...current,
+                  assignmentRole:
+                    event.target.value,
+                }))
+              }
+              placeholder="Ej. Asesor principal SST"
+              className={inputClass}
+            />
+          </Field>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label="Fecha inicial">
+              <input
+                type="date"
+                value={assignmentForm.startDate}
+                onChange={(event) =>
+                  setAssignmentForm((current) => ({
+                    ...current,
+                    startDate: event.target.value,
+                  }))
+                }
+                className={inputClass}
+              />
+            </Field>
+
+            <Field label="Fecha final">
+              <input
+                type="date"
+                value={assignmentForm.endDate}
+                onChange={(event) =>
+                  setAssignmentForm((current) => ({
+                    ...current,
+                    endDate: event.target.value,
+                  }))
+                }
+                className={inputClass}
+              />
+            </Field>
+          </div>
+        </form>
+      </AppModal>
     </div>
   );
 }
-
-const inputClass =
-  "w-full rounded-xl border border-neutral-800 bg-[#0a0a0a] px-3 py-2.5 text-sm text-white outline-none focus:border-neutral-600";
 
 function HeaderCell({
   children,
   alignRight = false,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   alignRight?: boolean;
 }) {
   return (
@@ -895,51 +924,266 @@ function HeaderCell({
   );
 }
 
+function LoadingRow({
+  colSpan,
+}: {
+  colSpan: number;
+}) {
+  return (
+    <tr>
+      <td
+        colSpan={colSpan}
+        className="px-6 py-14 text-center"
+      >
+        <Loader2 className="mx-auto h-6 w-6 animate-spin text-neutral-500" />
+      </td>
+    </tr>
+  );
+}
+
+function EmptyRow({
+  colSpan,
+  message,
+}: {
+  colSpan: number;
+  message: string;
+}) {
+  return (
+    <tr>
+      <td
+        colSpan={colSpan}
+        className="px-6 py-14 text-center text-neutral-500"
+      >
+        {message}
+      </td>
+    </tr>
+  );
+}
+
+function ProfessionalIdentity({
+  professional,
+}: {
+  professional: Professional;
+}) {
+  return (
+    <div className="flex min-w-0 items-center gap-3">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-neutral-700 bg-neutral-800">
+        <BriefcaseBusiness
+          size={17}
+          className="text-emerald-400"
+        />
+      </div>
+
+      <div className="min-w-0">
+        <p className="truncate font-medium text-white">
+          {professional.firstNames}{" "}
+          {professional.lastNames}
+        </p>
+        <p className="truncate font-mono text-xs text-neutral-500">
+          {professional.identificationType}{" "}
+          {professional.identificationNumber}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function WorkSummary({
+  professional,
+}: {
+  professional: Professional;
+}) {
+  return (
+    <div className="min-w-0">
+      <p className="truncate text-sm text-neutral-300">
+        {professional.professionalRole ??
+          professional.position ??
+          "Sin rol operativo"}
+      </p>
+      <p className="truncate text-xs text-neutral-500">
+        {professional.profession ??
+          "Profesión no registrada"}
+      </p>
+    </div>
+  );
+}
+
+function ContactSummary({
+  professional,
+}: {
+  professional: Professional;
+}) {
+  return (
+    <div className="min-w-0 space-y-1">
+      <p className="flex min-w-0 items-center gap-1.5 text-xs text-neutral-300">
+        <Mail size={12} className="shrink-0" />
+        <span className="truncate">
+          {professional.email}
+        </span>
+      </p>
+      <p className="flex min-w-0 items-center gap-1.5 text-xs text-neutral-500">
+        <Phone size={12} className="shrink-0" />
+        <span className="truncate">
+          {professional.phone ?? "Sin celular"}
+        </span>
+      </p>
+    </div>
+  );
+}
+
+function AssignmentChips({
+  professional,
+  onRemove,
+}: {
+  professional: Professional;
+  onRemove: (
+    professional: Professional,
+    assignment: ProfessionalAssignment
+  ) => Promise<void>;
+}) {
+  const activeAssignments =
+    professional.companyAssignments.filter(
+      (assignment) => assignment.isActive
+    );
+
+  if (activeAssignments.length === 0) {
+    return (
+      <span className="text-xs text-neutral-500">
+        Sin asignaciones
+      </span>
+    );
+  }
+
+  return (
+    <div className="flex max-w-md flex-wrap gap-2">
+      {activeAssignments.map((assignment) => (
+        <button
+          key={assignment.id}
+          type="button"
+          onClick={() =>
+            void onRemove(
+              professional,
+              assignment
+            )
+          }
+          title="Retirar asignación"
+          className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-blue-500/20 bg-blue-500/10 px-2.5 py-1 text-[10px] font-medium text-blue-400 transition-colors hover:border-red-500/20 hover:bg-red-500/10 hover:text-red-400"
+        >
+          <Building2 size={11} className="shrink-0" />
+          <span className="truncate">
+            {assignment.company.name}
+          </span>
+          <Unlink size={10} className="shrink-0" />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function AccessSummary({
+  professional,
+}: {
+  professional: Professional;
+}) {
+  if (professional.user) {
+    return (
+      <div className="min-w-0">
+        <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-bold text-emerald-400">
+          <Link2 size={11} />
+          CON USUARIO
+        </span>
+        <p className="mt-1 truncate text-xs text-neutral-500">
+          {professional.user.email}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <span className="inline-flex rounded-full border border-neutral-700 bg-neutral-800 px-2.5 py-1 text-[10px] font-bold text-neutral-400">
+      SIN ACCESO
+    </span>
+  );
+}
+
+function ProfessionalActions({
+  onAssign,
+  onEdit,
+  onDelete,
+  compact = false,
+}: {
+  onAssign: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+  compact?: boolean;
+}) {
+  return (
+    <div
+      className={`flex items-center ${
+        compact ? "gap-1" : "justify-end"
+      }`}
+    >
+      <button
+        type="button"
+        onClick={onAssign}
+        className="rounded-lg p-2 text-neutral-500 transition-colors hover:bg-blue-500/10 hover:text-blue-400"
+        title="Asignar empresa"
+      >
+        <Building2 size={17} />
+      </button>
+
+      <button
+        type="button"
+        onClick={onEdit}
+        className="rounded-lg p-2 text-neutral-500 transition-colors hover:bg-neutral-800 hover:text-white"
+        title="Editar profesional"
+      >
+        <Edit2 size={17} />
+      </button>
+
+      <button
+        type="button"
+        onClick={onDelete}
+        className="rounded-lg p-2 text-neutral-500 transition-colors hover:bg-red-500/10 hover:text-red-400"
+        title="Desactivar profesional"
+      >
+        <Trash2 size={17} />
+      </button>
+    </div>
+  );
+}
+
+function MobileInfo({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="min-w-0 rounded-xl border border-neutral-800 bg-[#0a0a0a] p-3">
+      <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-neutral-600">
+        {label}
+      </p>
+      {children}
+    </div>
+  );
+}
+
 function Field({
   label,
   children,
 }: {
   label: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
-    <label className="block">
+    <label className="block min-w-0">
       <span className="mb-1.5 block text-xs font-medium text-neutral-400">
         {label}
       </span>
       {children}
     </label>
-  );
-}
-
-function Modal({
-  title,
-  onClose,
-  children,
-}: {
-  title: string;
-  onClose: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-      <div className="max-h-[90vh] w-full max-w-2xl overflow-hidden rounded-2xl border border-neutral-800 bg-[#111111] shadow-2xl">
-        <div className="flex items-center justify-between border-b border-neutral-800 p-6">
-          <h3 className="text-lg font-bold text-white">
-            {title}
-          </h3>
-          <button
-            onClick={onClose}
-            className="text-neutral-500 hover:text-white"
-          >
-            <X size={20} />
-          </button>
-        </div>
-        <div className="max-h-[calc(90vh-80px)] overflow-y-auto p-6">
-          {children}
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -949,29 +1193,65 @@ function ErrorBox({
   message: string;
 }) {
   return (
-    <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+    <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
       {message}
     </div>
   );
 }
 
-function SubmitButton({
-  submitting,
+function ToggleRow({
+  checked,
+  onChange,
   label,
 }: {
-  submitting: boolean;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
   label: string;
 }) {
   return (
-    <button
-      type="submit"
-      disabled={submitting}
-      className="flex w-full items-center justify-center gap-2 rounded-xl bg-white py-2.5 text-sm font-bold text-black hover:bg-neutral-200 disabled:opacity-50"
-    >
-      {submitting && (
-        <Loader2 className="h-4 w-4 animate-spin" />
-      )}
-      {label}
-    </button>
+    <div className="flex items-center justify-between rounded-xl border border-neutral-800 bg-[#090909] px-4 py-3">
+      <span className="text-sm text-neutral-300">
+        {label}
+      </span>
+
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        onClick={() => onChange(!checked)}
+        className={`relative h-6 w-11 rounded-full transition-colors ${
+          checked
+            ? "bg-cyan-500"
+            : "bg-neutral-700"
+        }`}
+      >
+        <span
+          className={`absolute top-1 h-4 w-4 rounded-full bg-white transition-transform ${
+            checked
+              ? "translate-x-6"
+              : "translate-x-1"
+          }`}
+        />
+      </button>
+    </div>
   );
+}
+
+function identificationTypeLabel(
+  value: IdentificationType
+): string {
+  const labels: Record<
+    IdentificationType,
+    string
+  > = {
+    CC: "Cédula de ciudadanía",
+    CE: "Cédula de extranjería",
+    TI: "Tarjeta de identidad",
+    PPT: "Permiso por protección temporal",
+    PASSPORT: "Pasaporte",
+    NIT: "NIT",
+    OTHER: "Otro",
+  };
+
+  return labels[value];
 }
