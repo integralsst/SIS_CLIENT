@@ -2,7 +2,7 @@
 import { motion } from 'framer-motion';
 import { DiagnosticQuiz } from '../../landing/components/DiagnosticQuiz';
 import { Timer, Lock, Scale } from 'lucide-react';
-import logoSIS from '../../../assets/logosis.webp'; 
+import logoSIS from '../../../assets/logostack44.png'; 
 
 export default function DiagnosticoPage() {
   return (
