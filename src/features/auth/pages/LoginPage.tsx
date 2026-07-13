@@ -25,7 +25,7 @@ import {
   type LoginResponse,
 } from "../context/AuthContext";
 
-import Logo from "../../../assets/logosis.webp";
+import Logo from "../../../assets/logostack44.png";
 
 interface ApiErrorResponse {
   error?: string;
