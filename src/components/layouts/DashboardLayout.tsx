@@ -3,21 +3,20 @@ import {
   Building2,
   ChevronLeft,
   ChevronRight,
-  ClipboardCheck,
   LayoutDashboard,
-  ListTodo,
   LogOut,
   Menu,
-  ShieldCheck,
   Users,
   X,
 } from "lucide-react";
+
 import {
   Link,
   Outlet,
   useLocation,
   useNavigate,
 } from "react-router-dom";
+
 import {
   useEffect,
   useState,
@@ -37,6 +36,7 @@ const SIDEBAR_STORAGE_KEY =
 export default function DashboardLayout() {
   const location = useLocation();
   const navigate = useNavigate();
+
   const { user, logout } = useAuth();
 
   const [mobileOpen, setMobileOpen] =
@@ -62,7 +62,9 @@ export default function DashboardLayout() {
     );
   }, [collapsed]);
 
-  if (!user) return null;
+  if (!user) {
+    return null;
+  }
 
   const isInternal =
     internalRoles.has(user.role);
@@ -84,37 +86,21 @@ export default function DashboardLayout() {
       label: "Empresas",
       icon: Building2,
       visible: true,
+      exact: false,
     },
     {
       to: "/dashboard/usuarios",
       label: "Usuarios",
       icon: Users,
       visible: canManageUsers,
+      exact: false,
     },
     {
       to: "/dashboard/profesionales",
       label: "Profesionales",
       icon: BriefcaseBusiness,
       visible: isInternal,
-    },
-    {
-      to: "/dashboard/sgsst",
-      label: "Gestión SG-SST",
-      icon: ShieldCheck,
-      visible: true,
-      exact: true,
-    },
-    {
-      to: "/dashboard/sgsst/evaluaciones",
-      label: "Evaluaciones",
-      icon: ClipboardCheck,
-      visible: true,
-    },
-    {
-      to: "/dashboard/sgsst/planes-accion",
-      label: "Planes de acción",
-      icon: ListTodo,
-      visible: true,
+      exact: false,
     },
   ];
 
@@ -127,7 +113,9 @@ export default function DashboardLayout() {
     exact = false
   ): boolean => {
     if (exact) {
-      return location.pathname === path;
+      return (
+        location.pathname === path
+      );
     }
 
     return (
@@ -141,18 +129,26 @@ export default function DashboardLayout() {
   const currentPage =
     [...visibleItems]
       .sort(
-        (a, b) =>
-          b.to.length - a.to.length
+        (first, second) =>
+          second.to.length -
+          first.to.length
       )
       .find((item) =>
-        isActive(item.to, item.exact)
+        isActive(
+          item.to,
+          item.exact
+        )
       )?.label ?? "Panel de control";
 
-  const handleLogout = () => {
+  const handleLogout = (): void => {
     logout();
-    navigate("/login", {
-      replace: true,
-    });
+
+    navigate(
+      "/login",
+      {
+        replace: true,
+      }
+    );
   };
 
   const renderSidebar = (
@@ -172,8 +168,9 @@ export default function DashboardLayout() {
             <h2 className="truncate text-lg font-bold tracking-tight text-white">
               Panel de control
             </h2>
+
             <p className="mt-0.5 text-[11px] text-neutral-500">
-              Gestión SG-SST
+              Administración Stack44
             </p>
           </div>
         )}
@@ -183,7 +180,8 @@ export default function DashboardLayout() {
             type="button"
             onClick={() =>
               setCollapsed(
-                (current) => !current
+                (current) =>
+                  !current
               )
             }
             className="hidden h-9 w-9 items-center justify-center rounded-xl border border-neutral-800 bg-[#151515] text-neutral-400 transition-colors hover:border-neutral-700 hover:text-white lg:flex"
@@ -192,11 +190,20 @@ export default function DashboardLayout() {
                 ? "Expandir menú"
                 : "Ocultar menú"
             }
+            aria-label={
+              compact
+                ? "Expandir menú"
+                : "Ocultar menú"
+            }
           >
             {compact ? (
-              <ChevronRight size={18} />
+              <ChevronRight
+                size={18}
+              />
             ) : (
-              <ChevronLeft size={18} />
+              <ChevronLeft
+                size={18}
+              />
             )}
           </button>
         )}
@@ -207,7 +214,7 @@ export default function DashboardLayout() {
             onClick={() =>
               setMobileOpen(false)
             }
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-800 bg-[#151515] text-neutral-400"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-800 bg-[#151515] text-neutral-400 transition-colors hover:text-white"
             aria-label="Cerrar menú"
           >
             <X size={18} />
@@ -217,54 +224,62 @@ export default function DashboardLayout() {
 
       <nav
         className={`flex-1 space-y-2 overflow-y-auto py-5 ${
-          compact ? "px-2" : "px-4"
+          compact
+            ? "px-2"
+            : "px-4"
         }`}
       >
-        {visibleItems.map((item) => {
-          const Icon = item.icon;
+        {visibleItems.map(
+          (item) => {
+            const Icon =
+              item.icon;
 
-          const active = isActive(
-            item.to,
-            item.exact
-          );
+            const active =
+              isActive(
+                item.to,
+                item.exact
+              );
 
-          return (
-            <Link
-              key={item.to}
-              to={item.to}
-              title={
-                compact
-                  ? item.label
-                  : undefined
-              }
-              className={`group flex items-center rounded-xl py-3 transition-all ${
-                compact
-                  ? "justify-center px-3"
-                  : "gap-3 px-4"
-              } ${
-                active
-                  ? "border border-cyan-500/15 bg-cyan-500/10 text-cyan-400"
-                  : "border border-transparent text-neutral-400 hover:bg-neutral-800/50 hover:text-white"
-              }`}
-            >
-              <Icon
-                size={20}
-                className="shrink-0"
-              />
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                title={
+                  compact
+                    ? item.label
+                    : undefined
+                }
+                className={`group flex items-center rounded-xl py-3 transition-all ${
+                  compact
+                    ? "justify-center px-3"
+                    : "gap-3 px-4"
+                } ${
+                  active
+                    ? "border border-cyan-500/15 bg-cyan-500/10 text-cyan-400"
+                    : "border border-transparent text-neutral-400 hover:bg-neutral-800/50 hover:text-white"
+                }`}
+              >
+                <Icon
+                  size={20}
+                  className="shrink-0"
+                />
 
-              {!compact && (
-                <span className="truncate text-sm font-medium">
-                  {item.label}
-                </span>
-              )}
-            </Link>
-          );
-        })}
+                {!compact && (
+                  <span className="truncate text-sm font-medium">
+                    {item.label}
+                  </span>
+                )}
+              </Link>
+            );
+          }
+        )}
       </nav>
 
       <div
         className={`shrink-0 border-t border-neutral-800/60 ${
-          compact ? "p-2" : "p-4"
+          compact
+            ? "p-2"
+            : "p-4"
         }`}
       >
         {!compact ? (
@@ -272,9 +287,11 @@ export default function DashboardLayout() {
             <p className="truncate text-sm font-medium text-white">
               {user.name}
             </p>
+
             <p className="mt-0.5 truncate text-xs text-neutral-500">
               {user.email}
             </p>
+
             <p className="mt-2 text-[10px] font-bold tracking-wider text-cyan-500">
               {user.role}
             </p>
@@ -328,7 +345,9 @@ export default function DashboardLayout() {
             : "w-64"
         }`}
       >
-        {renderSidebar(collapsed)}
+        {renderSidebar(
+          collapsed
+        )}
       </aside>
 
       {mobileOpen && (
@@ -343,7 +362,10 @@ export default function DashboardLayout() {
           />
 
           <aside className="fixed inset-y-0 left-0 z-50 w-[min(86vw,18rem)] border-r border-neutral-800 bg-[#0b0b0b] shadow-2xl lg:hidden">
-            {renderSidebar(false, true)}
+            {renderSidebar(
+              false,
+              true
+            )}
           </aside>
         </>
       )}
@@ -366,6 +388,7 @@ export default function DashboardLayout() {
               <p className="truncate text-sm font-semibold text-white sm:text-base">
                 {currentPage}
               </p>
+
               <p className="hidden truncate text-xs text-neutral-500 sm:block">
                 {user.company?.name ??
                   (user.professional
@@ -388,7 +411,9 @@ export default function DashboardLayout() {
             style={{
               backgroundImage:
                 "linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)",
-              backgroundSize: "40px 40px",
+
+              backgroundSize:
+                "40px 40px",
             }}
           />
 

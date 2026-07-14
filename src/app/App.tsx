@@ -36,16 +36,6 @@ import Users from "../features/users/pages/Users";
 import Professionals from "../features/profesionals/pages/Professionals";
 
 // ======================================================
-// MÓDULO SG-SST
-// ======================================================
-
-import SgsstDashboard from "../features/sgsst/pages/SgsstDashboard";
-import CompanySgsstConfiguration from "../features/sgsst/pages/CompanySgsstConfiguration";
-import Evaluations from "../features/sgsst/pages/Evaluations";
-import EvaluationMatrix from "../features/sgsst/pages/EvaluationMatrix";
-import ActionPlans from "../features/sgsst/pages/ActionPlans";
-
-// ======================================================
 // PERMISOS
 // ======================================================
 
@@ -57,13 +47,6 @@ const INTERNAL_ROLES: UserRole[] = [
 
 const USER_MANAGEMENT_ROLES: UserRole[] = [
   "CLIENT_ADMIN",
-  "ADMIN",
-  "OWNER",
-  "SUPERADMIN",
-];
-
-const SGSST_MANAGEMENT_ROLES: UserRole[] = [
-  "PROFESSIONAL",
   "ADMIN",
   "OWNER",
   "SUPERADMIN",
@@ -94,13 +77,6 @@ function AppContent() {
   const canManageProfessionals = Boolean(
     user &&
       INTERNAL_ROLES.includes(user.role)
-  );
-
-  const canManageSgsst = Boolean(
-    user &&
-      SGSST_MANAGEMENT_ROLES.includes(
-        user.role
-      )
   );
 
   return (
@@ -202,44 +178,6 @@ function AppContent() {
               )
             }
           />
-
-          {/* ==================================================
-              MÓDULO SG-SST
-          ================================================== */}
-
-          <Route
-            path="sgsst"
-            element={<SgsstDashboard />}
-          />
-
-          <Route
-            path="sgsst/configuracion/:empresaId"
-            element={
-              canManageSgsst ? (
-                <CompanySgsstConfiguration />
-              ) : (
-                <Navigate
-                  to="/dashboard/sgsst"
-                  replace
-                />
-              )
-            }
-          />
-
-          <Route
-            path="sgsst/evaluaciones"
-            element={<Evaluations />}
-          />
-
-          <Route
-            path="sgsst/evaluaciones/:evaluacionId"
-            element={<EvaluationMatrix />}
-          />
-
-          <Route
-            path="sgsst/planes-accion"
-            element={<ActionPlans />}
-          />
         </Route>
 
         {/* ==================================================
@@ -261,7 +199,7 @@ function AppContent() {
 }
 
 // ======================================================
-// APP
+// APLICACIÓN
 // ======================================================
 
 export default function App() {
