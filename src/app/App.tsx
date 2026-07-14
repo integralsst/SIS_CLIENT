@@ -1,4 +1,10 @@
 import {
+  Suspense,
+  lazy,
+  type ReactNode,
+} from "react";
+
+import {
   BrowserRouter,
   Navigate,
   Route,
@@ -10,34 +16,64 @@ import {
   type UserRole,
 } from "../features/auth/context/AuthContext";
 
-// ======================================================
-// COMPONENTES GLOBALES
-// ======================================================
-
 import Navbar from "../components/layouts/Navbar";
 import Footer from "../components/layouts/Footer";
-import DashboardLayout from "../components/layouts/DashboardLayout";
-
-// ======================================================
-// PÁGINAS PÚBLICAS
-// ======================================================
-
 import LandingPage from "../features/landing/pages/Home";
-import LoginPage from "../features/auth/pages/LoginPage";
-import DiagnosticoPage from "../features/landing/pages/DiagnosticoPage";
 
-// ======================================================
-// PÁGINAS DEL PANEL
-// ======================================================
+/* ======================================================
+   CARGA DIFERIDA
 
-import Dashboard from "../features/dashboard/pages/Dashboard";
-import Companies from "../features/companies/pages/Companies";
-import Users from "../features/users/pages/Users";
-import Professionals from "../features/profesionals/pages/Professionals";
+   Estas páginas no forman parte del JavaScript inicial de
+   la landing. Solo se descargan cuando se visita su ruta.
+====================================================== */
 
-// ======================================================
-// PERMISOS
-// ======================================================
+const LoginPage = lazy(
+  () => import("../features/auth/pages/LoginPage")
+);
+
+const DiagnosticoPage = lazy(
+  () =>
+    import(
+      "../features/landing/pages/DiagnosticoPage"
+    )
+);
+
+const DashboardLayout = lazy(
+  () =>
+    import(
+      "../components/layouts/DashboardLayout"
+    )
+);
+
+const Dashboard = lazy(
+  () =>
+    import(
+      "../features/dashboard/pages/Dashboard"
+    )
+);
+
+const Companies = lazy(
+  () =>
+    import(
+      "../features/companies/pages/Companies"
+    )
+);
+
+const Users = lazy(
+  () =>
+    import("../features/users/pages/Users")
+);
+
+const Professionals = lazy(
+  () =>
+    import(
+      "../features/profesionals/pages/Professionals"
+    )
+);
+
+/* ======================================================
+   PERMISOS
+====================================================== */
 
 const INTERNAL_ROLES: UserRole[] = [
   "ADMIN",
@@ -52,160 +88,157 @@ const USER_MANAGEMENT_ROLES: UserRole[] = [
   "SUPERADMIN",
 ];
 
-// ======================================================
-// CONTENIDO PRINCIPAL
-// ======================================================
+/* ======================================================
+   ELEMENTOS AUXILIARES
+====================================================== */
 
-function AppContent() {
-  const { user, loading } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#05080a]">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-500 border-t-transparent" />
-      </div>
-    );
-  }
-
-  const canManageUsers = Boolean(
-    user &&
-      USER_MANAGEMENT_ROLES.includes(
-        user.role
-      )
-  );
-
-  const canManageProfessionals = Boolean(
-    user &&
-      INTERNAL_ROLES.includes(user.role)
-  );
-
+function RouteLoader() {
   return (
-    <div className="flex min-h-screen flex-col bg-[#05080a] font-sans text-slate-200 selection:bg-cyan-500/30">
-      <Routes>
-        {/* ==================================================
-            RUTAS PÚBLICAS CON NAVBAR Y FOOTER
-        ================================================== */}
-
-        <Route
-          path="/"
-          element={
-            <>
-              <Navbar />
-
-              <main className="flex-grow">
-                <LandingPage />
-              </main>
-
-              <Footer />
-            </>
-          }
-        />
-
-        {/* ==================================================
-            RUTAS PÚBLICAS AISLADAS
-        ================================================== */}
-
-        <Route
-          path="/login"
-          element={
-            user ? (
-              <Navigate
-                to="/dashboard"
-                replace
-              />
-            ) : (
-              <LoginPage />
-            )
-          }
-        />
-
-        <Route
-          path="/diagnostico"
-          element={<DiagnosticoPage />}
-        />
-
-        {/* ==================================================
-            RUTAS PRIVADAS DEL PANEL
-        ================================================== */}
-
-        <Route
-          path="/dashboard"
-          element={
-            user ? (
-              <DashboardLayout />
-            ) : (
-              <Navigate
-                to="/login"
-                replace
-              />
-            )
-          }
-        >
-          <Route
-            index
-            element={<Dashboard />}
-          />
-
-          <Route
-            path="empresas"
-            element={<Companies />}
-          />
-
-          <Route
-            path="usuarios"
-            element={
-              canManageUsers ? (
-                <Users />
-              ) : (
-                <Navigate
-                  to="/dashboard"
-                  replace
-                />
-              )
-            }
-          />
-
-          <Route
-            path="profesionales"
-            element={
-              canManageProfessionals ? (
-                <Professionals />
-              ) : (
-                <Navigate
-                  to="/dashboard"
-                  replace
-                />
-              )
-            }
-          />
-        </Route>
-
-        {/* ==================================================
-            RUTAS NO ENCONTRADAS
-        ================================================== */}
-
-        <Route
-          path="*"
-          element={
-            <Navigate
-              to="/"
-              replace
-            />
-          }
-        />
-      </Routes>
+    <div className="flex min-h-screen items-center justify-center bg-[#05080a]">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-500 border-t-transparent" />
     </div>
   );
 }
 
-// ======================================================
-// APLICACIÓN
-// ======================================================
+/**
+ * La autenticación solo bloquea las rutas privadas.
+ * La landing pública ya no espera la petición /me.
+ */
+function ProtectedDashboardLayout() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <RouteLoader />;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <DashboardLayout />;
+}
+
+function LoginRoute() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <RouteLoader />;
+  }
+
+  return user ? (
+    <Navigate to="/dashboard" replace />
+  ) : (
+    <LoginPage />
+  );
+}
+
+type RoleGuardProps = {
+  allowedRoles: UserRole[];
+  children: ReactNode;
+};
+
+function RoleGuard({
+  allowedRoles,
+  children,
+}: RoleGuardProps) {
+  const { user } = useAuth();
+
+  if (
+    !user ||
+    !allowedRoles.includes(user.role)
+  ) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+function PublicLanding() {
+  return (
+    <>
+      <Navbar />
+
+      <main className="flex-grow">
+        <LandingPage />
+      </main>
+
+      <Footer />
+    </>
+  );
+}
+
+/* ======================================================
+   APLICACIÓN
+====================================================== */
+
+function AppRoutes() {
+  return (
+    <div className="flex min-h-screen flex-col bg-[#05080a] font-sans text-slate-200 selection:bg-cyan-500/30">
+      <Suspense fallback={<RouteLoader />}>
+        <Routes>
+          {/* La landing se muestra inmediatamente. */}
+          <Route path="/" element={<PublicLanding />} />
+
+          <Route
+            path="/login"
+            element={<LoginRoute />}
+          />
+
+          <Route
+            path="/diagnostico"
+            element={<DiagnosticoPage />}
+          />
+
+          <Route
+            path="/dashboard"
+            element={<ProtectedDashboardLayout />}
+          >
+            <Route index element={<Dashboard />} />
+
+            <Route
+              path="empresas"
+              element={<Companies />}
+            />
+
+            <Route
+              path="usuarios"
+              element={
+                <RoleGuard
+                  allowedRoles={
+                    USER_MANAGEMENT_ROLES
+                  }
+                >
+                  <Users />
+                </RoleGuard>
+              }
+            />
+
+            <Route
+              path="profesionales"
+              element={
+                <RoleGuard
+                  allowedRoles={INTERNAL_ROLES}
+                >
+                  <Professionals />
+                </RoleGuard>
+              }
+            />
+          </Route>
+
+          <Route
+            path="*"
+            element={<Navigate to="/" replace />}
+          />
+        </Routes>
+      </Suspense>
+    </div>
+  );
+}
 
 export default function App() {
   return (
     <BrowserRouter>
-      <AppContent />
+      <AppRoutes />
     </BrowserRouter>
   );
 }

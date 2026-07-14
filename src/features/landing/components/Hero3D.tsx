@@ -23,33 +23,64 @@ import logoStack44 from "../../../assets/logostack44.png";
    CONFIGURACIÓN
 ========================================================= */
 
-const STORAGE_KEY = "stack44:hero3d-progress";
+const STORAGE_KEY = "stack44:hero3d-state";
+const LEGACY_STORAGE_KEY = "stack44:hero3d-progress";
 
 const TEXT_START_SECONDS = 6;
 
 /**
- * Evita solicitar exactamente el último frame.
- * Algunos navegadores pueden mostrar negro al final.
+ * Evita pedir exactamente el último frame, donde algunos
+ * navegadores pueden mostrar una imagen negra.
  */
-const VIDEO_END_PADDING = 0.06;
+const VIDEO_END_PADDING = 0.08;
 
 /**
- * Aproximadamente medio frame a 60 FPS.
- * Evita seeks innecesarios demasiado pequeños.
+ * Solo se realiza un seek cuando cambia al menos un frame.
+ * Esto reduce mucho el trabajo del decodificador en Chrome.
  */
-const SEEK_THRESHOLD = 1 / 120;
+const SEEK_THRESHOLD = 1 / 60;
 
 /**
- * Tiempo máximo durante el cual se muestra la protección
- * visual al regresar desde otra pestaña.
+ * Protección máxima mientras el navegador vuelve a pintar
+ * el video después de regresar a la pestaña.
  */
-const RECOVERY_TIMEOUT = 220;
+const RECOVERY_TIMEOUT = 320;
+
+type StoredHeroState = {
+  progress: number;
+  currentTime: number;
+};
+
+type VideoWithFrameCallback = HTMLVideoElement & {
+  requestVideoFrameCallback?: (
+    callback: () => void
+  ) => number;
+  cancelVideoFrameCallback?: (
+    callbackId: number
+  ) => void;
+};
 
 const clamp = (
   value: number,
   min: number,
   max: number
 ) => Math.min(Math.max(value, min), max);
+
+const getTargetTime = (
+  progress: number,
+  duration: number
+) => {
+  const maximumTime = Math.max(
+    duration - VIDEO_END_PADDING,
+    0
+  );
+
+  return clamp(
+    progress * duration,
+    0,
+    maximumTime
+  );
+};
 
 /* =========================================================
    COMPONENTE
@@ -60,40 +91,26 @@ export const Hero3D = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const animationFrameRef = useRef<number | null>(null);
+  const recoveryFrameRef = useRef<number | null>(null);
   const recoveryTimerRef = useRef<number | null>(null);
-  const safariWakeFrameRef = useRef<number | null>(null);
+  const videoFrameCallbackRef = useRef<number | null>(null);
 
-  /**
-   * Última posición solicitada por el scroll.
-   */
+  /** Última posición solicitada por el scroll. */
   const latestProgressRef = useRef(0);
 
-  /**
-   * Progreso recuperado desde sessionStorage.
-   *
-   * Mientras tenga un valor distinto de null, evitamos que
-   * una emisión inicial de scrollYProgress = 0 sobrescriba
-   * la posición recuperada.
-   */
+  /** Progreso recuperado al volver a montar el componente. */
   const restoredProgressRef = useRef<number | null>(null);
 
-  /**
-   * Chrome:
-   * indica que hubo un nuevo progreso mientras el navegador
-   * todavía estaba procesando el seek anterior.
-   */
-  const seekPendingRef = useRef(false);
+  /** Tiempo exacto guardado del video como respaldo. */
+  const restoredTimeRef = useRef<number | null>(null);
 
-  /**
-   * Fuerza una actualización después de recuperar la pestaña.
-   */
+  /** Permite solicitar nuevamente el mismo frame. */
   const forceSeekRef = useRef(false);
 
   const wasHiddenRef = useRef(false);
-  const hasLoadedVideoRef = useRef(false);
 
   /**
-   * Evita ejecutar setState en cada evento del scroll.
+   * Evita setState durante cada evento de scroll.
    */
   const interfaceStateRef = useRef({
     hasScrolled: false,
@@ -113,56 +130,87 @@ export const Hero3D = () => {
   });
 
   /* =======================================================
-     DETECCIÓN DE SAFARI
-  ======================================================= */
-
-  const isSafari = useCallback(() => {
-    const userAgent = navigator.userAgent;
-
-    return (
-      /Safari/i.test(userAgent) &&
-      !/Chrome|Chromium|CriOS|Edg|OPR|Android/i.test(
-        userAgent
-      )
-    );
-  }, []);
-
-  /* =======================================================
      SESSION STORAGE
   ======================================================= */
 
-  const readStoredProgress = useCallback(() => {
-    try {
-      const storedValue =
-        window.sessionStorage.getItem(STORAGE_KEY);
+  const readStoredState = useCallback(
+    (): StoredHeroState | null => {
+      try {
+        const storedState =
+          window.sessionStorage.getItem(STORAGE_KEY);
 
-      if (!storedValue) {
+        if (storedState) {
+          const parsedState = JSON.parse(
+            storedState
+          ) as Partial<StoredHeroState>;
+
+          const progress = Number(
+            parsedState.progress
+          );
+          const currentTime = Number(
+            parsedState.currentTime
+          );
+
+          if (Number.isFinite(progress)) {
+            return {
+              progress: clamp(progress, 0, 1),
+              currentTime: Number.isFinite(
+                currentTime
+              )
+                ? Math.max(currentTime, 0)
+                : 0,
+            };
+          }
+        }
+
+        /** Compatibilidad con la versión anterior. */
+        const legacyValue =
+          window.sessionStorage.getItem(
+            LEGACY_STORAGE_KEY
+          );
+
+        if (!legacyValue) {
+          return null;
+        }
+
+        const legacyProgress = Number(legacyValue);
+
+        if (!Number.isFinite(legacyProgress)) {
+          return null;
+        }
+
+        return {
+          progress: clamp(legacyProgress, 0, 1),
+          currentTime: 0,
+        };
+      } catch {
         return null;
       }
+    },
+    []
+  );
 
-      const parsedValue = Number(storedValue);
-
-      if (!Number.isFinite(parsedValue)) {
-        return null;
-      }
-
-      return clamp(parsedValue, 0, 1);
-    } catch {
-      return null;
-    }
-  }, []);
-
-  const saveCurrentProgress = useCallback(() => {
+  const saveCurrentState = useCallback(() => {
     try {
+      const video = videoRef.current;
+
+      const currentTime =
+        video && Number.isFinite(video.currentTime)
+          ? Math.max(video.currentTime, 0)
+          : 0;
+
+      const state: StoredHeroState = {
+        progress: clamp(
+          latestProgressRef.current,
+          0,
+          1
+        ),
+        currentTime,
+      };
+
       window.sessionStorage.setItem(
         STORAGE_KEY,
-        String(
-          clamp(
-            latestProgressRef.current,
-            0,
-            1
-          )
-        )
+        JSON.stringify(state)
       );
     } catch {
       // sessionStorage puede estar bloqueado.
@@ -184,7 +232,6 @@ export const Hero3D = () => {
 
       interfaceStateRef.current.videoReady =
         nextValue;
-
       setVideoReady(nextValue);
     },
     []
@@ -201,17 +248,13 @@ export const Hero3D = () => {
 
       interfaceStateRef.current.recovering =
         nextValue;
-
       setRecovering(nextValue);
     },
     []
   );
 
   const updateInterfaceState = useCallback(
-    (
-      progress: number,
-      duration?: number
-    ) => {
+    (progress: number, duration?: number) => {
       const nextHasScrolled = progress > 0.01;
 
       if (
@@ -220,7 +263,6 @@ export const Hero3D = () => {
       ) {
         interfaceStateRef.current.hasScrolled =
           nextHasScrolled;
-
         setHasScrolled(nextHasScrolled);
       }
 
@@ -233,8 +275,7 @@ export const Hero3D = () => {
       }
 
       const nextShowText =
-        progress * duration >=
-        TEXT_START_SECONDS;
+        progress * duration >= TEXT_START_SECONDS;
 
       if (
         interfaceStateRef.current.showText !==
@@ -242,7 +283,6 @@ export const Hero3D = () => {
       ) {
         interfaceStateRef.current.showText =
           nextShowText;
-
         setShowText(nextShowText);
       }
     },
@@ -250,7 +290,7 @@ export const Hero3D = () => {
   );
 
   /* =======================================================
-     PROGRESO DEL HERO
+     PROGRESO REAL DEL HERO
   ======================================================= */
 
   const getRealScrollProgress = useCallback(() => {
@@ -260,12 +300,9 @@ export const Hero3D = () => {
       return clamp(scrollYProgress.get(), 0, 1);
     }
 
-    const rect =
-      container.getBoundingClientRect();
-
+    const rect = container.getBoundingClientRect();
     const totalScrollable =
-      container.offsetHeight -
-      window.innerHeight;
+      container.offsetHeight - window.innerHeight;
 
     if (totalScrollable <= 0) {
       return 0;
@@ -278,18 +315,12 @@ export const Hero3D = () => {
     );
   }, [scrollYProgress]);
 
-  /**
-   * Prioriza la posición real del scroll.
-   *
-   * Cuando el navegador está en la parte superior y existe
-   * una posición restaurada, utiliza esa posición guardada.
-   */
   const getPreferredProgress = useCallback(() => {
-    const realProgress =
-      getRealScrollProgress();
+    const realProgress = getRealScrollProgress();
 
     if (realProgress > 0.005) {
       restoredProgressRef.current = null;
+      restoredTimeRef.current = null;
       return realProgress;
     }
 
@@ -299,6 +330,70 @@ export const Hero3D = () => {
 
     return latestProgressRef.current;
   }, [getRealScrollProgress]);
+
+  /* =======================================================
+     CONTROL DEL FRAME PINTADO
+  ======================================================= */
+
+  const clearRecoveryTimer = useCallback(() => {
+    if (recoveryTimerRef.current !== null) {
+      window.clearTimeout(
+        recoveryTimerRef.current
+      );
+      recoveryTimerRef.current = null;
+    }
+  }, []);
+
+  const finishRecovery = useCallback(() => {
+    clearRecoveryTimer();
+    setReadyState(true);
+    setRecoveringState(false);
+  }, [
+    clearRecoveryTimer,
+    setReadyState,
+    setRecoveringState,
+  ]);
+
+  /**
+   * Espera a que el navegador realmente pinte un frame.
+   * requestVideoFrameCallback funciona muy bien en Chrome y
+   * Safari modernos. Se incluye un respaldo para versiones
+   * anteriores.
+   */
+  const waitForPaintedVideoFrame = useCallback(() => {
+    const video =
+      videoRef.current as VideoWithFrameCallback | null;
+
+    if (!video) {
+      return;
+    }
+
+    if (
+      videoFrameCallbackRef.current !== null &&
+      video.cancelVideoFrameCallback
+    ) {
+      video.cancelVideoFrameCallback(
+        videoFrameCallbackRef.current
+      );
+      videoFrameCallbackRef.current = null;
+    }
+
+    if (video.requestVideoFrameCallback) {
+      videoFrameCallbackRef.current =
+        video.requestVideoFrameCallback(() => {
+          videoFrameCallbackRef.current = null;
+          finishRecovery();
+        });
+
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        finishRecovery();
+      });
+    });
+  }, [finishRecovery]);
 
   /* =======================================================
      SINCRONIZACIÓN DEL VIDEO
@@ -337,36 +432,35 @@ export const Hero3D = () => {
 
       updateInterfaceState(progress, duration);
 
-      const maximumTime = Math.max(
-        duration - VIDEO_END_PADDING,
-        0
-      );
-
-      const targetTime = clamp(
-        progress * duration,
-        0,
-        maximumTime
+      let targetTime = getTargetTime(
+        progress,
+        duration
       );
 
       /**
-       * Chrome no procesa bien una cadena continua de
-       * currentTime mientras sigue buscando el frame anterior.
-       *
-       * Guardamos solamente la posición más reciente y
-       * esperamos el evento seeked.
+       * Al restaurar el componente utilizamos el tiempo exacto
+       * guardado, siempre que el scroll real siga arriba.
        */
-      if (video.seeking) {
-        seekPendingRef.current = true;
-        return;
+      if (
+        forceSeekRef.current &&
+        restoredTimeRef.current !== null &&
+        getRealScrollProgress() <= 0.005
+      ) {
+        targetTime = clamp(
+          restoredTimeRef.current,
+          0,
+          Math.max(
+            duration - VIDEO_END_PADDING,
+            0
+          )
+        );
       }
 
       const difference = Math.abs(
         video.currentTime - targetTime
       );
 
-      const mustForceSeek =
-        forceSeekRef.current;
-
+      const mustForceSeek = forceSeekRef.current;
       forceSeekRef.current = false;
 
       if (
@@ -376,24 +470,28 @@ export const Hero3D = () => {
         return;
       }
 
-      seekPendingRef.current = false;
-
+      /**
+       * No esperamos el evento seeked anterior. Chrome puede
+       * cancelar el seek viejo y quedarse solamente con el
+       * destino más reciente, evitando que el video se atrase
+       * respecto al scroll.
+       */
       try {
         video.currentTime = targetTime;
       } catch {
         // Evita romper la página durante un seek puntual.
       }
-    }, [updateInterfaceState]);
+    }, [
+      getRealScrollProgress,
+      updateInterfaceState,
+    ]);
 
   /**
-   * Agrupa todos los eventos del scroll y ejecuta como
-   * máximo una actualización por frame de pantalla.
+   * Como máximo se solicita una actualización por frame de
+   * pantalla, manteniendo el scroll fluido a 60 FPS.
    */
   const scheduleVideoSync = useCallback(
-    (
-      progress: number,
-      forceSeek = false
-    ) => {
+    (progress: number, forceSeek = false) => {
       latestProgressRef.current = clamp(
         progress,
         0,
@@ -417,44 +515,21 @@ export const Hero3D = () => {
   );
 
   /* =======================================================
-     RECUPERACIÓN AL VOLVER DE OTRA PESTAÑA
+     RECUPERACIÓN AL REGRESAR A LA PESTAÑA
   ======================================================= */
 
-  const finishRecovery = useCallback(() => {
-    if (recoveryTimerRef.current !== null) {
-      window.clearTimeout(
-        recoveryTimerRef.current
-      );
-
-      recoveryTimerRef.current = null;
-    }
-
-    setReadyState(true);
-    setRecoveringState(false);
-  }, [setReadyState, setRecoveringState]);
-
-  /**
-   * Safari puede recordar currentTime internamente, pero no
-   * volver a pintar el frame al regresar desde otra pestaña.
-   *
-   * Solo Safari utiliza este pequeño play/pause.
-   * Chrome no lo ejecuta durante la recuperación.
-   */
-  const wakeSafariDecoder = useCallback(
+  const repaintCurrentVideoFrame = useCallback(
     (progress: number) => {
-      if (!isSafari()) {
-        return;
-      }
-
       const video = videoRef.current;
 
       if (
         !video ||
         video.readyState <
-          HTMLMediaElement.HAVE_CURRENT_DATA ||
+          HTMLMediaElement.HAVE_METADATA ||
         !Number.isFinite(video.duration) ||
         video.duration <= 0
       ) {
+        scheduleVideoSync(progress, true);
         return;
       }
 
@@ -463,137 +538,88 @@ export const Hero3D = () => {
         0
       );
 
-      const targetTime = clamp(
-        progress * video.duration,
-        0,
-        maximumTime
+      const targetTime = getTargetTime(
+        progress,
+        video.duration
       );
 
+      /**
+       * Un desplazamiento mínimo obliga a Chrome y Safari a
+       * reactivar el decodificador sin reproducir el video.
+       */
+      const nudgeTime =
+        targetTime + 0.002 <= maximumTime
+          ? targetTime + 0.002
+          : Math.max(targetTime - 0.002, 0);
+
       video.pause();
+      waitForPaintedVideoFrame();
 
       try {
-        video.currentTime = targetTime;
+        video.currentTime = nudgeTime;
       } catch {
+        scheduleVideoSync(progress, true);
         return;
       }
 
-      const playPromise = video.play();
-
-      if (!playPromise) {
-        return;
+      if (recoveryFrameRef.current !== null) {
+        window.cancelAnimationFrame(
+          recoveryFrameRef.current
+        );
       }
 
-      playPromise
-        .then(() => {
-          if (
-            safariWakeFrameRef.current !== null
-          ) {
-            window.cancelAnimationFrame(
-              safariWakeFrameRef.current
-            );
-          }
+      recoveryFrameRef.current =
+        window.requestAnimationFrame(() => {
+          recoveryFrameRef.current = null;
 
-          safariWakeFrameRef.current =
-            window.requestAnimationFrame(() => {
-              const currentVideo =
-                videoRef.current;
+          const currentVideo = videoRef.current;
 
-              if (!currentVideo) {
-                return;
-              }
-
-              currentVideo.pause();
-
-              try {
-                currentVideo.currentTime =
-                  targetTime;
-              } catch {
-                // Sin acción adicional.
-              }
-
-              finishRecovery();
-            });
-        })
-        .catch(() => {
-          /**
-           * Respaldo para Safari cuando play() es bloqueado.
-           */
-          try {
-            video.currentTime = Math.min(
-              targetTime + 0.002,
-              maximumTime
-            );
-
-            safariWakeFrameRef.current =
-              window.requestAnimationFrame(() => {
-                const currentVideo =
-                  videoRef.current;
-
-                if (!currentVideo) {
-                  return;
-                }
-
-                try {
-                  currentVideo.currentTime =
-                    targetTime;
-                } catch {
-                  // Sin acción adicional.
-                }
-
-                finishRecovery();
-              });
-          } catch {
+          if (!currentVideo) {
             finishRecovery();
+            return;
           }
+
+          try {
+            currentVideo.currentTime = targetTime;
+          } catch {
+            // El temporizador de respaldo finalizará la capa.
+          }
+
+          waitForPaintedVideoFrame();
         });
     },
-    [finishRecovery, isSafari]
+    [
+      finishRecovery,
+      scheduleVideoSync,
+      waitForPaintedVideoFrame,
+    ]
   );
 
   const recoverVideoFrame = useCallback(() => {
-    if (
-      document.visibilityState !== "visible"
-    ) {
+    if (document.visibilityState !== "visible") {
       return;
     }
 
-    const progress =
-      getPreferredProgress();
+    const progress = getPreferredProgress();
 
     latestProgressRef.current = progress;
-
     setRecoveringState(true);
     updateInterfaceState(progress);
 
-    scheduleVideoSync(progress, true);
+    repaintCurrentVideoFrame(progress);
 
-    /**
-     * Safari recibe un despertar especial.
-     * Chrome espera normalmente a que termine el seek.
-     */
-    wakeSafariDecoder(progress);
-
-    if (recoveryTimerRef.current !== null) {
-      window.clearTimeout(
-        recoveryTimerRef.current
-      );
-    }
-
-    /**
-     * Respaldo para evitar que la capa protectora quede
-     * visible si el navegador no dispara seeked.
-     */
-    recoveryTimerRef.current =
-      window.setTimeout(() => {
-        finishRecovery();
-      }, RECOVERY_TIMEOUT);
+    clearRecoveryTimer();
+    recoveryTimerRef.current = window.setTimeout(
+      finishRecovery,
+      RECOVERY_TIMEOUT
+    );
   }, [
+    clearRecoveryTimer,
     finishRecovery,
     getPreferredProgress,
-    scheduleVideoSync,
+    repaintCurrentVideoFrame,
     setRecoveringState,
     updateInterfaceState,
-    wakeSafariDecoder,
   ]);
 
   /* =======================================================
@@ -605,8 +631,8 @@ export const Hero3D = () => {
     "change",
     (latestProgress) => {
       /**
-       * Evita que un cero emitido durante el montaje
-       * sobrescriba la posición restaurada.
+       * Framer Motion puede emitir 0 durante el montaje. No
+       * dejamos que ese valor elimine el progreso restaurado.
        */
       if (
         restoredProgressRef.current !== null &&
@@ -617,6 +643,7 @@ export const Hero3D = () => {
 
       if (latestProgress > 0.001) {
         restoredProgressRef.current = null;
+        restoredTimeRef.current = null;
       }
 
       scheduleVideoSync(latestProgress);
@@ -628,24 +655,21 @@ export const Hero3D = () => {
   ======================================================= */
 
   useEffect(() => {
-    const storedProgress =
-      readStoredProgress();
+    const storedState = readStoredState();
 
-    if (storedProgress === null) {
+    if (!storedState) {
       return;
     }
 
     restoredProgressRef.current =
-      storedProgress;
-
+      storedState.progress;
+    restoredTimeRef.current =
+      storedState.currentTime;
     latestProgressRef.current =
-      storedProgress;
+      storedState.progress;
 
-    updateInterfaceState(storedProgress);
-  }, [
-    readStoredProgress,
-    updateInterfaceState,
-  ]);
+    updateInterfaceState(storedState.progress);
+  }, [readStoredState, updateInterfaceState]);
 
   /* =======================================================
      VISIBILIDAD Y NAVEGACIÓN
@@ -653,14 +677,10 @@ export const Hero3D = () => {
 
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (
-        document.visibilityState === "hidden"
-      ) {
+      if (document.visibilityState === "hidden") {
         wasHiddenRef.current = true;
-
-        saveCurrentProgress();
+        saveCurrentState();
         videoRef.current?.pause();
-
         return;
       }
 
@@ -676,16 +696,13 @@ export const Hero3D = () => {
     const handlePageShow = (
       event: PageTransitionEvent
     ) => {
-      /**
-       * Se ejecuta cuando la página vuelve desde BFCache.
-       */
       if (event.persisted) {
         recoverVideoFrame();
       }
     };
 
     const handlePageHide = () => {
-      saveCurrentProgress();
+      saveCurrentState();
       videoRef.current?.pause();
     };
 
@@ -693,12 +710,10 @@ export const Hero3D = () => {
       "visibilitychange",
       handleVisibilityChange
     );
-
     window.addEventListener(
       "pageshow",
       handlePageShow
     );
-
     window.addEventListener(
       "pagehide",
       handlePageHide
@@ -709,21 +724,16 @@ export const Hero3D = () => {
         "visibilitychange",
         handleVisibilityChange
       );
-
       window.removeEventListener(
         "pageshow",
         handlePageShow
       );
-
       window.removeEventListener(
         "pagehide",
         handlePageHide
       );
     };
-  }, [
-    recoverVideoFrame,
-    saveCurrentProgress,
-  ]);
+  }, [recoverVideoFrame, saveCurrentState]);
 
   /* =======================================================
      LIMPIEZA
@@ -731,7 +741,7 @@ export const Hero3D = () => {
 
   useEffect(() => {
     return () => {
-      saveCurrentProgress();
+      saveCurrentState();
 
       if (animationFrameRef.current !== null) {
         window.cancelAnimationFrame(
@@ -739,23 +749,30 @@ export const Hero3D = () => {
         );
       }
 
-      if (recoveryTimerRef.current !== null) {
-        window.clearTimeout(
-          recoveryTimerRef.current
+      if (recoveryFrameRef.current !== null) {
+        window.cancelAnimationFrame(
+          recoveryFrameRef.current
         );
       }
 
+      clearRecoveryTimer();
+
+      const video =
+        videoRef.current as VideoWithFrameCallback | null;
+
       if (
-        safariWakeFrameRef.current !== null
+        video &&
+        videoFrameCallbackRef.current !== null &&
+        video.cancelVideoFrameCallback
       ) {
-        window.cancelAnimationFrame(
-          safariWakeFrameRef.current
+        video.cancelVideoFrameCallback(
+          videoFrameCallbackRef.current
         );
       }
 
       videoRef.current?.pause();
     };
-  }, [saveCurrentProgress]);
+  }, [clearRecoveryTimer, saveCurrentState]);
 
   /* =======================================================
      ANIMACIONES GENERALES
@@ -778,16 +795,8 @@ export const Hero3D = () => {
     ease: [0.16, 1, 0.3, 1],
   };
 
-  /**
-   * La capa inicial permanece mientras:
-   * - el usuario todavía no ha hecho scroll;
-   * - el video todavía no entregó un frame;
-   * - el navegador está recuperando el decodificador.
-   */
   const showSplash =
-    !hasScrolled ||
-    !videoReady ||
-    recovering;
+    !hasScrolled || !videoReady || recovering;
 
   /* =======================================================
      RENDER
@@ -796,14 +805,7 @@ export const Hero3D = () => {
   return (
     <div
       ref={containerRef}
-      className="
-        relative
-        flex
-        h-[400vh]
-        w-full
-        flex-col
-        bg-[#05080a]
-      "
+      className="relative flex h-[400vh] w-full flex-col bg-[#05080a]"
     >
       <motion.div
         style={{
@@ -811,31 +813,10 @@ export const Hero3D = () => {
           y: sectionY,
           willChange: "opacity, transform",
         }}
-        className="
-          sticky
-          top-0
-          z-0
-          flex
-          h-screen
-          w-full
-          items-center
-          justify-center
-          overflow-hidden
-          bg-[#05080a]
-        "
+        className="sticky top-0 z-0 flex h-screen w-full items-center justify-center overflow-hidden bg-[#05080a]"
       >
         {/* VIDEO PRINCIPAL */}
-        <div
-          className="
-            absolute
-            inset-0
-            z-0
-            h-full
-            w-full
-            overflow-hidden
-            bg-[#05080a]
-          "
-        >
+        <div className="absolute inset-0 z-0 h-full w-full overflow-hidden bg-[#05080a]">
           <video
             ref={videoRef}
             src="/videos/hero-3d.mp4"
@@ -845,15 +826,10 @@ export const Hero3D = () => {
             preload="auto"
             disablePictureInPicture
             aria-hidden="true"
-            className="
-              h-full
-              w-full
-              object-cover
-            "
+            className="h-full w-full object-cover"
             style={{
-              transform: "translateZ(0)",
+              transform: "translate3d(0, 0, 0)",
               backfaceVisibility: "hidden",
-              willChange: "transform",
             }}
             onLoadedMetadata={() => {
               const realProgress =
@@ -865,67 +841,37 @@ export const Hero3D = () => {
                   : restoredProgressRef.current ??
                     latestProgressRef.current;
 
-              latestProgressRef.current =
-                progress;
-
-              scheduleVideoSync(
-                progress,
-                true
-              );
+              latestProgressRef.current = progress;
+              scheduleVideoSync(progress, true);
             }}
             onLoadedData={() => {
-              if (!hasLoadedVideoRef.current) {
-                hasLoadedVideoRef.current = true;
-                setReadyState(true);
-              }
+              const progress = getPreferredProgress();
 
-              scheduleVideoSync(
-                getPreferredProgress(),
-                true
-              );
+              scheduleVideoSync(progress, true);
+              waitForPaintedVideoFrame();
+            }}
+            onCanPlay={() => {
+              if (!interfaceStateRef.current.videoReady) {
+                waitForPaintedVideoFrame();
+              }
             }}
             onSeeked={() => {
-              setReadyState(true);
-              setRecoveringState(false);
-
-              /**
-               * Si el usuario continuó desplazándose mientras
-               * Chrome buscaba el frame anterior, aplicamos
-               * directamente la posición más reciente.
-               */
-              if (seekPendingRef.current) {
-                seekPendingRef.current = false;
-
-                scheduleVideoSync(
-                  latestProgressRef.current,
-                  true
-                );
+              if (
+                recovering ||
+                !interfaceStateRef.current.videoReady
+              ) {
+                waitForPaintedVideoFrame();
               }
             }}
             onError={() => {
+              clearRecoveryTimer();
               setReadyState(false);
               setRecoveringState(false);
             }}
           />
 
-          <div
-            className="
-              pointer-events-none
-              absolute
-              inset-0
-              bg-[radial-gradient(ellipse_at_center,_transparent_70%,_#05080a_100%)]
-              opacity-70
-            "
-          />
-
-          <div
-            className="
-              pointer-events-none
-              absolute
-              inset-0
-              bg-[radial-gradient(circle_at_100%_100%,_#05080a_0%,_#05080a_25%,_transparent_60%)]
-            "
-          />
+          {/* Viñeta general. Se eliminó la sombra inferior derecha. */}
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_70%,_#05080a_100%)] opacity-70" />
         </div>
 
         {/* SPLASH Y PROTECCIÓN CONTRA PANTALLA NEGRA */}
@@ -939,19 +885,10 @@ export const Hero3D = () => {
                 scale: 1.015,
               }}
               transition={{
-                duration: 0.35,
+                duration: 0.28,
                 ease: "easeOut",
               }}
-              className="
-                absolute
-                inset-0
-                z-30
-                flex
-                flex-col
-                items-center
-                justify-center
-                bg-[#05080a]
-              "
+              className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-[#05080a]"
             >
               <motion.img
                 initial={{
@@ -963,19 +900,14 @@ export const Hero3D = () => {
                   scale: 1,
                 }}
                 transition={{
-                  duration: 0.55,
+                  duration: 0.45,
                   ease: [0.16, 1, 0.3, 1],
                 }}
                 src={logoStack44}
                 alt="Stack44"
                 decoding="async"
                 draggable={false}
-                className="
-                  w-64
-                  select-none
-                  object-contain
-                  md:w-80
-                "
+                className="w-64 select-none object-contain md:w-80"
               />
 
               {!hasScrolled && (
@@ -989,44 +921,17 @@ export const Hero3D = () => {
                     y: 0,
                   }}
                   transition={{
-                    duration: 0.65,
-                    delay: 0.55,
+                    duration: 0.55,
+                    delay: 0.35,
                     ease: "easeOut",
                   }}
-                  className="
-                    pointer-events-none
-                    absolute
-                    bottom-10
-                    flex
-                    flex-col
-                    items-center
-                    gap-4
-                  "
+                  className="pointer-events-none absolute bottom-10 flex flex-col items-center gap-4"
                 >
-                  <span
-                    className="
-                      text-[10px]
-                      font-medium
-                      uppercase
-                      tracking-[0.5em]
-                      text-slate-400
-                      md:text-xs
-                    "
-                  >
+                  <span className="text-[10px] font-medium uppercase tracking-[0.5em] text-slate-400 md:text-xs">
                     Desliza para comenzar
                   </span>
 
-                  <div
-                    className="
-                      relative
-                      h-12
-                      w-px
-                      overflow-hidden
-                      rounded-full
-                      bg-slate-800/60
-                      md:h-16
-                    "
-                  >
+                  <div className="relative h-12 w-px overflow-hidden rounded-full bg-slate-800/60 md:h-16">
                     <motion.div
                       animate={{
                         y: ["-150%", "300%"],
@@ -1034,19 +939,9 @@ export const Hero3D = () => {
                       transition={{
                         repeat: Infinity,
                         duration: 1.8,
-                        ease: [
-                          0.65,
-                          0,
-                          0.35,
-                          1,
-                        ],
+                        ease: [0.65, 0, 0.35, 1],
                       }}
-                      className="
-                        h-1/3
-                        w-full
-                        bg-cyan-400
-                        shadow-[0_0_8px_1px_rgba(34,211,238,0.8)]
-                      "
+                      className="h-1/3 w-full bg-cyan-400 shadow-[0_0_8px_1px_rgba(34,211,238,0.8)]"
                     />
                   </div>
                 </motion.div>
@@ -1056,127 +951,53 @@ export const Hero3D = () => {
         </AnimatePresence>
 
         {/* CONTENIDO LATERAL */}
-        <div
-          className="
-            pointer-events-none
-            absolute
-            right-6
-            top-1/2
-            z-10
-            w-full
-            max-w-lg
-            -translate-y-1/2
-            md:right-24
-            md:max-w-xl
-            lg:right-32
-            xl:right-40
-          "
-        >
+        <div className="pointer-events-none absolute right-6 top-1/2 z-10 w-full max-w-lg -translate-y-1/2 md:right-24 md:max-w-xl lg:right-32 xl:right-40">
           <AnimatePresence mode="wait">
-            {showText &&
-              videoReady &&
-              !recovering && (
-                <motion.div
-                  key="main-text"
-                  initial={{
-                    opacity: 0,
-                    x: 40,
-                  }}
-                  animate={{
-                    opacity: 1,
-                    x: 0,
-                  }}
-                  exit={{
-                    opacity: 0,
-                    x: -40,
-                  }}
-                  transition={textTransition}
-                  style={{
-                    willChange:
-                      "opacity, transform",
-                  }}
-                  className="
-                    flex
-                    flex-col
-                    items-end
-                    text-right
-                  "
-                >
-                  <div
-                    className="
-                      mb-6
-                      inline-flex
-                      items-center
-                      gap-2
-                      rounded-full
-                      border
-                      border-cyan-500/20
-                      bg-[#0c131a]
-                      px-4
-                      py-1.5
-                      text-[11px]
-                      font-semibold
-                      uppercase
-                      tracking-[0.25em]
-                      text-slate-300
-                    "
-                  >
-                    <ShieldCheck
-                      size={14}
-                      className="text-cyan-400"
-                    />
+            {showText && videoReady && !recovering && (
+              <motion.div
+                key="main-text"
+                initial={{
+                  opacity: 0,
+                  x: 40,
+                }}
+                animate={{
+                  opacity: 1,
+                  x: 0,
+                }}
+                exit={{
+                  opacity: 0,
+                  x: -40,
+                }}
+                transition={textTransition}
+                style={{
+                  willChange: "opacity, transform",
+                }}
+                className="flex flex-col items-end text-right"
+              >
+                <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-500/20 bg-[#0c131a] px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-300">
+                  <ShieldCheck
+                    size={14}
+                    className="text-cyan-400"
+                  />
 
-                    Decreto 1072 &amp; Res. 0312
-                  </div>
+                  Decreto 1072 &amp; Res. 0312
+                </div>
 
-                  <h2
-                    className="
-                      mb-4
-                      text-5xl
-                      font-bold
-                      leading-[1.05]
-                      tracking-tighter
-                      text-white
-                      sm:text-6xl
-                      md:text-7xl
-                      md:leading-[1.1]
-                    "
-                  >
-                    Cumplimiento Legal.
-                    <br />
+                <h2 className="mb-4 text-5xl font-bold leading-[1.05] tracking-tighter text-white sm:text-6xl md:text-7xl md:leading-[1.1]">
+                  Cumplimiento Legal.
+                  <br />
 
-                    <span
-                      className="
-                        bg-gradient-to-r
-                        from-slate-200
-                        via-cyan-400
-                        to-blue-500
-                        bg-clip-text
-                        text-transparent
-                      "
-                    >
-                      Sin Complicaciones.
-                    </span>
-                  </h2>
+                  <span className="bg-gradient-to-r from-slate-200 via-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                    Sin Complicaciones.
+                  </span>
+                </h2>
 
-                  <p
-                    className="
-                      max-w-md
-                      text-[17px]
-                      font-medium
-                      leading-relaxed
-                      tracking-tight
-                      text-slate-400/90
-                      sm:text-lg
-                      md:text-xl
-                      lg:text-2xl
-                    "
-                  >
-                    Automatiza las inspecciones y gestiona
-                    riesgos en tiempo real.
-                  </p>
-                </motion.div>
-              )}
+                <p className="max-w-md text-[17px] font-medium leading-relaxed tracking-tight text-slate-400/90 sm:text-lg md:text-xl lg:text-2xl">
+                  Automatiza las inspecciones y gestiona
+                  riesgos en tiempo real.
+                </p>
+              </motion.div>
+            )}
           </AnimatePresence>
         </div>
       </motion.div>
