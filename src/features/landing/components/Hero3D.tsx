@@ -815,77 +815,82 @@ export const Hero3D = () => {
         className="sticky top-0 z-0 flex h-screen w-full items-center justify-center overflow-hidden bg-[#05080a]"
       >
         {/* VIDEO PRINCIPAL */}
-        <div className="absolute inset-0 z-0 h-full w-full overflow-hidden bg-[#05080a]">
-          <video
-            ref={videoRef}
-            src="/videos/hero-3d.mp4"
-            poster={logoStack44}
-            muted
-            playsInline
-            preload="auto"
-            disablePictureInPicture
-            aria-hidden="true"
-            className="h-full w-full object-cover"
-            style={{
-              transform: "translate3d(0, 0, 0)",
-              backfaceVisibility: "hidden",
-            }}
-            onLoadedMetadata={() => {
-              const realProgress =
-                getRealScrollProgress();
+       <div className="absolute inset-0 z-0 h-full w-full overflow-hidden bg-[#05080a]">
+  <video
+    ref={videoRef}
+    src="/videos/hero-3d.mp4"
+    poster={logoStack44}
+    muted
+    playsInline
+    preload="auto"
+    disablePictureInPicture
+    aria-hidden="true"
+    className="h-full w-full object-cover"
+    style={{
+      transform: "translate3d(0, 0, 0)",
+      backfaceVisibility: "hidden",
+    }}
+    onLoadedMetadata={() => {
+      const realProgress = getRealScrollProgress();
 
-              const progress =
-                realProgress > 0.005
-                  ? realProgress
-                  : restoredProgressRef.current ??
-                    latestProgressRef.current;
+      const progress =
+        realProgress > 0.005
+          ? realProgress
+          : restoredProgressRef.current ?? latestProgressRef.current;
 
-              latestProgressRef.current = progress;
-              scheduleVideoSync(progress, true);
-            }}
-            onLoadedData={() => {
-              const progress = getPreferredProgress();
+      latestProgressRef.current = progress;
+      scheduleVideoSync(progress, true);
+    }}
+    onLoadedData={() => {
+      const progress = getPreferredProgress();
 
-              scheduleVideoSync(progress, true);
-              waitForPaintedVideoFrame();
-            }}
-            onCanPlay={() => {
-              if (!interfaceStateRef.current.videoReady) {
-                waitForPaintedVideoFrame();
-              }
-            }}
-            onSeeked={() => {
-              if (
-                recovering ||
-                !interfaceStateRef.current.videoReady
-              ) {
-                waitForPaintedVideoFrame();
-              }
-            }}
-            onError={() => {
-              clearRecoveryTimer();
-              setReadyState(false);
-              setRecoveringState(false);
-            }}
-          />
+      scheduleVideoSync(progress, true);
+      waitForPaintedVideoFrame();
+    }}
+    onCanPlay={() => {
+      if (!interfaceStateRef.current.videoReady) {
+        waitForPaintedVideoFrame();
+      }
+    }}
+    onSeeked={() => {
+      if (recovering || !interfaceStateRef.current.videoReady) {
+        waitForPaintedVideoFrame();
+      }
+    }}
+    onError={() => {
+      clearRecoveryTimer();
+      setReadyState(false);
+      setRecoveringState(false);
+    }}
+  />
 
-          {/* REFACTORIZADO: Nuevo sistema de viñeta orgánica y "Humo" difuminado */}
-          
-          {/* Capa 1: Viñeta de cine base. Un degradado radial muy suave que oscurece sutilmente los bordes de TODO el video. */}
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_85%,_rgba(5,8,10,0.4)_100%)] opacity-80" />
+  {/* REFACTORIZADO: Nuevo sistema de viñeta orgánica y "Humo" difuminado Premium */}
+  
+  {/* Capa 1: Viñeta de cine base. */}
+  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_75%,_rgba(5,8,10,0.5)_100%)] opacity-80" />
 
-          {/* Capa 2: Degradado radial superpuesto y extremadamente suave que parte desde la esquina inferior derecha. Su falloff es muy amplio para integrarse de forma nebulosa. */}
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(5,8,10,0.3)_0%,_rgba(5,8,10,0.2)_20%,_transparent_60%)] opacity-90 z-10" />
+  {/* Capa 2: Degradado radial superpuesto. */}
+  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(5,8,10,0.4)_0%,_rgba(5,8,10,0.1)_40%,_transparent_70%)] z-10" />
 
-          {/* Capa 3: Una máscara de "humo" nebulosa y profunda focalizada en la zona de la marca de agua. Utiliza múltiples degradados superpuestos con muy baja opacidad para crear profundidad orgánica. */}
-          <div className="pointer-events-none absolute bottom-0 right-0 z-20 h-96 w-[600px] opacity-98" style={{
-            background: `
-              radial-gradient(ellipse at bottom right, rgba(5,8,10,0.95) 30%, rgba(5,8,10,0.85) 10%, transparent 60%),
-              radial-gradient(ellipse at center 80%, rgba(5,8,10,0.7) 0%, rgba(5,8,10,0.5) 20%, transparent 70%),
-              radial-gradient(ellipse at 80% bottom, rgba(5,8,10,0.6) 0%, rgba(5,8,10,0.4) 10%, transparent 70%)
-            `
-          }} />
-        </div>
+  {/* Capa 3: El "Humo" Premium CORREGIDO. 
+      Ahora usa 'inset-0' para que el difuminado tenga espacio infinito para desvanecerse
+      sin chocar con bordes ni generar cajas negras. */}
+  <div className="pointer-events-none absolute inset-0 z-20">
+    
+    {/* Nube 1: Núcleo denso anclado abajo a la derecha. */}
+    <div className="absolute -bottom-20 -right-20 h-[400px] w-[500px] rounded-full bg-[#05080a] blur-[120px]" />
+
+    {/* Nube 2: Extensión orgánica hacia la izquierda. */}
+    <div className="absolute -bottom-32 right-10 h-[350px] w-[700px] rounded-full bg-[#05080a] opacity-90 blur-[140px]" />
+
+    {/* Nube 3: Extensión orgánica hacia arriba. */}
+    <div className="absolute bottom-10 -right-32 h-[600px] w-[400px] rounded-full bg-[#05080a] opacity-85 blur-[150px]" />
+
+    {/* Capa 4 de integración: Gradiente final que sella los colores. */}
+    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(5,8,10,0.95)_5%,_rgba(5,8,10,0.4)_50%,_transparent_80%)]" />
+
+  </div>
+</div>
 
         {/* SPLASH Y PROTECCIÓN CONTRA PANTALLA NEGRA */}
         <AnimatePresence>
