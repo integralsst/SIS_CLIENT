@@ -459,7 +459,6 @@ export const Hero3D = () => {
           <video
             ref={videoRef}
             src="/videos/hero-3d.mp4"
-            poster={logoStack44}
             muted
             playsInline
             preload="auto"
