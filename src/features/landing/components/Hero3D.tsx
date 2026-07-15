@@ -16,7 +16,7 @@ import {
   type Transition,
 } from "framer-motion";
 
-import { ShieldCheck, Zap } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import logoStack44 from "../../../assets/logostack44.png";
 
 /* =========================================================
@@ -62,93 +62,39 @@ const getTargetTime = (progress: number, duration: number) => {
 };
 
 /* =========================================================
-   SUB-COMPONENTE: PREMIUM LOADER
+   SUB-COMPONENTE: LOADER MINIMALISTA
 ========================================================= */
 
 const PremiumLoader = () => {
   return (
     <motion.div
-      key="premium-loader"
+      key="minimal-loader"
       initial={{ opacity: 1 }}
       exit={{
         opacity: 0,
-        scale: 1.1,
-        filter: "blur(20px)",
-        transition: { duration: 1, ease: [0.16, 1, 0.3, 1] },
+        transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] },
       }}
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#05080a] overflow-hidden"
+      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#05080a]"
     >
-      {/* Luz volumétrica de fondo que "respira" */}
-      <motion.div
-        animate={{
-          scale: [1, 1.3, 1],
-          opacity: [0.08, 0.15, 0.08],
-        }}
-        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute w-[800px] h-[800px] bg-cyan-600/10 rounded-full blur-[160px] pointer-events-none"
-      />
+      <div className="flex flex-col items-center gap-5">
+        {/* Texto Minimalista Pulsante */}
+        <motion.div
+          animate={{ opacity: [0.3, 1, 0.3] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          className="text-[10px] font-medium uppercase tracking-[0.5em] text-slate-300 ml-2"
+        >
+          Stack4Four
+        </motion.div>
 
-      {/* Contenedor Central */}
-      <div className="relative flex flex-col items-center">
-        {/* Isotopo/Icono Animado */}
-        <div className="relative mb-8 flex items-center justify-center">
+        {/* Línea de carga ultra fina */}
+        <div className="h-[1px] w-24 bg-white/5 overflow-hidden relative">
           <motion.div
-            animate={{
-              rotate: 360,
-              boxShadow: [
-                "0 0 40px 2px rgba(34,211,238,0.1)",
-                "0 0 60px 5px rgba(34,211,238,0.25)",
-                "0 0 40px 2px rgba(34,211,238,0.1)",
-              ],
-            }}
-            transition={{
-              rotate: { duration: 2, repeat: Infinity, ease: "linear" },
-              boxShadow: { duration: 2, repeat: Infinity, ease: "easeInOut" },
-            }}
-            className="w-20 h-20 rounded-full border-2 border-cyan-500/30 bg-[#0c131a] flex items-center justify-center"
-          >
-            <Zap className="w-9 h-9 text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.7)]" />
-          </motion.div>
-          {/* Anillos orbitales */}
-          <div className="absolute inset-[-15px] rounded-full border border-slate-800" />
-          <div className="absolute inset-[-30px] rounded-full border border-slate-900" />
-        </div>
-
-        {/* Texto de Carga Cinematográfico */}
-        <div className="text-center flex flex-col items-center">
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="text-[12px] font-bold uppercase tracking-[0.4em] text-white/90"
-          >
-            S T A C K 4 F O U R
-          </motion.div>
-          
-          <div className="flex items-baseline gap-1.5 mt-1">
-            <motion.span
-                initial={{ opacity: 0 }}
-                animate={{ opacity: [0.4, 1, 0.4] }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                className="text-[10px] font-semibold uppercase tracking-[0.3em] text-cyan-500/80"
-            >
-                Iniciando Secuencia de Inmersión
-            </motion.span>
-            <motion.span
-                animate={{ opacity: [0, 1, 0] }}
-                transition={{ duration: 0.8, repeat: Infinity, times: [0, 0.5, 1] }}
-                className="w-1.5 h-1.5 bg-cyan-400 rounded-full inline-block"
-            />
-          </div>
+            animate={{ x: ["-100%", "200%"] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute left-0 top-0 h-full w-1/2 bg-gradient-to-r from-transparent via-cyan-400/60 to-transparent"
+          />
         </div>
       </div>
-
-      {/* Línea de escáner horizontal sutil */}
-      <motion.div 
-        animate={{ y: ['-100vh', '100vh'] }}
-        transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-        className="absolute left-0 top-0 w-full h-[1px] bg-cyan-400/10 z-10"
-      />
     </motion.div>
   );
 };
