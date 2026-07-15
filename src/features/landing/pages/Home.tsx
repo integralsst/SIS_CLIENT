@@ -57,7 +57,7 @@ export default function LandingPage() {
           // Ajuste del margen superior negativo:
           // Como Hero3D mide 400vh y Hero mide 100vh, el margen negativo
           // depende de cuál componente esté montado.
-          className={`relative z-20 ${isDesktop ? '-mt-[80vh]' : 'mt-0'} bg-[#05080a] shadow-[0_-50px_50px_rgba(5,8,10,1)] scroll-mt-32`} 
+          className={`relative z-20 ${isDesktop ? '-mt-[40vh]' : 'mt-0'} bg-[#05080a] shadow-[0_-50px_50px_rgba(5,8,10,1)] scroll-mt-32`} 
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-100px" }}

@@ -61,7 +61,6 @@ type VideoWithFrameCallback = HTMLVideoElement & {
   ) => void;
 };
 
-// Extensión de VideoFrameMetadata para TS si no está definida globalmente
 interface VideoFrameMetadata {
   presentationTime: DOMHighResTimeStamp;
   expectedDisplayTime: DOMHighResTimeStamp;
@@ -110,23 +109,12 @@ export const Hero3D = () => {
   const recoveryTimerRef = useRef<number | null>(null);
   const videoFrameCallbackRef = useRef<number | null>(null);
 
-  /** Última posición solicitada por el scroll. */
   const latestProgressRef = useRef(0);
-
-  /** Progreso recuperado al volver a montar el componente. */
   const restoredProgressRef = useRef<number | null>(null);
-
-  /** Tiempo exacto guardado del video como respaldo. */
   const restoredTimeRef = useRef<number | null>(null);
-
-  /** Permite solicitar nuevamente el mismo frame. */
   const forceSeekRef = useRef(false);
-
   const wasHiddenRef = useRef(false);
 
-  /**
-   * Evita setState durante cada evento de scroll.
-   */
   const interfaceStateRef = useRef({
     hasScrolled: false,
     showText: false,
@@ -151,53 +139,23 @@ export const Hero3D = () => {
   const readStoredState = useCallback(
     (): StoredHeroState | null => {
       try {
-        const storedState =
-          window.sessionStorage.getItem(STORAGE_KEY);
-
+        const storedState = window.sessionStorage.getItem(STORAGE_KEY);
         if (storedState) {
-          const parsedState = JSON.parse(
-            storedState
-          ) as Partial<StoredHeroState>;
-
-          const progress = Number(
-            parsedState.progress
-          );
-          const currentTime = Number(
-            parsedState.currentTime
-          );
-
+          const parsedState = JSON.parse(storedState) as Partial<StoredHeroState>;
+          const progress = Number(parsedState.progress);
+          const currentTime = Number(parsedState.currentTime);
           if (Number.isFinite(progress)) {
             return {
               progress: clamp(progress, 0, 1),
-              currentTime: Number.isFinite(
-                currentTime
-              )
-                ? Math.max(currentTime, 0)
-                : 0,
+              currentTime: Number.isFinite(currentTime) ? Math.max(currentTime, 0) : 0,
             };
           }
         }
-
-        /** Compatibilidad con la versión anterior. */
-        const legacyValue =
-          window.sessionStorage.getItem(
-            LEGACY_STORAGE_KEY
-          );
-
-        if (!legacyValue) {
-          return null;
-        }
-
+        const legacyValue = window.sessionStorage.getItem(LEGACY_STORAGE_KEY);
+        if (!legacyValue) return null;
         const legacyProgress = Number(legacyValue);
-
-        if (!Number.isFinite(legacyProgress)) {
-          return null;
-        }
-
-        return {
-          progress: clamp(legacyProgress, 0, 1),
-          currentTime: 0,
-        };
+        if (!Number.isFinite(legacyProgress)) return null;
+        return { progress: clamp(legacyProgress, 0, 1), currentTime: 0 };
       } catch {
         return null;
       }
@@ -208,25 +166,9 @@ export const Hero3D = () => {
   const saveCurrentState = useCallback(() => {
     try {
       const video = videoRef.current;
-
-      const currentTime =
-        video && Number.isFinite(video.currentTime)
-          ? Math.max(video.currentTime, 0)
-          : 0;
-
-      const state: StoredHeroState = {
-        progress: clamp(
-          latestProgressRef.current,
-          0,
-          1
-        ),
-        currentTime,
-      };
-
-      window.sessionStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(state)
-      );
+      const currentTime = video && Number.isFinite(video.currentTime) ? Math.max(video.currentTime, 0) : 0;
+      const state: StoredHeroState = { progress: clamp(latestProgressRef.current, 0, 1), currentTime };
+      window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch {
       // sessionStorage puede estar bloqueado.
     }
@@ -236,73 +178,31 @@ export const Hero3D = () => {
      ESTADO DE INTERFAZ
   ======================================================= */
 
-  const setReadyState = useCallback(
-    (nextValue: boolean) => {
-      if (
-        interfaceStateRef.current.videoReady ===
-        nextValue
-      ) {
-        return;
-      }
+  const setReadyState = useCallback((nextValue: boolean) => {
+    if (interfaceStateRef.current.videoReady === nextValue) return;
+    interfaceStateRef.current.videoReady = nextValue;
+    setVideoReady(nextValue);
+  }, []);
 
-      interfaceStateRef.current.videoReady =
-        nextValue;
-      setVideoReady(nextValue);
-    },
-    []
-  );
+  const setRecoveringState = useCallback((nextValue: boolean) => {
+    if (interfaceStateRef.current.recovering === nextValue) return;
+    interfaceStateRef.current.recovering = nextValue;
+    setRecovering(nextValue);
+  }, []);
 
-  const setRecoveringState = useCallback(
-    (nextValue: boolean) => {
-      if (
-        interfaceStateRef.current.recovering ===
-        nextValue
-      ) {
-        return;
-      }
-
-      interfaceStateRef.current.recovering =
-        nextValue;
-      setRecovering(nextValue);
-    },
-    []
-  );
-
-  const updateInterfaceState = useCallback(
-    (progress: number, duration?: number) => {
-      const nextHasScrolled = progress > 0.01;
-
-      if (
-        interfaceStateRef.current.hasScrolled !==
-        nextHasScrolled
-      ) {
-        interfaceStateRef.current.hasScrolled =
-          nextHasScrolled;
-        setHasScrolled(nextHasScrolled);
-      }
-
-      if (
-        typeof duration !== "number" ||
-        !Number.isFinite(duration) ||
-        duration <= 0
-      ) {
-        return;
-      }
-
-      const nextShowText =
-        progress * duration >= TEXT_START_SECONDS;
-
-      if (
-        interfaceStateRef.current.showText !==
-        nextShowText
-      ) {
-        interfaceStateRef.current.showText =
-          nextShowText;
-        setShowText(nextShowText);
-      }
-    },
-    []
-  );
+  const updateInterfaceState = useCallback((progress: number, duration?: number) => {
+    const nextHasScrolled = progress > 0.01;
+    if (interfaceStateRef.current.hasScrolled !== nextHasScrolled) {
+      interfaceStateRef.current.hasScrolled = nextHasScrolled;
+      setHasScrolled(nextHasScrolled);
+    }
+    if (typeof duration !== "number" || !Number.isFinite(duration) || duration <= 0) return;
+    const nextShowText = progress * duration >= TEXT_START_SECONDS;
+    if (interfaceStateRef.current.showText !== nextShowText) {
+      interfaceStateRef.current.showText = nextShowText;
+      setShowText(nextShowText);
+    }
+  }, []);
 
   /* =======================================================
      PROGRESO REAL DEL HERO
@@ -310,39 +210,21 @@ export const Hero3D = () => {
 
   const getRealScrollProgress = useCallback(() => {
     const container = containerRef.current;
-
-    if (!container) {
-      return clamp(scrollYProgress.get(), 0, 1);
-    }
-
+    if (!container) return clamp(scrollYProgress.get(), 0, 1);
     const rect = container.getBoundingClientRect();
-    const totalScrollable =
-      container.offsetHeight - window.innerHeight;
-
-    if (totalScrollable <= 0) {
-      return 0;
-    }
-
-    return clamp(
-      -rect.top / totalScrollable,
-      0,
-      1
-    );
+    const totalScrollable = container.offsetHeight - window.innerHeight;
+    if (totalScrollable <= 0) return 0;
+    return clamp(-rect.top / totalScrollable, 0, 1);
   }, [scrollYProgress]);
 
   const getPreferredProgress = useCallback(() => {
     const realProgress = getRealScrollProgress();
-
     if (realProgress > 0.005) {
       restoredProgressRef.current = null;
       restoredTimeRef.current = null;
       return realProgress;
     }
-
-    if (restoredProgressRef.current !== null) {
-      return restoredProgressRef.current;
-    }
-
+    if (restoredProgressRef.current !== null) return restoredProgressRef.current;
     return latestProgressRef.current;
   }, [getRealScrollProgress]);
 
@@ -352,9 +234,7 @@ export const Hero3D = () => {
 
   const clearRecoveryTimer = useCallback(() => {
     if (recoveryTimerRef.current !== null) {
-      window.clearTimeout(
-        recoveryTimerRef.current
-      );
+      window.clearTimeout(recoveryTimerRef.current);
       recoveryTimerRef.current = null;
     }
   }, []);
@@ -363,50 +243,24 @@ export const Hero3D = () => {
     clearRecoveryTimer();
     setReadyState(true);
     setRecoveringState(false);
-  }, [
-    clearRecoveryTimer,
-    setReadyState,
-    setRecoveringState,
-  ]);
+  }, [clearRecoveryTimer, setReadyState, setRecoveringState]);
 
-  /**
-   * Espera a que el navegador realmente pinte un frame.
-   * requestVideoFrameCallback funciona muy bien en Chrome y
-   * Safari modernos. Se incluye un respaldo para versiones
-   * anteriores.
-   */
   const waitForPaintedVideoFrame = useCallback(() => {
-    const video =
-      videoRef.current as VideoWithFrameCallback | null;
-
-    if (!video) {
-      return;
-    }
-
-    if (
-      videoFrameCallbackRef.current !== null &&
-      video.cancelVideoFrameCallback
-    ) {
-      video.cancelVideoFrameCallback(
-        videoFrameCallbackRef.current
-      );
+    const video = videoRef.current as VideoWithFrameCallback | null;
+    if (!video) return;
+    if (videoFrameCallbackRef.current !== null && video.cancelVideoFrameCallback) {
+      video.cancelVideoFrameCallback(videoFrameCallbackRef.current);
       videoFrameCallbackRef.current = null;
     }
-
     if (video.requestVideoFrameCallback) {
-      videoFrameCallbackRef.current =
-        video.requestVideoFrameCallback(() => {
-          videoFrameCallbackRef.current = null;
-          finishRecovery();
-        });
-
-      return;
-    }
-
-    window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(() => {
+      videoFrameCallbackRef.current = video.requestVideoFrameCallback(() => {
+        videoFrameCallbackRef.current = null;
         finishRecovery();
       });
+      return;
+    }
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => finishRecovery());
     });
   }, [finishRecovery]);
 
@@ -414,117 +268,37 @@ export const Hero3D = () => {
      SINCRONIZACIÓN DEL VIDEO
   ======================================================= */
 
-  const applyScheduledVideoProgress =
-    useCallback(() => {
-      animationFrameRef.current = null;
+  const applyScheduledVideoProgress = useCallback(() => {
+    animationFrameRef.current = null;
+    const progress = clamp(latestProgressRef.current, 0, 1);
+    updateInterfaceState(progress);
+    const video = videoRef.current;
+    if (!video || video.readyState < HTMLMediaElement.HAVE_METADATA) return;
+    const duration = video.duration;
+    if (!Number.isFinite(duration) || duration <= 0) return;
+    updateInterfaceState(progress, duration);
+    let targetTime = getTargetTime(progress, duration);
 
-      const progress = clamp(
-        latestProgressRef.current,
-        0,
-        1
-      );
+    if (forceSeekRef.current && restoredTimeRef.current !== null && getRealScrollProgress() <= 0.005) {
+      targetTime = clamp(restoredTimeRef.current, 0, Math.max(duration - VIDEO_END_PADDING, 0));
+    }
+    const difference = Math.abs(video.currentTime - targetTime);
+    const mustForceSeek = forceSeekRef.current;
+    forceSeekRef.current = false;
+    if (!mustForceSeek && difference < SEEK_THRESHOLD) return;
+    try {
+      video.currentTime = targetTime;
+    } catch {
+      // Evita romper la página durante un seek puntual.
+    }
+  }, [getRealScrollProgress, updateInterfaceState]);
 
-      updateInterfaceState(progress);
-
-      const video = videoRef.current;
-
-      if (
-        !video ||
-        video.readyState <
-          HTMLMediaElement.HAVE_METADATA
-      ) {
-        return;
-      }
-
-      const duration = video.duration;
-
-      if (
-        !Number.isFinite(duration) ||
-        duration <= 0
-      ) {
-        return;
-      }
-
-      updateInterfaceState(progress, duration);
-
-      let targetTime = getTargetTime(
-        progress,
-        duration
-      );
-
-      /**
-       * Al restaurar el componente utilizamos el tiempo exacto
-       * guardado, siempre que el scroll real siga arriba.
-       */
-      if (
-        forceSeekRef.current &&
-        restoredTimeRef.current !== null &&
-        getRealScrollProgress() <= 0.005
-      ) {
-        targetTime = clamp(
-          restoredTimeRef.current,
-          0,
-          Math.max(
-            duration - VIDEO_END_PADDING,
-            0
-          )
-        );
-      }
-
-      const difference = Math.abs(
-        video.currentTime - targetTime
-      );
-
-      const mustForceSeek = forceSeekRef.current;
-      forceSeekRef.current = false;
-
-      if (
-        !mustForceSeek &&
-        difference < SEEK_THRESHOLD
-      ) {
-        return;
-      }
-
-      /**
-       * No esperamos el evento seeked anterior. Chrome puede
-       * cancelar el seek viejo y quedarse solamente con el
-       * destino más reciente, evitando que el video se atrase
-       * respecto al scroll.
-       */
-      try {
-        video.currentTime = targetTime;
-      } catch {
-        // Evita romper la página durante un seek puntual.
-      }
-    }, [
-      getRealScrollProgress,
-      updateInterfaceState,
-    ]);
-
-  /**
-   * Como máximo se solicita una actualización por frame de
-   * pantalla, manteniendo el scroll fluido a 60 FPS.
-   */
   const scheduleVideoSync = useCallback(
     (progress: number, forceSeek = false) => {
-      latestProgressRef.current = clamp(
-        progress,
-        0,
-        1
-      );
-
-      if (forceSeek) {
-        forceSeekRef.current = true;
-      }
-
-      if (animationFrameRef.current !== null) {
-        return;
-      }
-
-      animationFrameRef.current =
-        window.requestAnimationFrame(
-          applyScheduledVideoProgress
-        );
+      latestProgressRef.current = clamp(progress, 0, 1);
+      if (forceSeek) forceSeekRef.current = true;
+      if (animationFrameRef.current !== null) return;
+      animationFrameRef.current = window.requestAnimationFrame(applyScheduledVideoProgress);
     },
     [applyScheduledVideoProgress]
   );
@@ -536,118 +310,65 @@ export const Hero3D = () => {
   const repaintCurrentVideoFrame = useCallback(
     (progress: number) => {
       const video = videoRef.current;
-
-      if (
-        !video ||
-        video.readyState < HTMLMediaElement.HAVE_METADATA ||
-        !Number.isFinite(video.duration) ||
-        video.duration <= 0
-      ) {
+      if (!video || video.readyState < HTMLMediaElement.HAVE_METADATA || !Number.isFinite(video.duration) || video.duration <= 0) {
         scheduleVideoSync(progress, true);
         return;
       }
-
       const maximumTime = Math.max(video.duration - VIDEO_END_PADDING, 0);
       const targetTime = getTargetTime(progress, video.duration);
-
-      const nudgeTime =
-        targetTime + 0.05 <= maximumTime
-          ? targetTime + 0.05
-          : Math.max(targetTime - 0.05, 0);
+      const nudgeTime = targetTime + 0.05 <= maximumTime ? targetTime + 0.05 : Math.max(targetTime - 0.05, 0);
 
       const wakeUpDecoder = async () => {
         try {
           video.muted = true;
           await video.play();
           video.pause();
-        } catch {
-          // Ignoramos errores si el navegador bloquea el autoplay temporalmente
-        } finally {
+        } catch { } 
+        finally {
           video.currentTime = nudgeTime;
-
           if (recoveryFrameRef.current !== null) {
             window.cancelAnimationFrame(recoveryFrameRef.current);
           }
-
           recoveryFrameRef.current = window.requestAnimationFrame(() => {
             recoveryFrameRef.current = null;
-
             const currentVideo = videoRef.current;
             if (!currentVideo) {
               finishRecovery();
               return;
             }
-
-            try {
-              currentVideo.currentTime = targetTime;
-            } catch {
-              // El temporizador de respaldo finalizará la capa.
-            }
-
+            try { currentVideo.currentTime = targetTime; } catch { }
             waitForPaintedVideoFrame();
           });
         }
       };
-
       wakeUpDecoder();
     },
     [finishRecovery, scheduleVideoSync, waitForPaintedVideoFrame]
   );
 
   const recoverVideoFrame = useCallback(() => {
-    if (document.visibilityState !== "visible") {
-      return;
-    }
-
+    if (document.visibilityState !== "visible") return;
     const progress = getRealScrollProgress();
-
     latestProgressRef.current = progress;
     setRecoveringState(true);
     updateInterfaceState(progress);
-
     repaintCurrentVideoFrame(progress);
-
     clearRecoveryTimer();
-    recoveryTimerRef.current = window.setTimeout(
-      finishRecovery,
-      RECOVERY_TIMEOUT
-    );
-  }, [
-    clearRecoveryTimer,
-    finishRecovery,
-    getRealScrollProgress,
-    repaintCurrentVideoFrame,
-    setRecoveringState,
-    updateInterfaceState,
-  ]);
+    recoveryTimerRef.current = window.setTimeout(finishRecovery, RECOVERY_TIMEOUT);
+  }, [clearRecoveryTimer, finishRecovery, getRealScrollProgress, repaintCurrentVideoFrame, setRecoveringState, updateInterfaceState]);
 
   /* =======================================================
      EVENTO DE SCROLL
   ======================================================= */
 
-  useMotionValueEvent(
-    scrollYProgress,
-    "change",
-    (latestProgress) => {
-      /**
-       * Framer Motion puede emitir 0 durante el montaje. No
-       * dejamos que ese valor elimine el progreso restaurado.
-       */
-      if (
-        restoredProgressRef.current !== null &&
-        latestProgress < 0.001
-      ) {
-        return;
-      }
-
-      if (latestProgress > 0.001) {
-        restoredProgressRef.current = null;
-        restoredTimeRef.current = null;
-      }
-
-      scheduleVideoSync(latestProgress);
+  useMotionValueEvent(scrollYProgress, "change", (latestProgress) => {
+    if (restoredProgressRef.current !== null && latestProgress < 0.001) return;
+    if (latestProgress > 0.001) {
+      restoredProgressRef.current = null;
+      restoredTimeRef.current = null;
     }
-  );
+    scheduleVideoSync(latestProgress);
+  });
 
   /* =======================================================
      RESTAURACIÓN INICIAL
@@ -655,18 +376,10 @@ export const Hero3D = () => {
 
   useEffect(() => {
     const storedState = readStoredState();
-
-    if (!storedState) {
-      return;
-    }
-
-    restoredProgressRef.current =
-      storedState.progress;
-    restoredTimeRef.current =
-      storedState.currentTime;
-    latestProgressRef.current =
-      storedState.progress;
-
+    if (!storedState) return;
+    restoredProgressRef.current = storedState.progress;
+    restoredTimeRef.current = storedState.currentTime;
+    latestProgressRef.current = storedState.progress;
     updateInterfaceState(storedState.progress);
   }, [readStoredState, updateInterfaceState]);
 
@@ -682,55 +395,25 @@ export const Hero3D = () => {
         videoRef.current?.pause();
         return;
       }
-
-      if (
-        document.visibilityState === "visible" &&
-        wasHiddenRef.current
-      ) {
+      if (document.visibilityState === "visible" && wasHiddenRef.current) {
         wasHiddenRef.current = false;
         recoverVideoFrame();
       }
     };
-
-    const handlePageShow = (
-      event: PageTransitionEvent
-    ) => {
-      if (event.persisted) {
-        recoverVideoFrame();
-      }
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) recoverVideoFrame();
     };
-
     const handlePageHide = () => {
       saveCurrentState();
       videoRef.current?.pause();
     };
-
-    document.addEventListener(
-      "visibilitychange",
-      handleVisibilityChange
-    );
-    window.addEventListener(
-      "pageshow",
-      handlePageShow
-    );
-    window.addEventListener(
-      "pagehide",
-      handlePageHide
-    );
-
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("pageshow", handlePageShow);
+    window.addEventListener("pagehide", handlePageHide);
     return () => {
-      document.removeEventListener(
-        "visibilitychange",
-        handleVisibilityChange
-      );
-      window.removeEventListener(
-        "pageshow",
-        handlePageShow
-      );
-      window.removeEventListener(
-        "pagehide",
-        handlePageHide
-      );
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("pageshow", handlePageShow);
+      window.removeEventListener("pagehide", handlePageHide);
     };
   }, [recoverVideoFrame, saveCurrentState]);
 
@@ -741,34 +424,13 @@ export const Hero3D = () => {
   useEffect(() => {
     return () => {
       saveCurrentState();
-
-      if (animationFrameRef.current !== null) {
-        window.cancelAnimationFrame(
-          animationFrameRef.current
-        );
-      }
-
-      if (recoveryFrameRef.current !== null) {
-        window.cancelAnimationFrame(
-          recoveryFrameRef.current
-        );
-      }
-
+      if (animationFrameRef.current !== null) window.cancelAnimationFrame(animationFrameRef.current);
+      if (recoveryFrameRef.current !== null) window.cancelAnimationFrame(recoveryFrameRef.current);
       clearRecoveryTimer();
-
-      const video =
-        videoRef.current as VideoWithFrameCallback | null;
-
-      if (
-        video &&
-        videoFrameCallbackRef.current !== null &&
-        video.cancelVideoFrameCallback
-      ) {
-        video.cancelVideoFrameCallback(
-          videoFrameCallbackRef.current
-        );
+      const video = videoRef.current as VideoWithFrameCallback | null;
+      if (video && videoFrameCallbackRef.current !== null && video.cancelVideoFrameCallback) {
+        video.cancelVideoFrameCallback(videoFrameCallbackRef.current);
       }
-
       videoRef.current?.pause();
     };
   }, [clearRecoveryTimer, saveCurrentState]);
@@ -777,242 +439,200 @@ export const Hero3D = () => {
      ANIMACIONES GENERALES
   ======================================================= */
 
-  const sectionOpacity = useTransform(
-    scrollYProgress,
-    [0.9, 1],
-    [1, 0]
-  );
-
-  const sectionY = useTransform(
-    scrollYProgress,
-    [0.9, 1],
-    [0, -50]
-  );
-
-  const textTransition: Transition = {
-    duration: 0.7,
-    ease: [0.16, 1, 0.3, 1],
-  };
-
-  const showSplash =
-    !hasScrolled || !videoReady || recovering;
+  const sectionOpacity = useTransform(scrollYProgress, [0.9, 1], [1, 0]);
+  const sectionY = useTransform(scrollYProgress, [0.9, 1], [0, -50]);
+  const textTransition: Transition = { duration: 0.7, ease: [0.16, 1, 0.3, 1] };
+  const showSplash = !hasScrolled || !videoReady || recovering;
 
   /* =======================================================
      RENDER
   ======================================================= */
 
   return (
-    <div
-      ref={containerRef}
-      className="relative flex h-[400vh] w-full flex-col bg-[#05080a]"
-    >
+    <div ref={containerRef} className="relative flex h-[400vh] w-full flex-col bg-[#05080a]">
       <motion.div
-        style={{
-          opacity: sectionOpacity,
-          y: sectionY,
-          willChange: "opacity, transform",
-        }}
+        style={{ opacity: sectionOpacity, y: sectionY, willChange: "opacity, transform" }}
         className="sticky top-0 z-0 flex h-screen w-full items-center justify-center overflow-hidden bg-[#05080a]"
       >
         {/* VIDEO PRINCIPAL */}
-       <div className="absolute inset-0 z-0 h-full w-full overflow-hidden bg-[#05080a]">
-  <video
-    ref={videoRef}
-    src="/videos/hero-3d.mp4"
-    poster={logoStack44}
-    muted
-    playsInline
-    preload="auto"
-    disablePictureInPicture
-    aria-hidden="true"
-    className="h-full w-full object-cover"
-    style={{
-      transform: "translate3d(0, 0, 0)",
-      backfaceVisibility: "hidden",
-    }}
-    onLoadedMetadata={() => {
-      const realProgress = getRealScrollProgress();
+        <div className="absolute inset-0 z-0 h-full w-full overflow-hidden bg-[#05080a]">
+          <video
+            ref={videoRef}
+            src="/videos/hero-3d.mp4"
+            poster={logoStack44}
+            muted
+            playsInline
+            preload="auto"
+            disablePictureInPicture
+            aria-hidden="true"
+            className="h-full w-full object-cover"
+            style={{ transform: "translate3d(0, 0, 0)", backfaceVisibility: "hidden" }}
+            onLoadedMetadata={() => {
+              const realProgress = getRealScrollProgress();
+              const progress = realProgress > 0.005 ? realProgress : restoredProgressRef.current ?? latestProgressRef.current;
+              latestProgressRef.current = progress;
+              scheduleVideoSync(progress, true);
+            }}
+            onLoadedData={() => {
+              const progress = getPreferredProgress();
+              scheduleVideoSync(progress, true);
+              waitForPaintedVideoFrame();
+            }}
+            onCanPlay={() => {
+              if (!interfaceStateRef.current.videoReady) waitForPaintedVideoFrame();
+            }}
+            onSeeked={() => {
+              if (recovering || !interfaceStateRef.current.videoReady) waitForPaintedVideoFrame();
+            }}
+            onError={() => {
+              clearRecoveryTimer();
+              setReadyState(false);
+              setRecoveringState(false);
+            }}
+          />
 
-      const progress =
-        realProgress > 0.005
-          ? realProgress
-          : restoredProgressRef.current ?? latestProgressRef.current;
+          {/* Sistema de viñeta orgánica y "Humo" difuminado Premium */}
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_75%,_rgba(5,8,10,0.5)_100%)] opacity-80" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(5,8,10,0.4)_0%,_rgba(5,8,10,0.1)_40%,_transparent_70%)] z-10" />
+          <div className="pointer-events-none absolute inset-0 z-20">
+            <div className="absolute -bottom-20 -right-20 h-[400px] w-[500px] rounded-full bg-[#05080a] blur-[120px]" />
+            <div className="absolute -bottom-32 right-10 h-[350px] w-[700px] rounded-full bg-[#05080a] opacity-90 blur-[140px]" />
+            <div className="absolute bottom-10 -right-32 h-[600px] w-[400px] rounded-full bg-[#05080a] opacity-85 blur-[150px]" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(5,8,10,0.95)_5%,_rgba(5,8,10,0.4)_50%,_transparent_80%)]" />
+          </div>
+        </div>
 
-      latestProgressRef.current = progress;
-      scheduleVideoSync(progress, true);
-    }}
-    onLoadedData={() => {
-      const progress = getPreferredProgress();
-
-      scheduleVideoSync(progress, true);
-      waitForPaintedVideoFrame();
-    }}
-    onCanPlay={() => {
-      if (!interfaceStateRef.current.videoReady) {
-        waitForPaintedVideoFrame();
-      }
-    }}
-    onSeeked={() => {
-      if (recovering || !interfaceStateRef.current.videoReady) {
-        waitForPaintedVideoFrame();
-      }
-    }}
-    onError={() => {
-      clearRecoveryTimer();
-      setReadyState(false);
-      setRecoveringState(false);
-    }}
-  />
-
-  {/* REFACTORIZADO: Nuevo sistema de viñeta orgánica y "Humo" difuminado Premium */}
-  
-  {/* Capa 1: Viñeta de cine base. */}
-  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_75%,_rgba(5,8,10,0.5)_100%)] opacity-80" />
-
-  {/* Capa 2: Degradado radial superpuesto. */}
-  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(5,8,10,0.4)_0%,_rgba(5,8,10,0.1)_40%,_transparent_70%)] z-10" />
-
-  {/* Capa 3: El "Humo" Premium CORREGIDO. 
-      Ahora usa 'inset-0' para que el difuminado tenga espacio infinito para desvanecerse
-      sin chocar con bordes ni generar cajas negras. */}
-  <div className="pointer-events-none absolute inset-0 z-20">
-    
-    {/* Nube 1: Núcleo denso anclado abajo a la derecha. */}
-    <div className="absolute -bottom-20 -right-20 h-[400px] w-[500px] rounded-full bg-[#05080a] blur-[120px]" />
-
-    {/* Nube 2: Extensión orgánica hacia la izquierda. */}
-    <div className="absolute -bottom-32 right-10 h-[350px] w-[700px] rounded-full bg-[#05080a] opacity-90 blur-[140px]" />
-
-    {/* Nube 3: Extensión orgánica hacia arriba. */}
-    <div className="absolute bottom-10 -right-32 h-[600px] w-[400px] rounded-full bg-[#05080a] opacity-85 blur-[150px]" />
-
-    {/* Capa 4 de integración: Gradiente final que sella los colores. */}
-    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(5,8,10,0.95)_5%,_rgba(5,8,10,0.4)_50%,_transparent_80%)]" />
-
-  </div>
-</div>
-
-        {/* SPLASH Y PROTECCIÓN CONTRA PANTALLA NEGRA */}
+        {/* SPLASH REDISEÑADO - ULTRA PREMIUM & DISRUPTIVO */}
         <AnimatePresence>
           {showSplash && (
             <motion.div
-              initial={{ opacity: 1 }}
-              animate={{ opacity: 1 }}
+              initial={{ opacity: 1, backdropFilter: "blur(0px)" }}
               exit={{
                 opacity: 0,
-                scale: 1.015,
+                scale: 1.1,
+                backdropFilter: "blur(20px)",
+                transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] }
               }}
-              transition={{
-                duration: 0.28,
-                ease: "easeOut",
-              }}
-              className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-[#05080a]"
+              className="absolute inset-0 z-30 flex flex-col md:flex-row items-center justify-center md:justify-between px-8 md:px-20 lg:px-32 bg-[#05080a]/30 backdrop-blur-sm overflow-hidden"
             >
-              <motion.img
-                initial={{
-                  opacity: 0,
-                  scale: 0.96,
-                }}
-                animate={{
-                  opacity: 1,
-                  scale: 1,
-                }}
-                transition={{
-                  duration: 0.45,
-                  ease: [0.16, 1, 0.3, 1],
-                }}
-                src={logoStack44}
-                alt="Stack44"
-                decoding="async"
-                draggable={false}
-                className="w-64 select-none object-contain md:w-80"
+              {/* Luz volumétrica de fondo que "respira" */}
+              <motion.div
+                animate={{ scale: [1, 1.2, 1], opacity: [0.15, 0.25, 0.15] }}
+                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute top-1/2 left-1/4 -translate-y-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-cyan-600/20 rounded-full blur-[140px] pointer-events-none"
               />
 
-              {!hasScrolled && (
-                <motion.div
-                  initial={{
-                    opacity: 0,
-                    y: 8,
-                  }}
-                  animate={{
-                    opacity: 1,
-                    y: 0,
-                  }}
-                  transition={{
-                    duration: 0.55,
-                    delay: 0.35,
-                    ease: "easeOut",
-                  }}
-                  className="pointer-events-none absolute bottom-10 flex flex-col items-center gap-4"
-                >
-                  <span className="text-[10px] font-medium uppercase tracking-[0.5em] text-slate-400 md:text-xs">
-                    Desliza para comenzar
-                  </span>
+              {/* LADO IZQUIERDO: Logo Flotante */}
+              <motion.div
+                initial={{ opacity: 0, y: 40, filter: "blur(10px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+                className="w-full md:w-1/2 flex justify-center md:justify-start relative z-10"
+              >
+                <div className="relative">
+                  {/* Resplandor hiperrealista tras el logo */}
+                  <div className="absolute inset-0 bg-cyan-400/20 blur-[70px] rounded-full scale-90" />
+                  <img
+                    src={logoStack44}
+                    alt="Stack44"
+                    draggable={false}
+                    className="w-56 md:w-80 lg:w-[420px] select-none object-contain drop-shadow-[0_25px_50px_rgba(0,0,0,0.9)] relative z-10"
+                  />
+                </div>
+              </motion.div>
 
-                  <div className="relative h-12 w-px overflow-hidden rounded-full bg-slate-800/60 md:h-16">
-                    <motion.div
-                      animate={{
-                        y: ["-150%", "300%"],
-                      }}
-                      transition={{
-                        repeat: Infinity,
-                        duration: 1.8,
-                        ease: [0.65, 0, 0.35, 1],
-                      }}
-                      className="h-1/3 w-full bg-cyan-400 shadow-[0_0_8px_1px_rgba(34,211,238,0.8)]"
-                    />
-                  </div>
-                </motion.div>
+              {/* LADO DERECHO: Tipografía Cinematográfica y Acción */}
+              {!hasScrolled && (
+                <div className="w-full md:w-1/2 flex flex-col items-center md:items-start mt-16 md:mt-0 relative z-10">
+                  
+                 
+
+                  {/* Titular Imponente */}
+                  <motion.h1
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 1, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                    className="text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] font-black tracking-tighter text-white leading-[0.95] mb-6 text-center md:text-left drop-shadow-2xl"
+                  >
+                    STACK4FOUR
+                    <br />
+                    <span className="bg-gradient-to-br from-white via-slate-200 to-slate-500 bg-clip-text text-transparent">
+                      
+                    </span>
+                  </motion.h1>
+
+                  {/* Descripción Sutil */}
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 1, delay: 0.7, ease: "easeOut" }}
+                    className="text-slate-400 text-sm md:text-lg lg:text-xl font-medium mb-12 max-w-[420px] text-center md:text-left leading-relaxed"
+                  >
+                    El ecosistema definitivo que transforma el cumplimiento legal en una ventaja operativa imbatible.
+                  </motion.p>
+
+                  {/* Indicador de Scroll tipo "Escáner Tecnológico" */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 0.9, ease: [0.16, 1, 0.3, 1] }}
+                    className="flex items-center gap-5 cursor-default"
+                  >
+                    {/* Botón Escáner */}
+                    <div className="relative flex items-center justify-center w-14 h-14 rounded-full border border-cyan-500/30 bg-cyan-950/40 overflow-hidden shadow-[0_0_20px_rgba(6,182,212,0.15)]">
+                      {/* Efecto de luz barriendo */}
+                      <motion.div
+                        animate={{ y: ["-100%", "100%"] }}
+                        transition={{ repeat: Infinity, duration: 1.8, ease: "linear" }}
+                        className="absolute inset-0 w-full h-[200%] bg-gradient-to-b from-transparent via-cyan-400/50 to-transparent"
+                      />
+                      {/* Núcleo brillante */}
+                      <div className="w-2 h-2 rounded-full bg-cyan-300 shadow-[0_0_12px_2px_rgba(34,211,238,0.9)] relative z-10" />
+                    </div>
+                    
+                    {/* Texto del Botón */}
+                    <div className="flex flex-col text-left">
+                      <span className="text-[12px] font-bold uppercase tracking-[0.3em] text-white">
+                        Desliza para Iniciar
+                      </span>
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-cyan-500/80 mt-1">
+                        Secuencia de Inmersión
+                      </span>
+                    </div>
+                  </motion.div>
+
+                </div>
               )}
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* CONTENIDO LATERAL */}
+        {/* CONTENIDO LATERAL DURANTE EL VIDEO */}
         <div className="pointer-events-none absolute right-6 top-1/2 z-10 w-full max-w-lg -translate-y-1/2 md:right-24 md:max-w-xl lg:right-32 xl:right-40">
           <AnimatePresence mode="wait">
             {showText && videoReady && !recovering && (
               <motion.div
                 key="main-text"
-                initial={{
-                  opacity: 0,
-                  x: 40,
-                }}
-                animate={{
-                  opacity: 1,
-                  x: 0,
-                }}
-                exit={{
-                 opacity: 0,
-                  x: -40,
-                }}
+                initial={{ opacity: 0, x: 40 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -40 }}
                 transition={textTransition}
-                style={{
-                  willChange: "opacity, transform",
-                }}
+                style={{ willChange: "opacity, transform" }}
                 className="flex flex-col items-end text-right"
               >
                 <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-500/20 bg-[#0c131a] px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.25em] text-slate-300">
-                  <ShieldCheck
-                    size={14}
-                    className="text-cyan-400"
-                  />
-
+                  <ShieldCheck size={14} className="text-cyan-400" />
                   Decreto 1072 &amp; Res. 0312
                 </div>
-
                 <h2 className="mb-4 text-5xl font-bold leading-[1.05] tracking-tighter text-white sm:text-6xl md:text-7xl md:leading-[1.1]">
                   Cumplimiento Legal.
                   <br />
-
                   <span className="bg-gradient-to-r from-slate-200 via-cyan-400 to-blue-500 bg-clip-text text-transparent">
                     Sin Complicaciones.
                   </span>
                 </h2>
-
                 <p className="max-w-md text-[17px] font-medium leading-relaxed tracking-tight text-slate-400/90 sm:text-lg md:text-xl lg:text-2xl">
-                  Automatiza las inspecciones y gestiona
-                  riesgos en tiempo real.
+                  Automatiza las inspecciones y gestiona riesgos en tiempo real.
                 </p>
               </motion.div>
             )}
