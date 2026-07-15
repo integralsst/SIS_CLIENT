@@ -53,12 +53,27 @@ type StoredHeroState = {
 
 type VideoWithFrameCallback = HTMLVideoElement & {
   requestVideoFrameCallback?: (
-    callback: () => void
+    callbackId: number,
+    callback: (now: number, metadata: VideoFrameMetadata) => void
   ) => number;
   cancelVideoFrameCallback?: (
     callbackId: number
   ) => void;
 };
+
+// Extensión de VideoFrameMetadata para TS si no está definida globalmente
+interface VideoFrameMetadata {
+  presentationTime: DOMHighResTimeStamp;
+  expectedDisplayTime: DOMHighResTimeStamp;
+  width: number;
+  height: number;
+  mediaTime: number;
+  presentedFrames: number;
+  processingDuration?: number;
+  captureTime?: DOMHighResTimeStamp;
+  receiveTime?: DOMHighResTimeStamp;
+  rtpTimestamp?: number;
+}
 
 const clamp = (
   value: number,
@@ -524,8 +539,7 @@ export const Hero3D = () => {
 
       if (
         !video ||
-        video.readyState <
-          HTMLMediaElement.HAVE_METADATA ||
+        video.readyState < HTMLMediaElement.HAVE_METADATA ||
         !Number.isFinite(video.duration) ||
         video.duration <= 0
       ) {
@@ -533,66 +547,51 @@ export const Hero3D = () => {
         return;
       }
 
-      const maximumTime = Math.max(
-        video.duration - VIDEO_END_PADDING,
-        0
-      );
+      const maximumTime = Math.max(video.duration - VIDEO_END_PADDING, 0);
+      const targetTime = getTargetTime(progress, video.duration);
 
-      const targetTime = getTargetTime(
-        progress,
-        video.duration
-      );
-
-      /**
-       * Un desplazamiento mínimo obliga a Chrome y Safari a
-       * reactivar el decodificador sin reproducir el video.
-       */
       const nudgeTime =
-        targetTime + 0.002 <= maximumTime
-          ? targetTime + 0.002
-          : Math.max(targetTime - 0.002, 0);
+        targetTime + 0.05 <= maximumTime
+          ? targetTime + 0.05
+          : Math.max(targetTime - 0.05, 0);
 
-      video.pause();
-      waitForPaintedVideoFrame();
+      const wakeUpDecoder = async () => {
+        try {
+          video.muted = true;
+          await video.play();
+          video.pause();
+        } catch {
+          // Ignoramos errores si el navegador bloquea el autoplay temporalmente
+        } finally {
+          video.currentTime = nudgeTime;
 
-      try {
-        video.currentTime = nudgeTime;
-      } catch {
-        scheduleVideoSync(progress, true);
-        return;
-      }
-
-      if (recoveryFrameRef.current !== null) {
-        window.cancelAnimationFrame(
-          recoveryFrameRef.current
-        );
-      }
-
-      recoveryFrameRef.current =
-        window.requestAnimationFrame(() => {
-          recoveryFrameRef.current = null;
-
-          const currentVideo = videoRef.current;
-
-          if (!currentVideo) {
-            finishRecovery();
-            return;
+          if (recoveryFrameRef.current !== null) {
+            window.cancelAnimationFrame(recoveryFrameRef.current);
           }
 
-          try {
-            currentVideo.currentTime = targetTime;
-          } catch {
-            // El temporizador de respaldo finalizará la capa.
-          }
+          recoveryFrameRef.current = window.requestAnimationFrame(() => {
+            recoveryFrameRef.current = null;
 
-          waitForPaintedVideoFrame();
-        });
+            const currentVideo = videoRef.current;
+            if (!currentVideo) {
+              finishRecovery();
+              return;
+            }
+
+            try {
+              currentVideo.currentTime = targetTime;
+            } catch {
+              // El temporizador de respaldo finalizará la capa.
+            }
+
+            waitForPaintedVideoFrame();
+          });
+        }
+      };
+
+      wakeUpDecoder();
     },
-    [
-      finishRecovery,
-      scheduleVideoSync,
-      waitForPaintedVideoFrame,
-    ]
+    [finishRecovery, scheduleVideoSync, waitForPaintedVideoFrame]
   );
 
   const recoverVideoFrame = useCallback(() => {
@@ -600,7 +599,7 @@ export const Hero3D = () => {
       return;
     }
 
-    const progress = getPreferredProgress();
+    const progress = getRealScrollProgress();
 
     latestProgressRef.current = progress;
     setRecoveringState(true);
@@ -616,7 +615,7 @@ export const Hero3D = () => {
   }, [
     clearRecoveryTimer,
     finishRecovery,
-    getPreferredProgress,
+    getRealScrollProgress,
     repaintCurrentVideoFrame,
     setRecoveringState,
     updateInterfaceState,
@@ -870,8 +869,22 @@ export const Hero3D = () => {
             }}
           />
 
-          {/* Viñeta general. Se eliminó la sombra inferior derecha. */}
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_70%,_#05080a_100%)] opacity-70" />
+          {/* REFACTORIZADO: Nuevo sistema de viñeta orgánica y "Humo" difuminado */}
+          
+          {/* Capa 1: Viñeta de cine base. Un degradado radial muy suave que oscurece sutilmente los bordes de TODO el video. */}
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_85%,_rgba(5,8,10,0.4)_100%)] opacity-80" />
+
+          {/* Capa 2: Degradado radial superpuesto y extremadamente suave que parte desde la esquina inferior derecha. Su falloff es muy amplio para integrarse de forma nebulosa. */}
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(5,8,10,0.3)_0%,_rgba(5,8,10,0.2)_20%,_transparent_60%)] opacity-90 z-10" />
+
+          {/* Capa 3: Una máscara de "humo" nebulosa y profunda focalizada en la zona de la marca de agua. Utiliza múltiples degradados superpuestos con muy baja opacidad para crear profundidad orgánica. */}
+          <div className="pointer-events-none absolute bottom-0 right-0 z-20 h-96 w-[600px] opacity-98" style={{
+            background: `
+              radial-gradient(ellipse at bottom right, rgba(5,8,10,0.95) 30%, rgba(5,8,10,0.85) 10%, transparent 60%),
+              radial-gradient(ellipse at center 80%, rgba(5,8,10,0.7) 0%, rgba(5,8,10,0.5) 20%, transparent 70%),
+              radial-gradient(ellipse at 80% bottom, rgba(5,8,10,0.6) 0%, rgba(5,8,10,0.4) 10%, transparent 70%)
+            `
+          }} />
         </div>
 
         {/* SPLASH Y PROTECCIÓN CONTRA PANTALLA NEGRA */}
@@ -965,7 +978,7 @@ export const Hero3D = () => {
                   x: 0,
                 }}
                 exit={{
-                  opacity: 0,
+                 opacity: 0,
                   x: -40,
                 }}
                 transition={textTransition}
