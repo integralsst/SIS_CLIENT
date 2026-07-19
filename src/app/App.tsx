@@ -71,6 +71,13 @@ const Professionals = lazy(
     )
 );
 
+const Supermatriz = lazy(
+  () =>
+    import(
+      "../features/supermatriz/pages/Supermatriz"
+    )
+);
+
 /* ======================================================
    PERMISOS
 ====================================================== */
@@ -83,6 +90,13 @@ const INTERNAL_ROLES: UserRole[] = [
 
 const USER_MANAGEMENT_ROLES: UserRole[] = [
   "CLIENT_ADMIN",
+  "ADMIN",
+  "OWNER",
+  "SUPERADMIN",
+];
+
+const SUPERMATRIZ_ROLES: UserRole[] = [
+  "PROFESSIONAL",
   "ADMIN",
   "OWNER",
   "SUPERADMIN",
@@ -220,6 +234,17 @@ function AppRoutes() {
                   allowedRoles={INTERNAL_ROLES}
                 >
                   <Professionals />
+                </RoleGuard>
+              }
+            />
+
+            <Route
+              path="supermatriz"
+              element={
+                <RoleGuard
+                  allowedRoles={SUPERMATRIZ_ROLES}
+                >
+                  <Supermatriz />
                 </RoleGuard>
               }
             />

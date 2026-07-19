@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  Table2,
   Users,
   X,
 } from "lucide-react";
@@ -73,6 +74,10 @@ export default function DashboardLayout() {
     isInternal ||
     user.role === "CLIENT_ADMIN";
 
+  const canViewSupermatriz =
+    isInternal ||
+    user.role === "PROFESSIONAL";
+
   const items = [
     {
       to: "/dashboard",
@@ -100,6 +105,13 @@ export default function DashboardLayout() {
       label: "Profesionales",
       icon: BriefcaseBusiness,
       visible: isInternal,
+      exact: false,
+    },
+    {
+      to: "/dashboard/supermatriz",
+      label: "Supermatriz",
+      icon: Table2,
+      visible: canViewSupermatriz,
       exact: false,
     },
   ];
