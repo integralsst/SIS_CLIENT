@@ -78,6 +78,9 @@ export default function Supermatriz() {
       "filas"
     );
 
+  const [processPresetId, setProcessPresetId] =
+    useState<number | null>(null);
+
   const canAdminister =
     Boolean(
       user &&
@@ -346,6 +349,12 @@ export default function Supermatriz() {
                 matrix.loadingCatalogs
               }
               canEdit={canEdit}
+              initialProcessId={
+                processPresetId
+              }
+              onInitialProcessConsumed={() =>
+                setProcessPresetId(null)
+              }
               onFiltersChange={
                 matrix.updateFilters
               }
@@ -411,6 +420,22 @@ export default function Supermatriz() {
               onDeactivateProcess={
                 matrix.deactivateProcess
               }
+              onShowRows={(process) => {
+                matrix.updateFilters({
+                  procesoId: String(process.id),
+                  pagina: 1,
+                });
+                setProcessPresetId(null);
+                setActiveTab("filas");
+              }}
+              onCreateRow={(process) => {
+                matrix.updateFilters({
+                  procesoId: "",
+                  pagina: 1,
+                });
+                setProcessPresetId(process.id);
+                setActiveTab("filas");
+              }}
             />
           )}
 

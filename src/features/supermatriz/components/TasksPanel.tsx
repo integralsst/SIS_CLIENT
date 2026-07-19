@@ -3,6 +3,7 @@ import {
   Rows3,
 } from "lucide-react";
 import {
+  useEffect,
   useState,
 } from "react";
 
@@ -13,6 +14,7 @@ import type {
   MatrixTaskListResponse,
   MatrixTaskPayload,
 } from "../types/supermatriz.types";
+import MatrixTaskDetailModal from "./MatrixTaskDetailModal";
 import SupermatrizFilters from "./SupermatrizFilters";
 import SupermatrizTable from "./SupermatrizTable";
 import SupermatrizTaskModal from "./SupermatrizTaskModal";
@@ -24,6 +26,8 @@ interface Props {
   result: MatrixTaskListResponse;
   loading: boolean;
   canEdit: boolean;
+  initialProcessId?: number | null;
+  onInitialProcessConsumed?: () => void;
   onFiltersChange: (
     patch: Partial<MatrixFilters>
   ) => void;
@@ -43,36 +47,49 @@ export default function TasksPanel({
   result,
   loading,
   canEdit,
+  initialProcessId = null,
+  onInitialProcessConsumed,
   onFiltersChange,
   onSave,
   onDeactivate,
 }: Props) {
-  const [
-    editingTask,
-    setEditingTask,
-  ] = useState<MatrixTask | null>(
-    null
-  );
-  const [modalOpen, setModalOpen] =
-    useState(false);
+  const [editingTask, setEditingTask] = useState<MatrixTask | null>(null);
+  const [viewingTask, setViewingTask] = useState<MatrixTask | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [processPresetId, setProcessPresetId] = useState<number | null>(null);
 
-  async function deactivate(
-    task: MatrixTask
-  ) {
+  useEffect(() => {
+    if (!initialProcessId || !canEdit) return;
+
+    setEditingTask(null);
+    setProcessPresetId(initialProcessId);
+    setModalOpen(true);
+    onInitialProcessConsumed?.();
+  }, [initialProcessId, canEdit, onInitialProcessConsumed]);
+
+  async function deactivate(task: MatrixTask) {
     if (
       !window.confirm(
-        `¿Deseas desactivar la fila "${
-          task.codigo ??
-          task.id
-        }"?`
+        `¿Deseas desactivar la fila "${task.codigo ?? task.id}"?`
       )
     ) {
       return;
     }
 
-    await onDeactivate(
-      task.id
-    );
+    await onDeactivate(task.id);
+  }
+
+  function openNewTask(processId: number | null = null) {
+    setEditingTask(null);
+    setProcessPresetId(processId);
+    setModalOpen(true);
+  }
+
+  function openEditTask(task: MatrixTask) {
+    setViewingTask(null);
+    setProcessPresetId(null);
+    setEditingTask(task);
+    setModalOpen(true);
   }
 
   return (
@@ -95,19 +112,10 @@ export default function TasksPanel({
         {canEdit && (
           <button
             type="button"
-            onClick={() => {
-              setEditingTask(
-                null
-              );
-              setModalOpen(
-                true
-              );
-            }}
+            onClick={() => openNewTask()}
             disabled={
-              catalogs.aspectos
-                .length === 0 ||
-              catalogs.procesos
-                .length === 0
+              catalogs.aspectos.length === 0 ||
+              catalogs.procesos.length === 0
             }
             className="flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-black disabled:cursor-not-allowed disabled:opacity-40"
           >
@@ -119,53 +127,37 @@ export default function TasksPanel({
 
       {!canEdit && (
         <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-300">
-          La versión seleccionada es de solo lectura. Clónala para crear o modificar filas.
+          La versión seleccionada es de solo lectura. Puedes abrir el detalle completo de cada fila, pero debes clonar la versión para modificarla.
         </div>
       )}
 
       <SupermatrizFilters
         catalogs={catalogs}
         filters={filters}
-        onChange={
-          onFiltersChange
-        }
+        onChange={onFiltersChange}
       />
 
       <SupermatrizTable
         tasks={result.items}
         loading={loading}
         canEdit={canEdit}
-        onEdit={(task) => {
-          setEditingTask(task);
-          setModalOpen(true);
-        }}
-        onDeactivate={(task) =>
-          void deactivate(task)
-        }
+        onView={setViewingTask}
+        onEdit={openEditTask}
+        onDeactivate={(task) => void deactivate(task)}
       />
 
       <div className="flex flex-col items-center justify-between gap-3 rounded-2xl border border-neutral-800/70 bg-[#111111] px-4 py-3 text-xs text-neutral-500 sm:flex-row">
         <span>
-          Mostrando{" "}
-          {result.items.length} de{" "}
-          {
-            result.paginacion
-              .total
-          }{" "}
-          filas
+          Mostrando {result.items.length} de {result.paginacion.total} filas
         </span>
 
         <div className="flex gap-2">
           <button
             type="button"
-            disabled={
-              filters.pagina <= 1
-            }
+            disabled={filters.pagina <= 1}
             onClick={() =>
               onFiltersChange({
-                pagina:
-                  filters.pagina -
-                  1,
+                pagina: filters.pagina - 1,
               })
             }
             className="rounded-lg border border-neutral-800 px-3 py-2 disabled:opacity-40"
@@ -174,16 +166,10 @@ export default function TasksPanel({
           </button>
           <button
             type="button"
-            disabled={
-              filters.pagina >=
-              result.paginacion
-                .totalPaginas
-            }
+            disabled={filters.pagina >= result.paginacion.totalPaginas}
             onClick={() =>
               onFiltersChange({
-                pagina:
-                  filters.pagina +
-                  1,
+                pagina: filters.pagina + 1,
               })
             }
             className="rounded-lg border border-neutral-800 px-3 py-2 disabled:opacity-40"
@@ -197,19 +183,22 @@ export default function TasksPanel({
         open={modalOpen}
         task={editingTask}
         catalogs={catalogs}
-        versionSupermatrizId={
-          versionSupermatrizId
-        }
+        versionSupermatrizId={versionSupermatrizId}
+        initialProcessId={processPresetId}
         onClose={() => {
           setModalOpen(false);
           setEditingTask(null);
+          setProcessPresetId(null);
         }}
-        onSave={(payload) =>
-          onSave(
-            editingTask,
-            payload
-          )
-        }
+        onSave={(payload) => onSave(editingTask, payload)}
+      />
+
+      <MatrixTaskDetailModal
+        open={Boolean(viewingTask)}
+        task={viewingTask}
+        canEdit={canEdit}
+        onClose={() => setViewingTask(null)}
+        onEdit={openEditTask}
       />
     </div>
   );
