@@ -13,6 +13,7 @@ import {
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ChangeEvent,
   type FormEvent,
@@ -104,6 +105,7 @@ export default function SupermatrizTaskModal({
   const [managementCategoryIds, setManagementCategoryIds] = useState<number[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const submitLockRef = useRef(false);
 
   useEffect(() => {
     if (!open) return;
@@ -128,6 +130,8 @@ export default function SupermatrizTaskModal({
     setManagementCategoryIds(
       task?.categoriasGestion.map((item) => item.categoriaGestionId) ?? []
     );
+    submitLockRef.current = false;
+    setSaving(false);
     setError(null);
   }, [open, task, initialProcessId]);
 
@@ -219,6 +223,10 @@ export default function SupermatrizTaskModal({
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    if (saving || submitLockRef.current) {
+      return;
+    }
+
     for (const stepToValidate of [1, 2, 3] as Step[]) {
       const validationError = validateStep(stepToValidate);
       if (validationError) {
@@ -228,11 +236,12 @@ export default function SupermatrizTaskModal({
       }
     }
 
+    submitLockRef.current = true;
     setSaving(true);
     setError(null);
 
     try {
-      await onSave({
+      const result = await onSave({
         versionSupermatrizId,
         aspectoId: Number(aspectId),
         procesoId: Number(processId),
@@ -247,6 +256,15 @@ export default function SupermatrizTaskModal({
         categoriaGestionIds: managementCategoryIds,
       });
 
+      if (
+        result &&
+        typeof result === "object" &&
+        "error" in result &&
+        typeof result.error === "string"
+      ) {
+        throw new Error(result.error);
+      }
+
       onClose();
     } catch (requestError) {
       const message =
@@ -254,8 +272,16 @@ export default function SupermatrizTaskModal({
           ? requestError.message
           : "No fue posible guardar la fila.";
 
+      if (
+        message.toLowerCase().includes("ya existe una fila") ||
+        message.toLowerCase().includes("relaciona este aspecto con este proceso")
+      ) {
+        setStep(1);
+      }
+
       setError(message);
     } finally {
+      submitLockRef.current = false;
       setSaving(false);
     }
   }
