@@ -164,6 +164,12 @@ export function useSupermatrizAdmin(
   const [loadingHistory, setLoadingHistory] =
     useState(false);
 
+  const [refreshing, setRefreshing] =
+    useState(false);
+
+  const [mutating, setMutating] =
+    useState(false);
+
   const [error, setError] =
     useState<string | null>(null);
 
@@ -398,14 +404,28 @@ export function useSupermatrizAdmin(
 
   const refreshAll =
     useCallback(async () => {
-      await loadVersions();
-      await Promise.all([
-        loadCatalogs(),
-        loadTasks(),
-        loadHistory(
-          history.paginacion.pagina
-        ),
-      ]);
+      setRefreshing(true);
+      setError(null);
+
+      try {
+        await loadVersions();
+        await Promise.all([
+          loadCatalogs(),
+          loadTasks(),
+          loadHistory(
+            history.paginacion.pagina
+          ),
+        ]);
+      } catch (requestError) {
+        setError(
+          requestError instanceof Error
+            ? requestError.message
+            : "No fue posible actualizar la Supermatriz."
+        );
+        throw requestError;
+      } finally {
+        setRefreshing(false);
+      }
     }, [
       loadVersions,
       loadCatalogs,
@@ -450,28 +470,39 @@ export function useSupermatrizAdmin(
     }
   ): Promise<T> {
     setError(null);
+    setMutating(true);
 
-    const result =
-      await action();
+    try {
+      const result = await action();
 
-    await Promise.all([
-      options?.versions
-        ? loadVersions()
-        : Promise.resolve(),
-      options?.catalogs
-        ? loadCatalogs()
-        : Promise.resolve(),
-      options?.tasks
-        ? loadTasks()
-        : Promise.resolve(),
-      options?.history
-        ? loadHistory(
-            history.paginacion.pagina
-          )
-        : Promise.resolve(),
-    ]);
+      await Promise.all([
+        options?.versions
+          ? loadVersions()
+          : Promise.resolve(),
+        options?.catalogs
+          ? loadCatalogs()
+          : Promise.resolve(),
+        options?.tasks
+          ? loadTasks()
+          : Promise.resolve(),
+        options?.history
+          ? loadHistory(
+              history.paginacion.pagina
+            )
+          : Promise.resolve(),
+      ]);
 
-    return result;
+      return result;
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "No fue posible completar la operación."
+      );
+      throw requestError;
+    } finally {
+      setMutating(false);
+    }
   }
 
   return {
@@ -487,6 +518,8 @@ export function useSupermatrizAdmin(
     loadingCatalogs,
     loadingTasks,
     loadingHistory,
+    refreshing,
+    mutating,
     error,
     setSelectedVersionId,
     updateFilters,
@@ -600,6 +633,7 @@ export function useSupermatrizAdmin(
                 payload
               ),
         {
+          catalogs: true,
           tasks: true,
           history: true,
         }
@@ -615,6 +649,7 @@ export function useSupermatrizAdmin(
             id
           ),
         {
+          catalogs: true,
           tasks: true,
           history: true,
         }

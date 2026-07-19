@@ -7,6 +7,12 @@ import {
   useState,
 } from "react";
 
+import {
+  confirmAction,
+  errorMessage,
+  showErrorAlert,
+  showSuccessToast,
+} from "../../../lib/stack44-alerts";
 import type {
   MatrixCatalogs,
   MatrixFilters,
@@ -57,6 +63,7 @@ export default function TasksPanel({
   const [viewingTask, setViewingTask] = useState<MatrixTask | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [processPresetId, setProcessPresetId] = useState<number | null>(null);
+  const [deactivatingTaskId, setDeactivatingTaskId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!initialProcessId || !canEdit) return;
@@ -68,15 +75,47 @@ export default function TasksPanel({
   }, [initialProcessId, canEdit, onInitialProcessConsumed]);
 
   async function deactivate(task: MatrixTask) {
-    if (
-      !window.confirm(
-        `¿Deseas desactivar la fila "${task.codigo ?? task.id}"?`
-      )
-    ) {
-      return;
-    }
+    const confirmation = await confirmAction({
+      icon: "warning",
+      title: "¿Desactivar esta fila?",
+      text: `La fila “${task.codigo ?? `#${task.id}`}” dejará de utilizarse, pero permanecerá en el historial de la versión.`,
+      confirmText: "Sí, desactivar",
+      cancelText: "Cancelar",
+      danger: true,
+    });
 
-    await onDeactivate(task.id);
+    if (!confirmation.isConfirmed) return;
+
+    setDeactivatingTaskId(task.id);
+
+    try {
+      await onDeactivate(task.id);
+      setViewingTask(null);
+
+      void showSuccessToast(
+        "Fila desactivada",
+        "La tabla y los contadores se actualizaron automáticamente."
+      );
+    } catch (error) {
+      await showErrorAlert(
+        "No se pudo desactivar la fila",
+        errorMessage(error)
+      );
+    } finally {
+      setDeactivatingTaskId(null);
+    }
+  }
+
+  async function saveTask(payload: MatrixTaskPayload) {
+    const wasEditing = Boolean(editingTask);
+    const result = await onSave(editingTask, payload);
+
+    void showSuccessToast(
+      wasEditing ? "Fila actualizada" : "Fila creada",
+      "La información y los contadores ya están actualizados."
+    );
+
+    return result;
   }
 
   function openNewTask(processId: number | null = null) {
@@ -117,7 +156,7 @@ export default function TasksPanel({
               catalogs.aspectos.length === 0 ||
               catalogs.procesos.length === 0
             }
-            className="flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-black disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-black transition hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-40"
           >
             <Plus size={17} />
             Nueva fila
@@ -141,6 +180,7 @@ export default function TasksPanel({
         tasks={result.items}
         loading={loading}
         canEdit={canEdit}
+        deactivatingTaskId={deactivatingTaskId}
         onView={setViewingTask}
         onEdit={openEditTask}
         onDeactivate={(task) => void deactivate(task)}
@@ -154,7 +194,7 @@ export default function TasksPanel({
         <div className="flex gap-2">
           <button
             type="button"
-            disabled={filters.pagina <= 1}
+            disabled={filters.pagina <= 1 || loading}
             onClick={() =>
               onFiltersChange({
                 pagina: filters.pagina - 1,
@@ -166,7 +206,9 @@ export default function TasksPanel({
           </button>
           <button
             type="button"
-            disabled={filters.pagina >= result.paginacion.totalPaginas}
+            disabled={
+              filters.pagina >= result.paginacion.totalPaginas || loading
+            }
             onClick={() =>
               onFiltersChange({
                 pagina: filters.pagina + 1,
@@ -190,7 +232,7 @@ export default function TasksPanel({
           setEditingTask(null);
           setProcessPresetId(null);
         }}
-        onSave={(payload) => onSave(editingTask, payload)}
+        onSave={saveTask}
       />
 
       <MatrixTaskDetailModal

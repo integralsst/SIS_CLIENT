@@ -2,6 +2,7 @@ import {
   FileClock,
   GitBranch,
   Layers3,
+  Loader2,
   RefreshCw,
   Rows3,
   Settings2,
@@ -13,6 +14,11 @@ import {
 } from "react";
 
 import AppSelect from "../../../components/ui/AppSelect";
+import {
+  errorMessage,
+  showErrorAlert,
+  showSuccessToast,
+} from "../../../lib/stack44-alerts";
 import { useAuth } from "../../auth/context/AuthContext";
 import HistoryPanel from "../components/HistoryPanel";
 import ProcessManager from "../components/ProcessManager";
@@ -142,7 +148,16 @@ export default function Supermatriz() {
   }
 
   return (
-    <div className="mx-auto max-w-[1800px] space-y-6">
+    <div className="relative mx-auto max-w-[1800px] space-y-6">
+      {(matrix.refreshing || matrix.mutating) && (
+        <div className="sticky top-0 z-40 flex items-center justify-center gap-2 rounded-xl border border-cyan-500/20 bg-[#071013]/95 px-4 py-2 text-xs font-semibold text-cyan-300 shadow-xl backdrop-blur">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          {matrix.refreshing
+            ? "Actualizando la Supermatriz…"
+            : "Guardando cambios y sincronizando tablas…"}
+        </div>
+      )}
+
       <header className="rounded-[2rem] border border-neutral-800/70 bg-[#111111] p-5 sm:p-7">
         <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
           <div>
@@ -203,15 +218,29 @@ export default function Supermatriz() {
 
             <button
               type="button"
-              onClick={() =>
-                void matrix.refreshAll()
-              }
-              className="flex items-center justify-center gap-2 rounded-xl border border-neutral-800 bg-[#0a0a0a] px-4 py-2.5 text-sm text-neutral-300 hover:text-white"
+              disabled={matrix.refreshing || matrix.mutating}
+              onClick={async () => {
+                try {
+                  await matrix.refreshAll();
+                  void showSuccessToast(
+                    "Supermatriz actualizada",
+                    "La información visible ya corresponde a los datos más recientes."
+                  );
+                } catch (requestError) {
+                  await showErrorAlert(
+                    "No se pudo actualizar",
+                    errorMessage(requestError)
+                  );
+                }
+              }}
+              className="flex items-center justify-center gap-2 rounded-xl border border-neutral-800 bg-[#0a0a0a] px-4 py-2.5 text-sm text-neutral-300 transition hover:text-white disabled:cursor-wait disabled:opacity-50"
             >
-              <RefreshCw
-                size={16}
-              />
-              Actualizar
+              {matrix.refreshing ? (
+                <Loader2 size={16} className="animate-spin text-cyan-400" />
+              ) : (
+                <RefreshCw size={16} />
+              )}
+              {matrix.refreshing ? "Actualizando…" : "Actualizar"}
             </button>
           </div>
         </div>

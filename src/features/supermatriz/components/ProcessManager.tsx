@@ -2,12 +2,20 @@ import {
   Edit2,
   Eye,
   Link2,
+  Loader2,
   Plus,
   Rows3,
   Trash2,
 } from "lucide-react";
 import { useState } from "react";
 
+import {
+  confirmAction,
+  errorMessage,
+  showErrorAlert,
+  showInfo,
+  showSuccessToast,
+} from "../../../lib/stack44-alerts";
 import type {
   MatrixCatalogs,
   ProcessCatalog,
@@ -40,17 +48,77 @@ export default function ProcessManager({
 }: Props) {
   const [current, setCurrent] = useState<ProcessCatalog | null>(null);
   const [open, setOpen] = useState(false);
+  const [deactivatingId, setDeactivatingId] = useState<number | null>(null);
 
   async function deactivate(process: ProcessCatalog) {
-    if (
-      !window.confirm(
-        `¿Deseas desactivar el proceso "${process.nombre}"?`
-      )
-    ) {
+    const activeRows = process._count?.tareas ?? 0;
+
+    if (activeRows > 0) {
+      const result = await showInfo({
+        icon: "warning",
+        title: "Este proceso todavía está en uso",
+        text:
+          activeRows === 1
+            ? `No puedes desactivar “${process.nombre}” porque una fila activa lo utiliza. Desactiva esa fila o asígnale otro proceso primero.`
+            : `No puedes desactivar “${process.nombre}” porque ${activeRows} filas activas lo utilizan. Desactiva esas filas o asígnales otro proceso primero.`,
+        confirmText: "Ver filas activas",
+        cancelText: "Cerrar",
+        showCancelButton: true,
+      });
+
+      if (result.isConfirmed) {
+        onShowRows(process);
+      }
+
       return;
     }
 
-    await onDeactivateProcess(process.id);
+    const confirmation = await confirmAction({
+      icon: "warning",
+      title: "¿Desactivar este proceso?",
+      text: `El proceso “${process.nombre}” dejará de estar disponible para nuevas filas. Podrás conservarlo en el historial.`,
+      confirmText: "Sí, desactivar",
+      cancelText: "Cancelar",
+      danger: true,
+    });
+
+    if (!confirmation.isConfirmed) return;
+
+    setDeactivatingId(process.id);
+
+    try {
+      await onDeactivateProcess(process.id);
+      void showSuccessToast(
+        "Proceso desactivado",
+        `“${process.nombre}” ya no está disponible para nuevas filas.`
+      );
+    } catch (error) {
+      await showErrorAlert(
+        "No se pudo desactivar",
+        errorMessage(
+          error,
+          "No se puede desactivar el proceso mientras tenga filas activas."
+        )
+      );
+    } finally {
+      setDeactivatingId(null);
+    }
+  }
+
+  async function saveProcess(
+    process: ProcessCatalog | null,
+    payload: Parameters<Props["onSaveProcess"]>[1]
+  ) {
+    const result = await onSaveProcess(process, payload);
+
+    void showSuccessToast(
+      process ? "Proceso actualizado" : "Proceso creado",
+      process
+        ? "Los cambios ya aparecen en la tabla."
+        : "Ya puedes relacionarlo con uno o varios aspectos desde Filas."
+    );
+
+    return result;
   }
 
   return (
@@ -72,7 +140,7 @@ export default function ProcessManager({
               setCurrent(null);
               setOpen(true);
             }}
-            className="flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-black"
+            className="flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-black transition hover:bg-neutral-200"
           >
             <Plus size={17} />
             Nuevo proceso
@@ -94,7 +162,7 @@ export default function ProcessManager({
         <ExplanationCard
           number="3"
           title="El contador cambia solo"
-          text="Cuando el proceso se use en una fila, la columna Filas pasa de 0 a 1, 2, 3 o más."
+          text="Cuando el proceso se use en una fila, el contador se actualizará automáticamente."
         />
       </div>
 
@@ -111,7 +179,7 @@ export default function ProcessManager({
               <tr className="text-left text-[10px] font-bold uppercase tracking-wider text-neutral-500">
                 <th className="px-5 py-4">Código</th>
                 <th className="px-5 py-4">Proceso</th>
-                <th className="px-5 py-4">Filas relacionadas</th>
+                <th className="px-5 py-4">Filas activas</th>
                 <th className="px-5 py-4">Estado</th>
                 <th className="px-5 py-4 text-right">Acciones</th>
               </tr>
@@ -120,9 +188,10 @@ export default function ProcessManager({
             <tbody className="divide-y divide-neutral-800/70">
               {catalogs.procesos.map((process) => {
                 const rows = process._count?.tareas ?? 0;
+                const isDeactivating = deactivatingId === process.id;
 
                 return (
-                  <tr key={process.id} className="text-sm">
+                  <tr key={process.id} className="text-sm transition-colors hover:bg-neutral-800/20">
                     <td className="px-5 py-4 font-mono text-xs text-cyan-400">
                       {process.codigo ?? "—"}
                     </td>
@@ -136,8 +205,8 @@ export default function ProcessManager({
                       <button
                         type="button"
                         onClick={() => onShowRows(process)}
-                        className="group flex items-center gap-3 rounded-xl border border-neutral-800 bg-[#090909] px-3 py-2 text-left hover:border-cyan-500/20 hover:bg-cyan-500/5"
-                        title="Ver las filas que utilizan este proceso"
+                        className="group flex min-w-[176px] items-center gap-3 rounded-xl border border-neutral-800 bg-[#090909] px-3 py-2 text-left transition hover:border-cyan-500/30 hover:bg-cyan-500/5"
+                        title="Ver las filas activas que utilizan este proceso"
                       >
                         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-neutral-800 text-cyan-400 group-hover:bg-cyan-500/10">
                           <Rows3 size={15} />
@@ -145,7 +214,9 @@ export default function ProcessManager({
                         <div>
                           <p className="font-bold text-white">{rows}</p>
                           <p className="text-[10px] text-neutral-600">
-                            {rows === 1 ? "fila utiliza este proceso" : "filas utilizan este proceso"}
+                            {rows === 1
+                              ? "fila activa utiliza este proceso"
+                              : "filas activas utilizan este proceso"}
                           </p>
                         </div>
                       </button>
@@ -158,7 +229,7 @@ export default function ProcessManager({
                         <button
                           type="button"
                           onClick={() => onShowRows(process)}
-                          className="flex h-9 w-9 items-center justify-center rounded-xl border border-cyan-500/20 text-cyan-400 hover:bg-cyan-500/10"
+                          className="flex h-9 w-9 items-center justify-center rounded-xl border border-cyan-500/20 text-cyan-400 transition hover:bg-cyan-500/10"
                           title="Ver filas relacionadas"
                         >
                           <Eye size={15} />
@@ -168,7 +239,7 @@ export default function ProcessManager({
                           <button
                             type="button"
                             onClick={() => onCreateRow(process)}
-                            className="flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/10"
+                            className="flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-500/20 text-emerald-400 transition hover:bg-emerald-500/10"
                             title="Crear una fila utilizando este proceso"
                           >
                             <Link2 size={15} />
@@ -183,7 +254,8 @@ export default function ProcessManager({
                                 setCurrent(process);
                                 setOpen(true);
                               }}
-                              className="flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-800 text-neutral-400 hover:text-white"
+                              disabled={isDeactivating}
+                              className="flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-800 text-neutral-400 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
                               title="Editar proceso"
                             >
                               <Edit2 size={15} />
@@ -192,10 +264,19 @@ export default function ProcessManager({
                             <button
                               type="button"
                               onClick={() => void deactivate(process)}
-                              className="flex h-9 w-9 items-center justify-center rounded-xl border border-red-500/20 text-red-400"
-                              title="Desactivar proceso"
+                              disabled={isDeactivating}
+                              className="flex h-9 w-9 items-center justify-center rounded-xl border border-red-500/20 text-red-400 transition hover:bg-red-500/10 disabled:cursor-wait disabled:opacity-60"
+                              title={
+                                rows > 0
+                                  ? "No se puede desactivar mientras tenga filas activas"
+                                  : "Desactivar proceso"
+                              }
                             >
-                              <Trash2 size={15} />
+                              {isDeactivating ? (
+                                <Loader2 size={15} className="animate-spin" />
+                              ) : (
+                                <Trash2 size={15} />
+                              )}
                             </button>
                           </>
                         )}
@@ -216,7 +297,7 @@ export default function ProcessManager({
       </section>
 
       <div className="rounded-2xl border border-neutral-800 bg-[#0a0a0a] p-4 text-xs leading-6 text-neutral-500">
-        <strong className="text-neutral-300">Qué hace cada acción:</strong> el ojo muestra las filas relacionadas; el eslabón crea una fila con el proceso ya seleccionado; el lápiz modifica únicamente el nombre o descripción del proceso; la papelera lo desactiva cuando no tiene dependencias activas.
+        <strong className="text-neutral-300">Qué hace cada acción:</strong> el ojo muestra las filas relacionadas; el eslabón crea una fila con el proceso ya seleccionado; el lápiz modifica el proceso; la papelera solo lo desactiva cuando no existen filas activas que dependan de él.
       </div>
 
       <CatalogEditorModal
@@ -232,7 +313,7 @@ export default function ProcessManager({
         onSaveCycle={async () => undefined}
         onSaveCategory={async () => undefined}
         onSaveStandard={async () => undefined}
-        onSaveProcess={onSaveProcess}
+        onSaveProcess={saveProcess}
       />
     </div>
   );
