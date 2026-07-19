@@ -35,6 +35,7 @@ interface Props {
   ) => Promise<unknown>;
   onShowRows: (process: ProcessCatalog) => void;
   onCreateRow: (process: ProcessCatalog) => void;
+  onProcessSaved: () => void;
 }
 
 export default function ProcessManager({
@@ -45,6 +46,7 @@ export default function ProcessManager({
   onDeactivateProcess,
   onShowRows,
   onCreateRow,
+  onProcessSaved,
 }: Props) {
   const [current, setCurrent] = useState<ProcessCatalog | null>(null);
   const [open, setOpen] = useState(false);
@@ -105,21 +107,38 @@ export default function ProcessManager({
     }
   }
 
-  async function saveProcess(
-    process: ProcessCatalog | null,
-    payload: Parameters<Props["onSaveProcess"]>[1]
-  ) {
-    const result = await onSaveProcess(process, payload);
-
-    void showSuccessToast(
-      process ? "Proceso actualizado" : "Proceso creado",
-      process
-        ? "Los cambios ya aparecen en la tabla."
-        : "Ya puedes relacionarlo con uno o varios aspectos desde Filas."
+ async function saveProcess(
+  process: ProcessCatalog | null,
+  payload: Parameters<
+    Props["onSaveProcess"]
+  >[1]
+) {
+  const result =
+    await onSaveProcess(
+      process,
+      payload
     );
 
-    return result;
-  }
+  /*
+   * Después de guardar o actualizar un proceso,
+   * conservamos abierta la pestaña Procesos.
+   *
+   * El usuario solo irá a Filas cuando pulse
+   * manualmente el botón de eslabón.
+   */
+  onProcessSaved();
+
+  void showSuccessToast(
+    process
+      ? "Proceso actualizado"
+      : "Proceso creado",
+    process
+      ? "Los cambios ya aparecen en la lista de procesos."
+      : "El proceso fue creado. Permanecerás en Procesos hasta que decidas relacionarlo con una fila."
+  );
+
+  return result;
+}
 
   return (
     <div className="space-y-5">

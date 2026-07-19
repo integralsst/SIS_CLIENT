@@ -465,6 +465,10 @@ export default function Supermatriz() {
                 setProcessPresetId(process.id);
                 setActiveTab("filas");
               }}
+              onProcessSaved={() => {
+  setProcessPresetId(null);
+  setActiveTab("procesos");
+}}
             />
           )}
 
