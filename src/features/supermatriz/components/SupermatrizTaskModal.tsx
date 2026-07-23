@@ -560,14 +560,31 @@ function RelationStep({
             onChange={(event: ChangeEvent<HTMLSelectElement>) => onAspectChange(event.target.value)}
           >
             <option value="">Selecciona un aspecto</option>
-            {catalogs.aspectos
-              .filter((item) => item.estado === "ACTIVO")
-              .map((aspect) => (
-                <option key={aspect.id} value={aspect.id}>
-                  {aspect.codigo ? `${aspect.codigo} · ` : ""}
-                  {aspect.nombre}
-                </option>
-              ))}
+            {catalogs.estandares
+              .filter((standard) => standard.estado === "ACTIVO")
+              .map((standard) => {
+                const aspects = catalogs.aspectos.filter(
+                  (item) =>
+                    item.estado === "ACTIVO" &&
+                    item.estandarId === standard.id
+                );
+
+                if (aspects.length === 0) return null;
+
+                return (
+                  <optgroup
+                    key={standard.id}
+                    label={`${standard.codigo ? `${standard.codigo}. ` : ""}${standard.nombre}`}
+                  >
+                    {aspects.map((aspect) => (
+                      <option key={aspect.id} value={aspect.id}>
+                        {aspect.codigo ? `${aspect.codigo} · ` : ""}
+                        {aspect.nombre}
+                      </option>
+                    ))}
+                  </optgroup>
+                );
+              })}
           </AppSelect>
         </Field>
       </div>
@@ -580,7 +597,7 @@ function RelationStep({
           <p className="mt-2 font-semibold text-white">{selectedProcess.nombre}</p>
           <p className="mt-1 text-xs leading-5 text-neutral-500">
             {selectedProcess.descripcion ||
-              "Este proceso todavía no tiene una descripción. Puedes agregarla desde la pestaña Procesos."}
+              "Este proceso todavía no tiene una descripción. Puedes editarlo pulsando su celda en la matriz."}
           </p>
         </div>
       )}
@@ -615,9 +632,9 @@ function RelationStep({
       )}
 
       <LearningTip>
-        No estás asignando una “fila” al proceso desde la pestaña Procesos. Aquí estás
-        creando la fila y eligiendo qué proceso utilizará. El contador de filas del
-        proceso se actualizará automáticamente después de guardar.
+        Aquí estás conectando un aspecto con un proceso. La matriz mantiene esa relación y
+        actualizará automáticamente los contadores después de guardar. Para crear un
+        proceso o aspecto nuevo, usa el botón “Crear estructura” de la pantalla principal.
       </LearningTip>
     </section>
   );

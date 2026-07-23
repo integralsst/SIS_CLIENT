@@ -478,8 +478,6 @@ export interface HistoryResponse {
 }
 
 export type SupermatrizTab =
-  | "filas"
-  | "estructura"
-  | "procesos"
+  | "matriz"
   | "versiones"
   | "historial";
