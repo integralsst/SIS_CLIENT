@@ -1,9 +1,10 @@
 import {
-  ChevronDown,
-  FilePlus2,
-  GitBranch,
+  ArrowRight,
+  ClipboardCheck,
+  FileText,
   Layers3,
   Plus,
+  Route,
   Rows3,
   Workflow,
 } from "lucide-react";
@@ -61,7 +62,9 @@ interface Props {
     current: MatrixTask | null,
     payload: MatrixTaskPayload
   ) => Promise<unknown>;
-  onDeactivateTask: (id: number) => Promise<unknown>;
+  onDeactivateTask: (
+    id: number
+  ) => Promise<unknown>;
   onSaveCycle: (
     current: PhvaCycle | null,
     payload: CyclePayload
@@ -82,11 +85,21 @@ interface Props {
     current: ProcessCatalog | null,
     payload: ProcessPayload
   ) => Promise<unknown>;
-  onDeactivateCycle: (id: number) => Promise<unknown>;
-  onDeactivateCategory: (id: number) => Promise<unknown>;
-  onDeactivateStandard: (id: number) => Promise<unknown>;
-  onDeactivateAspect: (id: number) => Promise<unknown>;
-  onDeactivateProcess: (id: number) => Promise<unknown>;
+  onDeactivateCycle: (
+    id: number
+  ) => Promise<unknown>;
+  onDeactivateCategory: (
+    id: number
+  ) => Promise<unknown>;
+  onDeactivateStandard: (
+    id: number
+  ) => Promise<unknown>;
+  onDeactivateAspect: (
+    id: number
+  ) => Promise<unknown>;
+  onDeactivateProcess: (
+    id: number
+  ) => Promise<unknown>;
 }
 
 interface CatalogEditorState {
@@ -102,6 +115,45 @@ const CLOSED_CATALOG_EDITOR: CatalogEditorState = {
   current: null,
   initialParentId: null,
 };
+
+const guideSteps = [
+  {
+    number: "1",
+    title: "Ciclo PHVA",
+    text: "Nivel superior",
+    icon: Route,
+  },
+  {
+    number: "2",
+    title: "Categoría",
+    text: "Agrupa estándares",
+    icon: Layers3,
+  },
+  {
+    number: "3",
+    title: "Estándar",
+    text: "Contiene aspectos",
+    icon: FileText,
+  },
+  {
+    number: "4",
+    title: "Aspecto",
+    text: "Punto evaluable",
+    icon: ClipboardCheck,
+  },
+  {
+    number: "5",
+    title: "Proceso",
+    text: "Forma de trabajo",
+    icon: Workflow,
+  },
+  {
+    number: "6",
+    title: "Fila",
+    text: "Une y ejecuta",
+    icon: Rows3,
+  },
+];
 
 export default function TasksPanel({
   versionSupermatrizId,
@@ -130,39 +182,60 @@ export default function TasksPanel({
     useState<MatrixTask | null>(null);
   const [viewingTask, setViewingTask] =
     useState<MatrixTask | null>(null);
-  const [taskModalOpen, setTaskModalOpen] =
+  const [wizardOpen, setWizardOpen] =
     useState(false);
   const [processPresetId, setProcessPresetId] =
     useState<number | null>(null);
   const [deactivatingTaskId, setDeactivatingTaskId] =
     useState<number | null>(null);
-  const [createMenuOpen, setCreateMenuOpen] =
-    useState(false);
   const [catalogEditor, setCatalogEditor] =
-    useState<CatalogEditorState>(CLOSED_CATALOG_EDITOR);
-  const [aspectEditor, setAspectEditor] = useState<{
-    open: boolean;
-    current: AspectCatalog | null;
-    initialStandardId: number | null;
-  }>({
-    open: false,
-    current: null,
-    initialStandardId: null,
-  });
+    useState<CatalogEditorState>(
+      CLOSED_CATALOG_EDITOR
+    );
+  const [aspectEditor, setAspectEditor] =
+    useState<{
+      open: boolean;
+      current: AspectCatalog | null;
+      initialStandardId: number | null;
+    }>({
+      open: false,
+      current: null,
+      initialStandardId: null,
+    });
 
   useEffect(() => {
-    if (!initialProcessId || !canEdit) return;
+    if (!initialProcessId || !canEdit) {
+      return;
+    }
 
     openNewTask(initialProcessId);
     onInitialProcessConsumed?.();
-  }, [initialProcessId, canEdit, onInitialProcessConsumed]);
+  }, [
+    initialProcessId,
+    canEdit,
+    onInitialProcessConsumed,
+  ]);
 
-  function openCatalog(
+  function openNewTask(
+    processId: number | null = null
+  ) {
+    setEditingTask(null);
+    setProcessPresetId(processId);
+    setWizardOpen(true);
+  }
+
+  function openEditTask(task: MatrixTask) {
+    setViewingTask(null);
+    setEditingTask(task);
+    setProcessPresetId(null);
+    setWizardOpen(true);
+  }
+
+  function openCatalogEditor(
     kind: CatalogEditorKind,
-    current: CatalogEditorRecord | null = null,
+    current: CatalogEditorRecord,
     initialParentId: number | null = null
   ) {
-    setCreateMenuOpen(false);
     setCatalogEditor({
       open: true,
       kind,
@@ -171,53 +244,51 @@ export default function TasksPanel({
     });
   }
 
-  function openAspect(
-    current: AspectCatalog | null = null,
-    initialStandardId: number | null = null
+  function openAspectEditor(
+    current: AspectCatalog
   ) {
-    setCreateMenuOpen(false);
     setAspectEditor({
       open: true,
       current,
-      initialStandardId,
+      initialStandardId:
+        current.estandarId,
     });
   }
 
-  function openNewTask(processId: number | null = null) {
-    setCreateMenuOpen(false);
-    setEditingTask(null);
-    setProcessPresetId(processId);
-    setTaskModalOpen(true);
-  }
-
-  function openEditTask(task: MatrixTask) {
-    setViewingTask(null);
-    setProcessPresetId(null);
-    setEditingTask(task);
-    setTaskModalOpen(true);
-  }
-
-  async function saveTask(payload: MatrixTaskPayload) {
-    const wasEditing = Boolean(editingTask);
-    const response = await onSaveTask(editingTask, payload);
+  async function saveTask(
+    payload: MatrixTaskPayload
+  ) {
+    const wasEditing =
+      Boolean(editingTask);
+    const response = await onSaveTask(
+      editingTask,
+      payload
+    );
 
     void showSuccessToast(
-      wasEditing ? "Fila actualizada" : "Fila creada",
-      "La tabla, los filtros y los contadores ya están sincronizados."
+      wasEditing
+        ? "Fila actualizada"
+        : "Fila creada",
+      wasEditing
+        ? "Los cambios ya aparecen en la matriz."
+        : "La estructura y la operación quedaron conectadas correctamente."
     );
 
     return response;
   }
 
-  async function deactivateTask(task: MatrixTask) {
-    const confirmation = await confirmAction({
-      icon: "warning",
-      title: "¿Desactivar esta fila?",
-      text: `La fila “${task.codigo ?? `#${task.id}`}” dejará de utilizarse, pero permanecerá en el historial de la versión.`,
-      confirmText: "Sí, desactivar",
-      cancelText: "Cancelar",
-      danger: true,
-    });
+  async function deactivateTask(
+    task: MatrixTask
+  ) {
+    const confirmation =
+      await confirmAction({
+        icon: "warning",
+        title: "¿Desactivar esta fila?",
+        text: `La fila “${task.codigo ?? `#${task.id}`}” dejará de utilizarse, pero permanecerá en el historial de la versión.`,
+        confirmText: "Sí, desactivar",
+        cancelText: "Cancelar",
+        danger: true,
+      });
 
     if (!confirmation.isConfirmed) return;
 
@@ -244,16 +315,19 @@ export default function TasksPanel({
     const record = catalogEditor.current;
     if (!record) return;
 
-    const confirmation = await confirmAction({
-      icon: "warning",
-      title: `¿Desactivar ${record.nombre}?`,
-      text: "El registro se conservará en el historial. Si todavía tiene elementos activos relacionados, el backend impedirá la operación para proteger la estructura.",
-      confirmText: "Sí, desactivar",
-      cancelText: "Cancelar",
-      danger: true,
-    });
+    const confirmation =
+      await confirmAction({
+        icon: "warning",
+        title: `¿Desactivar ${record.nombre}?`,
+        text: "El backend protegerá la operación si todavía existen elementos activos que dependen de este registro.",
+        confirmText: "Sí, desactivar",
+        cancelText: "Cancelar",
+        danger: true,
+      });
 
-    if (!confirmation.isConfirmed) return false;
+    if (!confirmation.isConfirmed) {
+      return false;
+    }
 
     switch (catalogEditor.kind) {
       case "ciclo":
@@ -272,7 +346,7 @@ export default function TasksPanel({
 
     void showSuccessToast(
       "Registro desactivado",
-      "La estructura visible ya fue actualizada."
+      "La matriz se actualizó automáticamente."
     );
 
     return true;
@@ -282,16 +356,19 @@ export default function TasksPanel({
     const aspect = aspectEditor.current;
     if (!aspect) return;
 
-    const confirmation = await confirmAction({
-      icon: "warning",
-      title: `¿Desactivar ${aspect.nombre}?`,
-      text: "El aspecto y su configuración permanecerán en el historial. Si está siendo usado por filas activas, el backend protegerá la relación.",
-      confirmText: "Sí, desactivar",
-      cancelText: "Cancelar",
-      danger: true,
-    });
+    const confirmation =
+      await confirmAction({
+        icon: "warning",
+        title: `¿Desactivar ${aspect.nombre}?`,
+        text: "Si el aspecto está siendo utilizado por filas activas, el backend impedirá la operación para proteger la relación.",
+        confirmText: "Sí, desactivar",
+        cancelText: "Cancelar",
+        danger: true,
+      });
 
-    if (!confirmation.isConfirmed) return false;
+    if (!confirmation.isConfirmed) {
+      return false;
+    }
 
     await onDeactivateAspect(aspect.id);
     void showSuccessToast(
@@ -302,13 +379,9 @@ export default function TasksPanel({
     return true;
   }
 
-  const canCreateRow =
-    catalogs.aspectos.some((item) => item.estado === "ACTIVO") &&
-    catalogs.procesos.some((item) => item.estado === "ACTIVO");
-
   return (
     <div className="space-y-5">
-      <header className="rounded-2xl border border-neutral-800/70 bg-[#111111] p-4 sm:p-5">
+      <header className="rounded-2xl border border-neutral-800/70 bg-[#111111] p-5">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex items-start gap-3">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-cyan-500/20 bg-cyan-500/10 text-cyan-400">
@@ -316,75 +389,34 @@ export default function TasksPanel({
             </div>
             <div>
               <h2 className="text-lg font-bold text-white">
-                Matriz maestra editable
+                Constructor de la Supermatriz
               </h2>
               <p className="mt-1 max-w-3xl text-sm leading-6 text-neutral-500">
-                Todo se administra desde aquí. Crea la estructura con el botón <strong className="text-neutral-300">Crear</strong> o pulsa directamente una celda para editar lo que está conectado.
+                Cada tarjeta representa una fila completa. El asistente te guía para crear la ruta, el aspecto, el proceso y la ejecución sin saltar entre pestañas.
               </p>
             </div>
           </div>
 
           {canEdit && (
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <button
-                type="button"
-                onClick={() => openNewTask()}
-                disabled={!canCreateRow}
-                className="flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-black transition hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-40"
-                title={
-                  canCreateRow
-                    ? "Crear una fila completa"
-                    : "Primero crea por lo menos un aspecto y un proceso"
-                }
-              >
-                <Plus size={17} />
-                Nueva fila
-              </button>
-
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setCreateMenuOpen((current) => !current)
-                  }
-                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-cyan-500/20 bg-cyan-500/10 px-4 py-2.5 text-sm font-semibold text-cyan-300 hover:bg-cyan-500/15"
-                >
-                  <FilePlus2 size={17} />
-                  Crear estructura
-                  <ChevronDown
-                    size={15}
-                    className={`transition-transform ${
-                      createMenuOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-
-                {createMenuOpen && (
-                  <CreateMenu
-                    onCreateCycle={() => openCatalog("ciclo")}
-                    onCreateCategory={() =>
-                      openCatalog("categoria")
-                    }
-                    onCreateStandard={() =>
-                      openCatalog("estandar")
-                    }
-                    onCreateAspect={() => openAspect()}
-                    onCreateProcess={() =>
-                      openCatalog("proceso")
-                    }
-                  />
-                )}
-              </div>
-            </div>
+            <button
+              type="button"
+              onClick={() => openNewTask()}
+              className="flex min-h-11 items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-bold text-black transition hover:bg-neutral-200"
+            >
+              <Plus size={17} />
+              Construir nueva fila
+            </button>
           )}
         </div>
-
-        {!canEdit && (
-          <div className="mt-4 rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm leading-6 text-amber-300">
-            Esta versión es de solo lectura. Puedes consultar toda la matriz, pero debes clonar la versión para crear o modificar registros.
-          </div>
-        )}
       </header>
+
+      {!canEdit && (
+        <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-300">
+          La versión seleccionada es de solo lectura. Puedes consultar cada fila, pero debes clonar la versión para modificarla.
+        </div>
+      )}
+
+      <StructureGuide />
 
       <SupermatrizFilters
         catalogs={catalogs}
@@ -396,20 +428,40 @@ export default function TasksPanel({
         tasks={result.items}
         loading={loading}
         canEdit={canEdit}
-        deactivatingTaskId={deactivatingTaskId}
+        deactivatingTaskId={
+          deactivatingTaskId
+        }
         onView={setViewingTask}
-        onEditTask={openEditTask}
-        onDeactivate={(task) => void deactivateTask(task)}
-        onEditCycle={(cycle) => openCatalog("ciclo", cycle)}
+        onEdit={openEditTask}
+        onDeactivate={(task) =>
+          void deactivateTask(task)
+        }
+        onEditCycle={(cycle) =>
+          openCatalogEditor(
+            "ciclo",
+            cycle
+          )
+        }
         onEditCategory={(category) =>
-          openCatalog("categoria", category)
+          openCatalogEditor(
+            "categoria",
+            category,
+            category.cicloPhvaId
+          )
         }
         onEditStandard={(standard) =>
-          openCatalog("estandar", standard)
+          openCatalogEditor(
+            "estandar",
+            standard,
+            standard.categoriaEstandarId
+          )
         }
-        onEditAspect={(aspect) => openAspect(aspect)}
+        onEditAspect={openAspectEditor}
         onEditProcess={(process) =>
-          openCatalog("proceso", process)
+          openCatalogEditor(
+            "proceso",
+            process
+          )
         }
       />
 
@@ -419,62 +471,68 @@ export default function TasksPanel({
           {result.paginacion.total} filas
         </span>
 
-        <div className="flex items-center gap-3">
-          <span>
-            Página {result.paginacion.pagina} de{" "}
-            {result.paginacion.totalPaginas}
-          </span>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              disabled={filters.pagina <= 1 || loading}
-              onClick={() =>
-                onFiltersChange({
-                  pagina: filters.pagina - 1,
-                })
-              }
-              className="rounded-lg border border-neutral-800 px-3 py-2 disabled:opacity-40"
-            >
-              Anterior
-            </button>
-            <button
-              type="button"
-              disabled={
-                filters.pagina >=
-                  result.paginacion.totalPaginas || loading
-              }
-              onClick={() =>
-                onFiltersChange({
-                  pagina: filters.pagina + 1,
-                })
-              }
-              className="rounded-lg border border-neutral-800 px-3 py-2 disabled:opacity-40"
-            >
-              Siguiente
-            </button>
-          </div>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            disabled={
+              filters.pagina <= 1 || loading
+            }
+            onClick={() =>
+              onFiltersChange({
+                pagina: filters.pagina - 1,
+              })
+            }
+            className="rounded-lg border border-neutral-800 px-3 py-2 disabled:opacity-40"
+          >
+            Anterior
+          </button>
+          <button
+            type="button"
+            disabled={
+              filters.pagina >=
+                result.paginacion
+                  .totalPaginas || loading
+            }
+            onClick={() =>
+              onFiltersChange({
+                pagina: filters.pagina + 1,
+              })
+            }
+            className="rounded-lg border border-neutral-800 px-3 py-2 disabled:opacity-40"
+          >
+            Siguiente
+          </button>
         </div>
       </div>
 
       <SupermatrizTaskModal
-        open={taskModalOpen}
+        open={wizardOpen}
         task={editingTask}
         catalogs={catalogs}
-        versionSupermatrizId={versionSupermatrizId}
+        versionSupermatrizId={
+          versionSupermatrizId
+        }
         initialProcessId={processPresetId}
         onClose={() => {
-          setTaskModalOpen(false);
+          setWizardOpen(false);
           setEditingTask(null);
           setProcessPresetId(null);
         }}
-        onSave={saveTask}
+        onSaveTask={saveTask}
+        onSaveCycle={onSaveCycle}
+        onSaveCategory={onSaveCategory}
+        onSaveStandard={onSaveStandard}
+        onSaveAspect={onSaveAspect}
+        onSaveProcess={onSaveProcess}
       />
 
       <MatrixTaskDetailModal
         open={Boolean(viewingTask)}
         task={viewingTask}
         canEdit={canEdit}
-        onClose={() => setViewingTask(null)}
+        onClose={() =>
+          setViewingTask(null)
+        }
         onEdit={openEditTask}
       />
 
@@ -482,59 +540,39 @@ export default function TasksPanel({
         open={catalogEditor.open}
         kind={catalogEditor.kind}
         current={catalogEditor.current}
-        initialParentId={catalogEditor.initialParentId}
-        versionSupermatrizId={versionSupermatrizId}
+        versionSupermatrizId={
+          versionSupermatrizId
+        }
         catalogs={catalogs}
-        onClose={() => setCatalogEditor(CLOSED_CATALOG_EDITOR)}
+        initialParentId={
+          catalogEditor.initialParentId
+        }
+        onClose={() =>
+          setCatalogEditor(
+            CLOSED_CATALOG_EDITOR
+          )
+        }
         onDeactivate={
           catalogEditor.current
             ? deactivateCatalogCurrent
             : undefined
         }
-        onSaveCycle={async (current, payload) => {
-          const result = await onSaveCycle(current, payload);
-          void showSuccessToast(
-            current ? "Ciclo actualizado" : "Ciclo creado",
-            "Ya está disponible en la matriz."
-          );
-          return result;
-        }}
-        onSaveCategory={async (current, payload) => {
-          const result = await onSaveCategory(current, payload);
-          void showSuccessToast(
-            current
-              ? "Categoría actualizada"
-              : "Categoría creada",
-            "Ya está conectada con su ciclo PHVA."
-          );
-          return result;
-        }}
-        onSaveStandard={async (current, payload) => {
-          const result = await onSaveStandard(current, payload);
-          void showSuccessToast(
-            current
-              ? "Estándar actualizado"
-              : "Estándar creado",
-            "Ya está disponible para crear aspectos."
-          );
-          return result;
-        }}
-        onSaveProcess={async (current, payload) => {
-          const result = await onSaveProcess(current, payload);
-          void showSuccessToast(
-            current ? "Proceso actualizado" : "Proceso creado",
-            "Ya puede seleccionarse en una fila de la matriz."
-          );
-          return result;
-        }}
+        onSaveCycle={onSaveCycle}
+        onSaveCategory={onSaveCategory}
+        onSaveStandard={onSaveStandard}
+        onSaveProcess={onSaveProcess}
       />
 
       <AspectEditorModal
         open={aspectEditor.open}
         current={aspectEditor.current}
-        initialStandardId={aspectEditor.initialStandardId}
-        versionSupermatrizId={versionSupermatrizId}
+        versionSupermatrizId={
+          versionSupermatrizId
+        }
         catalogs={catalogs}
+        initialStandardId={
+          aspectEditor.initialStandardId
+        }
         onClose={() =>
           setAspectEditor({
             open: false,
@@ -547,107 +585,53 @@ export default function TasksPanel({
             ? deactivateAspectCurrent
             : undefined
         }
-        onSave={async (current, payload) => {
-          const result = await onSaveAspect(current, payload);
-          void showSuccessToast(
-            current ? "Aspecto actualizado" : "Aspecto creado",
-            "Su plan, periodicidad y reglas ya aparecen en la matriz."
-          );
-          return result;
-        }}
+        onSave={onSaveAspect}
       />
     </div>
   );
 }
 
-function CreateMenu({
-  onCreateCycle,
-  onCreateCategory,
-  onCreateStandard,
-  onCreateAspect,
-  onCreateProcess,
-}: {
-  onCreateCycle: () => void;
-  onCreateCategory: () => void;
-  onCreateStandard: () => void;
-  onCreateAspect: () => void;
-  onCreateProcess: () => void;
-}) {
+function StructureGuide() {
   return (
-    <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-[310px] overflow-hidden rounded-2xl border border-neutral-700 bg-[#111111] p-2 shadow-2xl">
-      <p className="px-3 pb-2 pt-1 text-[10px] font-bold uppercase tracking-wider text-neutral-600">
-        Construye de arriba hacia abajo
-      </p>
-      <CreateOption
-        number="1"
-        icon={Layers3}
-        title="Ciclo PHVA"
-        description="Nivel superior: Planear, Hacer, Verificar o Actuar."
-        onClick={onCreateCycle}
-      />
-      <CreateOption
-        number="2"
-        icon={GitBranch}
-        title="Categoría del estándar"
-        description="Agrupa estándares dentro de un ciclo."
-        onClick={onCreateCategory}
-      />
-      <CreateOption
-        number="3"
-        icon={GitBranch}
-        title="Estándar"
-        description="Contiene aspectos y grupos 7/21/60."
-        onClick={onCreateStandard}
-      />
-      <CreateOption
-        number="4"
-        icon={FilePlus2}
-        title="Aspecto"
-        description="Punto evaluable con plan, vigencia y evidencia."
-        onClick={onCreateAspect}
-      />
-      <CreateOption
-        number="5"
-        icon={Workflow}
-        title="Proceso"
-        description="Se conecta con el aspecto por medio de una fila."
-        onClick={onCreateProcess}
-      />
-    </div>
-  );
-}
+    <section className="rounded-2xl border border-neutral-800/70 bg-[#0d0d0d] p-4">
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-center">
+        <div className="xl:w-52">
+          <p className="text-xs font-semibold text-white">
+            Cómo se construye una fila
+          </p>
+          <p className="mt-1 text-[11px] leading-5 text-neutral-600">
+            El asistente sigue este orden y evita relaciones incompletas.
+          </p>
+        </div>
 
-function CreateOption({
-  number,
-  icon: Icon,
-  title,
-  description,
-  onClick,
-}: {
-  number: string;
-  icon: typeof Layers3;
-  title: string;
-  description: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex w-full items-start gap-3 rounded-xl px-3 py-3 text-left hover:bg-neutral-800/70"
-    >
-      <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-cyan-500/15 bg-cyan-500/5 text-cyan-400">
-        <Icon size={17} />
-        <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-white text-[9px] font-black text-black">
-          {number}
-        </span>
+        <div className="grid flex-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
+          {guideSteps.map((item, index) => {
+            const Icon = item.icon;
+            return (
+              <div
+                key={item.number}
+                className="relative flex items-center gap-3 rounded-xl border border-neutral-800 bg-[#090909] p-3"
+              >
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-400">
+                  <Icon size={15} />
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-medium text-neutral-300">
+                    {item.number}. {item.title}
+                  </p>
+                  <p className="mt-0.5 truncate text-[10px] text-neutral-600">
+                    {item.text}
+                  </p>
+                </div>
+                {index <
+                  guideSteps.length - 1 && (
+                  <ArrowRight className="absolute -right-2.5 z-10 hidden h-4 w-4 rounded-full bg-[#0d0d0d] text-neutral-700 2xl:block" />
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
-      <div>
-        <p className="text-sm font-semibold text-white">{title}</p>
-        <p className="mt-1 text-xs leading-5 text-neutral-600">
-          {description}
-        </p>
-      </div>
-    </button>
+    </section>
   );
 }
