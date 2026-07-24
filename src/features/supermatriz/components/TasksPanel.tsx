@@ -426,6 +426,7 @@ export default function TasksPanel({
 
       <SupermatrizTable
         tasks={result.items}
+        processes={catalogs.procesos}
         loading={loading}
         canEdit={canEdit}
         deactivatingTaskId={

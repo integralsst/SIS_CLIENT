@@ -240,6 +240,21 @@ export interface MatrixVersion {
   };
 }
 
+export interface MatrixTaskVersionReference {
+  id: number;
+  nombre: string;
+  estado: MatrixVersionStatus;
+  vigenteDesde: string | null;
+  vigenteHasta: string | null;
+}
+
+export interface MatrixTaskProcessReference {
+  id: number;
+  codigo: string | null;
+  nombre: string;
+  estado: RecordStatus;
+}
+
 export interface MatrixTask {
   id: number;
   versionSupermatrizId: number;
@@ -261,8 +276,8 @@ export interface MatrixTask {
   estado: RecordStatus;
   createdAt: string;
   updatedAt: string;
-  versionSupermatriz: MatrixVersion;
-  proceso: ProcessCatalog;
+  versionSupermatriz: MatrixTaskVersionReference;
+  proceso: MatrixTaskProcessReference;
   aspecto: AspectCatalog;
   categoriasGestion: Array<{
     categoriaGestionId: number;

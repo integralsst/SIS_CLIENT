@@ -31,7 +31,6 @@ type Tab =
 
 const ADMIN_ROLES = new Set([
   "ADMIN",
-  "OWNER",
   "PROPIETARIO",
   "SUPERADMIN",
 ]);

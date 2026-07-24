@@ -30,6 +30,7 @@ import StatusBadge from "./StatusBadge";
 
 interface Props {
   tasks: MatrixTask[];
+  processes: ProcessCatalog[];
   loading: boolean;
   canEdit: boolean;
   deactivatingTaskId?: number | null;
@@ -53,6 +54,7 @@ interface Props {
 
 export default function SupermatrizTable({
   tasks,
+  processes,
   loading,
   canEdit,
   deactivatingTaskId = null,
@@ -106,10 +108,16 @@ export default function SupermatrizTable({
           const isDeactivating =
             deactivatingTaskId === task.id;
 
+          const process =
+            processes.find(
+              (item) => item.id === task.procesoId
+            ) ?? null;
+
           return (
             <MatrixRowCard
               key={task.id}
               task={task}
+              process={process}
               expanded={expanded}
               canEdit={canEdit}
               isDeactivating={isDeactivating}
@@ -142,9 +150,11 @@ export default function SupermatrizTable({
               onEditAspect={() =>
                 onEditAspect(task.aspecto)
               }
-              onEditProcess={() =>
-                onEditProcess(task.proceso)
-              }
+              onEditProcess={() => {
+                if (process) {
+                  onEditProcess(process);
+                }
+              }}
             />
           );
         })
@@ -155,6 +165,7 @@ export default function SupermatrizTable({
 
 function MatrixRowCard({
   task,
+  process,
   expanded,
   canEdit,
   isDeactivating,
@@ -169,6 +180,7 @@ function MatrixRowCard({
   onEditProcess,
 }: {
   task: MatrixTask;
+  process: ProcessCatalog | null;
   expanded: boolean;
   canEdit: boolean;
   isDeactivating: boolean;
@@ -279,9 +291,9 @@ function MatrixRowCard({
           <ContentCard
             icon={<Workflow size={17} />}
             eyebrow="Proceso"
-            title={task.proceso.nombre}
+            title={process?.nombre ?? task.proceso.nombre}
             text={
-              task.proceso.descripcion ||
+              process?.descripcion ||
               "Proceso desde el cual se trabaja esta actividad."
             }
             accent="violet"
@@ -426,9 +438,9 @@ function MatrixRowCard({
                 />
                 <EditConnectedButton
                   label="Proceso"
-                  value={task.proceso.nombre}
+                  value={process?.nombre ?? task.proceso.nombre}
                   onClick={onEditProcess}
-                  disabled={!canEdit}
+                  disabled={!canEdit || !process}
                 />
                 <EditConnectedButton
                   label="Fila operativa"

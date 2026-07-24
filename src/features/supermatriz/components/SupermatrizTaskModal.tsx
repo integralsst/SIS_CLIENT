@@ -9,7 +9,6 @@ import {
   useMemo,
   useRef,
   useState,
-  type FormEvent,
 } from "react";
 
 import AppModal from "../../../components/ui/AppModal";
@@ -407,10 +406,7 @@ export default function SupermatrizTaskModal({
     );
   }
 
-  async function submit(
-    event: FormEvent<HTMLFormElement>
-  ) {
-    event.preventDefault();
+  async function saveRow() {
 
     if (
       saving ||
@@ -531,8 +527,8 @@ export default function SupermatrizTaskModal({
               </button>
             ) : (
               <button
-                type="submit"
-                form="supermatriz-guided-row-form"
+                type="button"
+                onClick={() => void saveRow()}
                 disabled={
                   saving || Boolean(editorKind)
                 }
@@ -552,10 +548,9 @@ export default function SupermatrizTaskModal({
         </div>
       }
     >
-      <form
-        id="supermatriz-guided-row-form"
-        onSubmit={submit}
+      <div
         className="space-y-5"
+        aria-busy={saving}
       >
         <StepNavigator
           currentStep={step}
@@ -735,7 +730,7 @@ export default function SupermatrizTaskModal({
             }
           />
         )}
-      </form>
+      </div>
     </AppModal>
   );
 }
