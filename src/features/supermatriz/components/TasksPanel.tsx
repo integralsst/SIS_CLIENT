@@ -422,45 +422,40 @@ export default function TasksPanel({
       />
 
       <SupermatrizTable
-        tasks={result.items}
-        loading={loading}
-        canEdit={canEdit}
-        deactivatingTaskId={
-          deactivatingTaskId
-        }
-        onView={setViewingTask}
-        onEdit={openEditTask}
-        onDeactivate={(task) =>
-          void deactivateTask(task)
-        }
-        onEditCycle={(cycle) =>
-          openCatalogEditor(
-            "ciclo",
-            cycle
-          )
-        }
-        onEditCategory={(category) =>
-          openCatalogEditor(
-            "categoria",
-            category,
-            category.cicloPhvaId
-          )
-        }
-        onEditStandard={(standard) =>
-          openCatalogEditor(
-            "estandar",
-            standard,
-            standard.categoriaEstandarId
-          )
-        }
-        onEditAspect={openAspectEditor}
-        onEditProcess={(process) =>
-          openCatalogEditor(
-            "proceso",
-            process
-          )
-        }
-      />
+  tasks={result.items}
+  processes={catalogs.procesos}
+  loading={loading}
+  canEdit={canEdit}
+  deactivatingTaskId={deactivatingTaskId}
+  onView={setViewingTask}
+  onEdit={openEditTask}
+  onDeactivate={(task) => {
+    void deactivateTask(task);
+  }}
+  onEditCycle={(cycle) =>
+    openCatalogEditor("ciclo", cycle)
+  }
+  onEditCategory={(category) =>
+    openCatalogEditor(
+      "categoria",
+      category,
+      category.cicloPhvaId
+    )
+  }
+  onEditStandard={(standard) =>
+    openCatalogEditor(
+      "estandar",
+      standard,
+      standard.categoriaEstandarId
+    )
+  }
+  onEditAspect={(aspect) =>
+    openAspectEditor(aspect)
+  }
+  onEditProcess={(process) =>
+    openCatalogEditor("proceso", process)
+  }
+/>
 
       <div className="flex flex-col items-center justify-between gap-3 rounded-2xl border border-neutral-800/70 bg-[#111111] px-4 py-3 text-xs text-neutral-500 sm:flex-row">
         <span>
