@@ -479,6 +479,7 @@ export interface HistoryResponse {
 
 export type SupermatrizTab =
   | "matriz"
+  | "estructura"
   | "versiones"
   | "historial";
 
