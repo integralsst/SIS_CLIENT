@@ -241,10 +241,12 @@ export default function Supermatriz() {
           filters={matrix.filters}
           result={matrix.tasks}
           loading={matrix.loadingTasks || matrix.loadingCatalogs}
+          loadingMore={matrix.loadingMoreTasks}
           canEdit={canEdit}
           initialProcessId={pendingProcessId}
           onInitialProcessConsumed={() => setPendingProcessId(null)}
           onFiltersChange={matrix.updateFilters}
+          onLoadMore={matrix.loadMoreTasks}
           onBuildRow={matrix.buildRow}
           onSaveTask={matrix.saveTask}
           onDeactivateTask={matrix.deactivateTask}

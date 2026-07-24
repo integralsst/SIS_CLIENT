@@ -2,6 +2,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -71,11 +72,13 @@ const EMPTY_CATALOGS: MatrixCatalogs = {
   versiones: [],
 };
 
+const TASKS_PAGE_SIZE = 50;
+
 const EMPTY_TASKS: MatrixTaskListResponse = {
   items: [],
   paginacion: {
     pagina: 1,
-    limite: 25,
+    limite: TASKS_PAGE_SIZE,
     total: 0,
     totalPaginas: 1,
   },
@@ -109,7 +112,7 @@ function initialFilters(
     estado: "ACTIVO",
     busqueda: "",
     pagina: 1,
-    limite: 25,
+    limite: TASKS_PAGE_SIZE,
   };
 }
 
@@ -164,6 +167,13 @@ export function useSupermatrizAdmin(
 
   const [loadingTasks, setLoadingTasks] =
     useState(false);
+
+  const [
+    loadingMoreTasks,
+    setLoadingMoreTasks,
+  ] = useState(false);
+
+  const taskRequestId = useRef(0);
 
   const [loadingHistory, setLoadingHistory] =
     useState(false);
@@ -317,6 +327,9 @@ export function useSupermatrizAdmin(
         return;
       }
 
+      const requestId =
+        ++taskRequestId.current;
+
       setLoadingTasks(true);
       setError(null);
 
@@ -330,23 +343,246 @@ export function useSupermatrizAdmin(
                 String(
                   selectedVersionId
                 ),
+              pagina: 1,
+              limite: TASKS_PAGE_SIZE,
             }
           );
 
-        setTasks(result);
+        if (
+          requestId ===
+          taskRequestId.current
+        ) {
+          setTasks(result);
+        }
       } catch (requestError) {
-        setError(
-          requestError instanceof Error
-            ? requestError.message
-            : "No fue posible cargar las filas."
-        );
+        if (
+          requestId ===
+          taskRequestId.current
+        ) {
+          setError(
+            requestError instanceof Error
+              ? requestError.message
+              : "No fue posible cargar las filas."
+          );
+        }
       } finally {
-        setLoadingTasks(false);
+        if (
+          requestId ===
+          taskRequestId.current
+        ) {
+          setLoadingTasks(false);
+        }
       }
     }, [
       token,
       selectedVersionId,
       filters,
+    ]);
+
+  const loadMoreTasks =
+    useCallback(async () => {
+      if (
+        !token ||
+        !selectedVersionId ||
+        loadingTasks ||
+        loadingMoreTasks ||
+        tasks.items.length >=
+          tasks.paginacion.total
+      ) {
+        return;
+      }
+
+      const nextPage =
+        Math.floor(
+          tasks.items.length /
+            TASKS_PAGE_SIZE
+        ) + 1;
+
+      const requestId =
+        ++taskRequestId.current;
+
+      setLoadingMoreTasks(true);
+      setError(null);
+
+      try {
+        const result =
+          await getMatrixTasks(
+            token,
+            {
+              ...filters,
+              versionSupermatrizId:
+                String(
+                  selectedVersionId
+                ),
+              pagina: nextPage,
+              limite: TASKS_PAGE_SIZE,
+            }
+          );
+
+        if (
+          requestId !==
+          taskRequestId.current
+        ) {
+          return;
+        }
+
+        setTasks((current) => {
+          const existingIds =
+            new Set(
+              current.items.map(
+                (item) => item.id
+              )
+            );
+
+          const newItems =
+            result.items.filter(
+              (item) =>
+                !existingIds.has(
+                  item.id
+                )
+            );
+
+          return {
+            items: [
+              ...current.items,
+              ...newItems,
+            ],
+            paginacion:
+              result.paginacion,
+          };
+        });
+      } catch (requestError) {
+        if (
+          requestId ===
+          taskRequestId.current
+        ) {
+          setError(
+            requestError instanceof Error
+              ? requestError.message
+              : "No fue posible cargar más filas."
+          );
+        }
+      } finally {
+        if (
+          requestId ===
+          taskRequestId.current
+        ) {
+          setLoadingMoreTasks(false);
+        }
+      }
+    }, [
+      token,
+      selectedVersionId,
+      filters,
+      loadingTasks,
+      loadingMoreTasks,
+      tasks.items.length,
+      tasks.paginacion.total,
+    ]);
+
+  const reloadLoadedTasks =
+    useCallback(async () => {
+      if (
+        !token ||
+        !selectedVersionId
+      ) {
+        setTasks(EMPTY_TASKS);
+        return;
+      }
+
+      const visiblePages = Math.max(
+        1,
+        Math.ceil(
+          Math.max(
+            tasks.items.length,
+            TASKS_PAGE_SIZE
+          ) / TASKS_PAGE_SIZE
+        )
+      );
+
+      const requestId =
+        ++taskRequestId.current;
+
+      setLoadingTasks(true);
+      setError(null);
+
+      try {
+        const pages =
+          await Promise.all(
+            Array.from(
+              { length: visiblePages },
+              (_, index) =>
+                getMatrixTasks(
+                  token,
+                  {
+                    ...filters,
+                    versionSupermatrizId:
+                      String(
+                        selectedVersionId
+                      ),
+                    pagina: index + 1,
+                    limite:
+                      TASKS_PAGE_SIZE,
+                  }
+                )
+            )
+          );
+
+        if (
+          requestId !==
+          taskRequestId.current
+        ) {
+          return;
+        }
+
+        const byId = new Map<
+          number,
+          MatrixTask
+        >();
+
+        pages.forEach((page) => {
+          page.items.forEach((item) => {
+            byId.set(item.id, item);
+          });
+        });
+
+        const lastPage =
+          pages[pages.length - 1] ??
+          EMPTY_TASKS;
+
+        setTasks({
+          items: Array.from(
+            byId.values()
+          ),
+          paginacion:
+            lastPage.paginacion,
+        });
+      } catch (requestError) {
+        if (
+          requestId ===
+          taskRequestId.current
+        ) {
+          setError(
+            requestError instanceof Error
+              ? requestError.message
+              : "No fue posible actualizar las filas visibles."
+          );
+        }
+
+        throw requestError;
+      } finally {
+        if (
+          requestId ===
+          taskRequestId.current
+        ) {
+          setLoadingTasks(false);
+        }
+      }
+    }, [
+      token,
+      selectedVersionId,
+      filters,
+      tasks.items.length,
     ]);
 
   const loadHistory =
@@ -411,7 +647,7 @@ export function useSupermatrizAdmin(
         await loadVersions();
         await Promise.all([
           loadCatalogs(),
-          loadTasks(),
+          reloadLoadedTasks(),
           loadHistory(
             history.paginacion.pagina
           ),
@@ -429,7 +665,7 @@ export function useSupermatrizAdmin(
     }, [
       loadVersions,
       loadCatalogs,
-      loadTasks,
+      reloadLoadedTasks,
       loadHistory,
       history.paginacion.pagina,
     ]);
@@ -442,14 +678,8 @@ export function useSupermatrizAdmin(
         setFilters((current) => ({
           ...current,
           ...patch,
-          pagina:
-            patch.pagina ??
-            (Object.keys(patch).some(
-              (key) =>
-                key !== "pagina"
-            )
-              ? 1
-              : current.pagina),
+          pagina: 1,
+          limite: TASKS_PAGE_SIZE,
           versionSupermatrizId:
             String(
               selectedVersionId ??
@@ -483,7 +713,7 @@ export function useSupermatrizAdmin(
           ? loadCatalogs()
           : Promise.resolve(),
         options?.tasks
-          ? loadTasks()
+          ? reloadLoadedTasks()
           : Promise.resolve(),
         options?.history
           ? loadHistory(
@@ -517,6 +747,7 @@ export function useSupermatrizAdmin(
     loadingVersions,
     loadingCatalogs,
     loadingTasks,
+    loadingMoreTasks,
     loadingHistory,
     refreshing,
     mutating,
@@ -524,6 +755,7 @@ export function useSupermatrizAdmin(
     setSelectedVersionId,
     updateFilters,
     refreshAll,
+    loadMoreTasks,
     loadHistory,
 
     createVersion: (

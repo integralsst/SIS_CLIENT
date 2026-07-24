@@ -1,4 +1,5 @@
 import {
+  Loader2,
   Plus,
   Rows3,
 } from "lucide-react";
@@ -46,10 +47,12 @@ interface Props {
   filters: MatrixFilters;
   result: MatrixTaskListResponse;
   loading: boolean;
+  loadingMore: boolean;
   canEdit: boolean;
   initialProcessId?: number | null;
   onInitialProcessConsumed?: () => void;
   onFiltersChange: (patch: Partial<MatrixFilters>) => void;
+  onLoadMore: () => Promise<void>;
   onBuildRow: (payload: BuildMatrixRowPayload) => Promise<unknown>;
   onSaveTask: (
     current: MatrixTask | null,
@@ -88,10 +91,12 @@ export default function TasksPanel({
   filters,
   result,
   loading,
+  loadingMore,
   canEdit,
   initialProcessId = null,
   onInitialProcessConsumed,
   onFiltersChange,
+  onLoadMore,
   onBuildRow,
   onSaveTask,
   onDeactivateTask,
@@ -296,25 +301,35 @@ export default function TasksPanel({
       />
 
       <div className="flex flex-col items-center justify-between gap-3 rounded-xl border border-neutral-800/70 bg-[#111111] px-4 py-3 text-xs text-neutral-500 sm:flex-row">
-        <span>Mostrando {result.items.length} de {result.paginacion.total}</span>
-        <div className="flex gap-2">
+        <span>
+          Mostrando {result.items.length} de {result.paginacion.total}
+        </span>
+
+        {result.items.length < result.paginacion.total ? (
           <button
             type="button"
-            disabled={filters.pagina <= 1 || loading}
-            onClick={() => onFiltersChange({ pagina: filters.pagina - 1 })}
-            className="rounded-lg border border-neutral-800 px-3 py-2 disabled:opacity-40"
+            disabled={loading || loadingMore}
+            onClick={() => {
+              void onLoadMore();
+            }}
+            className="flex min-h-9 items-center justify-center gap-2 rounded-lg border border-neutral-800 bg-[#090909] px-4 font-semibold text-neutral-300 transition hover:border-neutral-700 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Anterior
+            {loadingMore ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Cargando filas…
+              </>
+            ) : (
+              <>
+                Cargar 50 filas más
+              </>
+            )}
           </button>
-          <button
-            type="button"
-            disabled={filters.pagina >= result.paginacion.totalPaginas || loading}
-            onClick={() => onFiltersChange({ pagina: filters.pagina + 1 })}
-            className="rounded-lg border border-neutral-800 px-3 py-2 disabled:opacity-40"
-          >
-            Siguiente
-          </button>
-        </div>
+        ) : (
+          <span className="rounded-lg border border-emerald-500/15 bg-emerald-500/5 px-3 py-2 font-semibold text-emerald-400/80">
+            Todas las filas están cargadas
+          </span>
+        )}
       </div>
 
       <SupermatrizTaskModal
