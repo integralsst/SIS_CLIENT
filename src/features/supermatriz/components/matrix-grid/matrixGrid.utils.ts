@@ -11,25 +11,26 @@ import type {
 
 export const MATRIX_COLUMNS: MatrixColumnDefinition[] = [
   {
+    key: "orden",
+    label: "Orden",
+    width: 74,
+    defaultVisible: true,
+    stickyLeft: 0,
+  },
+  {
     key: "estandar",
     label: "Estándar",
     width: 350,
     defaultVisible: true,
-    stickyLeft: 0,
+    stickyLeft: 74,
   },
   {
     key: "aspecto",
     label: "Aspecto",
     width: 370,
     defaultVisible: true,
-    stickyLeft: 350,
+    stickyLeft: 424,
     tone: "amber",
-  },
-  {
-    key: "orden",
-    label: "Orden",
-    width: 74,
-    defaultVisible: true,
   },
   {
     key: "proceso",
