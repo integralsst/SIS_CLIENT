@@ -21,7 +21,7 @@ import type {
   Standard,
   StandardCategory,
 } from "../../types/supermatriz.types";
-import StatusBadge from "../StatusBadge";
+
 import MatrixCellMenu from "./MatrixCellMenu";
 import MatrixColumnPicker from "./MatrixColumnPicker";
 import MatrixMultiSelectEditor from "./MatrixMultiSelectEditor";
