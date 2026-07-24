@@ -349,7 +349,7 @@ export default function Supermatriz() {
           onFiltersChange={
             matrix.updateFilters
           }
-          onSaveTask={matrix.saveTask}
+          onBuildRow={matrix.buildRow}
           onDeactivateTask={
             matrix.deactivateTask
           }

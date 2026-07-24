@@ -240,21 +240,6 @@ export interface MatrixVersion {
   };
 }
 
-export interface MatrixTaskVersionReference {
-  id: number;
-  nombre: string;
-  estado: MatrixVersionStatus;
-  vigenteDesde: string | null;
-  vigenteHasta: string | null;
-}
-
-export interface MatrixTaskProcessReference {
-  id: number;
-  codigo: string | null;
-  nombre: string;
-  estado: RecordStatus;
-}
-
 export interface MatrixTask {
   id: number;
   versionSupermatrizId: number;
@@ -276,8 +261,8 @@ export interface MatrixTask {
   estado: RecordStatus;
   createdAt: string;
   updatedAt: string;
-  versionSupermatriz: MatrixTaskVersionReference;
-  proceso: MatrixTaskProcessReference;
+  versionSupermatriz: MatrixVersion;
+  proceso: ProcessCatalog;
   aspecto: AspectCatalog;
   categoriasGestion: Array<{
     categoriaGestionId: number;
@@ -496,3 +481,78 @@ export type SupermatrizTab =
   | "matriz"
   | "versiones"
   | "historial";
+
+// ======================================================
+// CONSTRUCCIÓN GUIADA DE FILA EN ORDEN INVERSO
+// ======================================================
+
+export type BuilderEntityMode =
+  | "EXISTENTE"
+  | "NUEVO";
+
+export interface ExistingBuilderReference {
+  modo: "EXISTENTE";
+  id: number;
+}
+
+export interface NewBuilderReference<TData> {
+  modo: "NUEVO";
+  datos: TData;
+}
+
+export type BuilderReference<TData> =
+  | ExistingBuilderReference
+  | NewBuilderReference<TData>;
+
+export type BuilderCycleDraft = Omit<
+  CyclePayload,
+  "versionSupermatrizId"
+>;
+
+export type BuilderCategoryDraft = Omit<
+  StandardCategoryPayload,
+  "versionSupermatrizId" | "cicloPhvaId"
+>;
+
+export type BuilderStandardDraft = Omit<
+  StandardPayload,
+  "versionSupermatrizId" | "categoriaEstandarId"
+>;
+
+export type BuilderAspectDraft = Omit<
+  AspectPayload,
+  "versionSupermatrizId" | "estandarId"
+>;
+
+export type BuilderProcessDraft = Omit<
+  ProcessPayload,
+  "versionSupermatrizId"
+>;
+
+export type BuilderTaskDraft = Omit<
+  MatrixTaskPayload,
+  "versionSupermatrizId" | "aspectoId" | "procesoId"
+>;
+
+export interface BuildMatrixRowPayload {
+  versionSupermatrizId: number;
+  tareaId: number | null;
+  aspecto: BuilderReference<BuilderAspectDraft>;
+  estandar?: BuilderReference<BuilderStandardDraft>;
+  categoria?: BuilderReference<BuilderCategoryDraft>;
+  ciclo?: BuilderReference<BuilderCycleDraft>;
+  proceso: BuilderReference<BuilderProcessDraft>;
+  fila: BuilderTaskDraft;
+}
+
+export interface BuildMatrixRowResponse {
+  operacion: "CREAR" | "ACTUALIZAR";
+  tarea: MatrixTask;
+  creados: {
+    cicloPhvaId: number | null;
+    categoriaEstandarId: number | null;
+    estandarId: number | null;
+    aspectoId: number | null;
+    procesoId: number | null;
+  };
+}

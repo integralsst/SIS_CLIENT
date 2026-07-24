@@ -20,6 +20,9 @@ import {
   showSuccessToast,
 } from "../../../lib/stack44-alerts";
 import type {
+  BuildMatrixRowPayload,
+} from "../types/supermatriz.types";
+import type {
   AspectCatalog,
   AspectPayload,
   CyclePayload,
@@ -27,7 +30,6 @@ import type {
   MatrixFilters,
   MatrixTask,
   MatrixTaskListResponse,
-  MatrixTaskPayload,
   PhvaCycle,
   ProcessCatalog,
   ProcessPayload,
@@ -58,9 +60,8 @@ interface Props {
   onFiltersChange: (
     patch: Partial<MatrixFilters>
   ) => void;
-  onSaveTask: (
-    current: MatrixTask | null,
-    payload: MatrixTaskPayload
+  onBuildRow: (
+    payload: BuildMatrixRowPayload
   ) => Promise<unknown>;
   onDeactivateTask: (
     id: number
@@ -119,27 +120,27 @@ const CLOSED_CATALOG_EDITOR: CatalogEditorState = {
 const guideSteps = [
   {
     number: "1",
-    title: "Ciclo PHVA",
-    text: "Nivel superior",
-    icon: Route,
+    title: "Aspecto",
+    text: "Qué se evalúa",
+    icon: ClipboardCheck,
   },
   {
     number: "2",
+    title: "Estándar",
+    text: "Contiene el aspecto",
+    icon: FileText,
+  },
+  {
+    number: "3",
     title: "Categoría",
     text: "Agrupa estándares",
     icon: Layers3,
   },
   {
-    number: "3",
-    title: "Estándar",
-    text: "Contiene aspectos",
-    icon: FileText,
-  },
-  {
     number: "4",
-    title: "Aspecto",
-    text: "Punto evaluable",
-    icon: ClipboardCheck,
+    title: "Ciclo PHVA",
+    text: "Nivel superior",
+    icon: Route,
   },
   {
     number: "5",
@@ -150,7 +151,7 @@ const guideSteps = [
   {
     number: "6",
     title: "Fila",
-    text: "Une y ejecuta",
+    text: "Conecta y guarda",
     icon: Rows3,
   },
 ];
@@ -165,7 +166,7 @@ export default function TasksPanel({
   initialProcessId = null,
   onInitialProcessConsumed,
   onFiltersChange,
-  onSaveTask,
+  onBuildRow,
   onDeactivateTask,
   onSaveCycle,
   onSaveCategory,
@@ -255,23 +256,19 @@ export default function TasksPanel({
     });
   }
 
-  async function saveTask(
-    payload: MatrixTaskPayload
+  async function buildRow(
+    payload: BuildMatrixRowPayload
   ) {
-    const wasEditing =
-      Boolean(editingTask);
-    const response = await onSaveTask(
-      editingTask,
-      payload
-    );
+    const wasEditing = Boolean(editingTask);
+    const response = await onBuildRow(payload);
 
     void showSuccessToast(
       wasEditing
         ? "Fila actualizada"
-        : "Fila creada",
+        : "Fila completa creada",
       wasEditing
         ? "Los cambios ya aparecen en la matriz."
-        : "La estructura y la operación quedaron conectadas correctamente."
+        : "El ciclo, la categoría, el estándar, el aspecto, el proceso y la fila se guardaron sin dejar registros parciales."
     );
 
     return response;
@@ -392,7 +389,7 @@ export default function TasksPanel({
                 Constructor de la Supermatriz
               </h2>
               <p className="mt-1 max-w-3xl text-sm leading-6 text-neutral-500">
-                Cada tarjeta representa una fila completa. El asistente te guía para crear la ruta, el aspecto, el proceso y la ejecución sin saltar entre pestañas.
+                Cada tarjeta representa una fila completa. El asistente comienza por el aspecto y construye hacia arriba el estándar, la categoría y el ciclo PHVA antes de conectar el proceso y la fila.
               </p>
             </div>
           </div>
@@ -426,7 +423,6 @@ export default function TasksPanel({
 
       <SupermatrizTable
         tasks={result.items}
-        processes={catalogs.procesos}
         loading={loading}
         canEdit={canEdit}
         deactivatingTaskId={
@@ -519,12 +515,7 @@ export default function TasksPanel({
           setEditingTask(null);
           setProcessPresetId(null);
         }}
-        onSaveTask={saveTask}
-        onSaveCycle={onSaveCycle}
-        onSaveCategory={onSaveCategory}
-        onSaveStandard={onSaveStandard}
-        onSaveAspect={onSaveAspect}
-        onSaveProcess={onSaveProcess}
+        onBuildRow={buildRow}
       />
 
       <MatrixTaskDetailModal
@@ -601,7 +592,7 @@ function StructureGuide() {
             Cómo se construye una fila
           </p>
           <p className="mt-1 text-[11px] leading-5 text-neutral-600">
-            El asistente sigue este orden y evita relaciones incompletas.
+            El usuario diligencia en este orden inverso; el backend guarda en el orden relacional correcto dentro de una sola transacción.
           </p>
         </div>
 

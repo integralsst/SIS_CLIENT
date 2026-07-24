@@ -3,6 +3,10 @@ import {
 } from "../../../lib/api";
 
 import type {
+  BuildMatrixRowPayload,
+  BuildMatrixRowResponse,
+} from "../types/supermatriz.types";
+import type {
   AspectCatalog,
   AspectPayload,
   CyclePayload,
@@ -104,6 +108,20 @@ export function getMatrixTasks(
       >
     ),
     {},
+    token
+  );
+}
+
+export function buildMatrixRow(
+  token: string,
+  payload: BuildMatrixRowPayload
+) {
+  return apiRequest<BuildMatrixRowResponse>(
+    `${BASE_PATH}/construir-fila`,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    },
     token
   );
 }

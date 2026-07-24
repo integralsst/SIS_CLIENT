@@ -6,6 +6,7 @@ import {
 } from "react";
 
 import {
+  buildMatrixRow,
   cloneMatrixVersion,
   closeMatrixVersion,
   createAspect,
@@ -35,6 +36,9 @@ import {
   updateStandardCategory,
 } from "../api/supermatriz.api";
 
+import type {
+  BuildMatrixRowPayload,
+} from "../types/supermatriz.types";
 import type {
   AspectCatalog,
   AspectPayload,
@@ -607,6 +611,23 @@ export function useSupermatrizAdmin(
           closeMatrixVersion(
             token!,
             id
+          ),
+        {
+          versions: true,
+          catalogs: true,
+          tasks: true,
+          history: true,
+        }
+      ),
+
+    buildRow: (
+      payload: BuildMatrixRowPayload
+    ) =>
+      mutation(
+        () =>
+          buildMatrixRow(
+            token!,
+            payload
           ),
         {
           versions: true,
