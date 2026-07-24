@@ -292,10 +292,7 @@ export function useSupermatrizAdmin(
             true
           );
 
-        setCatalogs({
-          ...result,
-          versiones: versions,
-        });
+        setCatalogs(result);
       } catch (requestError) {
         setError(
           requestError instanceof Error
@@ -308,7 +305,6 @@ export function useSupermatrizAdmin(
     }, [
       token,
       selectedVersionId,
-      versions,
     ]);
 
   const loadTasks =
@@ -654,6 +650,7 @@ export function useSupermatrizAdmin(
                 payload
               ),
         {
+          versions: true,
           catalogs: true,
           tasks: true,
           history: true,
@@ -670,6 +667,7 @@ export function useSupermatrizAdmin(
             id
           ),
         {
+          versions: true,
           catalogs: true,
           tasks: true,
           history: true,
@@ -693,7 +691,9 @@ export function useSupermatrizAdmin(
                 payload
               ),
         {
+          versions: true,
           catalogs: true,
+          tasks: true,
           history: true,
         }
       ),
@@ -708,7 +708,9 @@ export function useSupermatrizAdmin(
             id
           ),
         {
+          versions: true,
           catalogs: true,
+          tasks: true,
           history: true,
         }
       ),
@@ -730,7 +732,9 @@ export function useSupermatrizAdmin(
                 payload
               ),
         {
+          versions: true,
           catalogs: true,
+          tasks: true,
           history: true,
         }
       ),
@@ -745,7 +749,9 @@ export function useSupermatrizAdmin(
             id
           ),
         {
+          versions: true,
           catalogs: true,
+          tasks: true,
           history: true,
         }
       ),
@@ -767,7 +773,9 @@ export function useSupermatrizAdmin(
                 payload
               ),
         {
+          versions: true,
           catalogs: true,
+          tasks: true,
           history: true,
         }
       ),
@@ -782,7 +790,9 @@ export function useSupermatrizAdmin(
             id
           ),
         {
+          versions: true,
           catalogs: true,
+          tasks: true,
           history: true,
         }
       ),
@@ -804,6 +814,7 @@ export function useSupermatrizAdmin(
                 payload
               ),
         {
+          versions: true,
           catalogs: true,
           tasks: true,
           history: true,
@@ -820,6 +831,7 @@ export function useSupermatrizAdmin(
             id
           ),
         {
+          versions: true,
           catalogs: true,
           tasks: true,
           history: true,
@@ -843,6 +855,7 @@ export function useSupermatrizAdmin(
                 payload
               ),
         {
+          versions: true,
           catalogs: true,
           tasks: true,
           history: true,
@@ -859,6 +872,7 @@ export function useSupermatrizAdmin(
             id
           ),
         {
+          versions: true,
           catalogs: true,
           tasks: true,
           history: true,
